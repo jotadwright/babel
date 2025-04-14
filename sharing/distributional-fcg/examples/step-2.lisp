@@ -3,28 +3,40 @@
 
 (in-package :propbank-grammar)
 
-;(setf nlp-tools::*penelope-host* "http://127.0.0.1:5000")
-;(setf nlp-tools::*embedding-host* "http://127.0.0.1:5001")
+;;; set host for embeddings and syntactic analysis (needed for the examples)
+
+(setf nlp-tools::*penelope-host* "http://127.0.0.1:5000")
+(setf nlp-tools::*embedding-host* "http://127.0.0.1:5001")
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;               Load in ontonotes and ewt                  ;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (setf *ontonotes-annotations-storage-file*
-      (merge-pathnames (make-pathname :directory (cons :relative '("propbank-annotations"))
+      (merge-pathnames (make-pathname :directory (cons :relative '("Frames\ and\ Propbank" "propbank-annotations"))
                                       :name "ontonotes-annotations"
                                       :type #+lispworks "lw.store" #+ccl "ccl.store" #+sbcl "sbcl.store")
                        *babel-corpora*))
 
-(setf *ewt-annotations-storage-file* (merge-pathnames (make-pathname :directory (cons :relative '("propbank-annotations"))
-                                                                       :name "ewt-annotations"
-                                                                       :type #+lispworks "lw.store" #+ccl "ccl.store" #+sbcl "sbcl.store")
+(setf *ewt-annotations-storage-file* (merge-pathnames (make-pathname :directory (cons :relative '("Frames\ and\ Propbank" "propbank-annotations"))
+                                                                     :name "ewt-annotations"
+                                                                     :type #+lispworks "lw.store" #+ccl "ccl.store" #+sbcl "sbcl.store")
                                                         *babel-corpora*))
 
 
 
-  (load-propbank-annotations 'ewt :ignore-stored-data nil)
-  (load-propbank-annotations 'ontonotes :ignore-stored-data nil)
+(load-propbank-annotations 'ewt :ignore-stored-data nil)
+(load-propbank-annotations 'ontonotes :ignore-stored-data nil)
 
 ; *ewt-annotations*
 ; *ontonotes-annotations*
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;         Restore the grammar or learn from scratch           ;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; learn
+(progn
 
 (defparameter *training-configuration*
   `((:de-render-mode .  :de-render-constituents-dependents)
@@ -71,15 +83,49 @@
 (preprocessing-and-configs *propbank-ewt-ontonotes-teach-cxn-inventory* :step-2)
 
 (cl-store:store *propbank-ewt-ontonotes-teach-cxn-inventory*
-                (merge-pathnames (make-pathname   :name "ewt-ontonotes-distributional-teach-grammar-4-april"
+                (merge-pathnames (make-pathname :directory (cons :relative '("Frames\ and\ Propbank"
+                                                                                "distributional-fcg"))
+                                                :name "cxn-inventory-teach-example"
                                                   :type #+lispworks "lw.store" #+ccl "ccl.store" #+sbcl "sbcl.store")
                                  *babel-corpora*))
+)
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;     Comprehend!!!     ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defparameter *propbank-ewt-ontonotes-teach-cxn-inventory*
+  (cl-store:restore 
+                (merge-pathnames (make-pathname :directory (cons :relative '("Frames\ and\ Propbank"
+                                                                                "distributional-fcg"))
+                                                :name "cxn-inventory-teach-example"
+                                                  :type #+lispworks "lw.store" #+ccl "ccl.store" #+sbcl "sbcl.store")
+                                 *babel-corpora*)))
+
+
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;          Comprehend the chosen ones         ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (activate-monitor trace-fcg)
 
+(defparameter *teach-solutions-for-paper*
+  (loop for sentence in *teach-sentences*
+        for sentence-string = (sentence-string sentence)
+          when (find sentence-string (list "Again , many people came to him , and Jesus taught them as he always did ."
+                                           "One day Jesus was in the Temple area teaching the people ."
+                                           "You always teach the truth about God 's way ."
+                                           "Also , men from your own group will begin to teach things that are wrong ."
+                                           "Jesus taught the people in the Temple area every day .")
+                     :test #'string=)
+        do (comprehend sentence-string
+                       :cxn-inventory *propbank-ewt-ontonotes-teach-cxn-inventory*
+                       :timeout 60)))
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;          Older examples         ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; wrong prediction: children arg1 
 (comprehend "he teaches children"
@@ -144,18 +190,7 @@
                        :cxn-inventory *propbank-ewt-ontonotes-teach-cxn-inventory*
                        :timeout 60)))
 
-(defparameter *teach-solutions-for-paper*
-  (loop for sentence in *teach-sentences*
-        for sentence-string = (sentence-string sentence)
-          when (find sentence-string (list "Again , many people came to him , and Jesus taught them as he always did ."
-                                           "One day Jesus was in the Temple area teaching the people ."
-                                           "You always teach the truth about God 's way ."
-                                           "Also , men from your own group will begin to teach things that are wrong ."
-                                           "Jesus taught the people in the Temple area every day .")
-                     :test #'string=)
-        do (comprehend sentence-string
-                       :cxn-inventory *propbank-ewt-ontonotes-teach-cxn-inventory*
-                       :timeout 60)))
+
 
 
 (defun find-sentences-by-role (role list-of-propbank-sentences)
@@ -173,3 +208,4 @@
 ;; Comprehending "Also , men from your own group will begin to teach things that are wrong ." !! ;; dev
 ;; Comprehending "Jesus taught the people in the Temple area every day ." ?? ;; test
 
+(add-element (make-html *propbank-ewt-ontonotes-teach-cxn-inventory*))
