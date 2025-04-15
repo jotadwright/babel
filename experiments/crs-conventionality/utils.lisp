@@ -149,17 +149,21 @@
 
 (defun store-experiment (experiment interaction)
   
-  (let* ((exp-name (get-configuration experiment :exp-name))
+  (let* ((exp-top-dir (get-configuration experiment :exp-top-dir))
+         (log-dir-name (get-configuration experiment :log-dir-name))
+         (exp-name (get-configuration experiment :exp-name))
+         (dataset-split (get-configuration experiment :dataset-split))
          (current-interaction (interaction-number interaction))
          (date (get-current-date))
-         (filename (format nil "~a-int-~a-s~a" exp-name current-interaction (mkstr (random 10) (random 10) (random 10) (random 10) (random 10))))
+         (filename (format nil "seed-~a-interaction-~a" (get-configuration experiment :seed) current-interaction))
          (path (babel-pathname
-                :directory `("experiments" 
-                             "crs-conventionality" 
-                             "logging" 
-                             "stores"
+                :directory `("experiments"
+                            "crs-conventionality"
+                            "logging"
+                             ,exp-top-dir
+                             ,dataset-split
                              ,exp-name
-                             ,date)
+                             "stores")
                 :name filename
                 :type #+lispworks "lw.store" #+ccl "ccl.store" #+sbcl "sbcl.store")))
     
