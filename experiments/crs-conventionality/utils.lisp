@@ -145,7 +145,7 @@
         ((equal (type-of (first agents)) 'CRS-CONVENTIONALITY::CONCEPT-EMERGENCE-GAME-AGENT)
          (loop for agent in agents 
                do (set-data (blackboard (grammar agent)) :primitive-inventory *concept-emergence-game-primitives*)
-                  (set-data (blackboard *naming-game-primitives*) :ontology (get-data (blackboard (grammar agent)) :ontology))))))
+                  (set-data (blackboard *concept-emergence-game-primitives*) :ontology (get-data (blackboard (grammar agent)) :ontology))))))
 
 (defun store-experiment (experiment interaction)
   
