@@ -204,3 +204,18 @@
                 :y2-min 0
                 :draw-y1-grid t
                 :error-bars nil)
+
+;; ---------------------
+;; + Store experiment  +
+;; ---------------------
+
+(define-monitor store-every-x-interactions
+                :documentation "Stores experiment every x interactions")
+  
+(define-event-handler (store-every-x-interactions interaction-finished)
+  (when (get-configuration experiment :store-every-x-interactions)
+    ;; every x interactions -> store experiment 
+    (when (= (mod (interaction-number interaction)
+                  (get-configuration experiment :store-every-x-interactions))
+             0)
+      (store-experiment experiment interaction))))
