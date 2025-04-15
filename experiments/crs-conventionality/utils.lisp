@@ -78,8 +78,12 @@
   (loop for value being the hash-values of ht
         collect value))
 
-;;  Data loading utils  ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                            ;;
+;;  Data loading and storing  ;;
+;;                            ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun create-path (dataset-name dataset-split)
   "Creates path for concept emergence experiments."
@@ -132,28 +136,52 @@
                                                                   ,(assqv :datasplit config)
                                                                   ,(assqv :exp-name config))))))))
 
-(defun run-batch-and-save (experiment-class 
-                           number-of-interactions
-                           number-of-series
-                           &rest experiment-parameters)
-  "Runs a series of experiments. Each time a new instance of experiment
-   is created, saved once finished."
-  (notify reset-monitors)
-  (set-seed (assqv :seed experiment-paramenters))
-  (loop for series from 1 to number-of-series
-        for experiment = (apply 'make-instance
-                                experiment-class
-                                :series-number series                                
-                                experiment-parameters)
-        do (run-series experiment (+ 1 number-of-interactions))
-           (cl-store:store 
-                (merge-pathnames
-                 (make-pathname :name (format nil "~a-~a" (assqv :exp-name experiment-parameters) series) :type #+lispworks "lw.store" #+ccl "ccl.store" #+sbcl "sbcl.store")
-                 (babel-pathname :directory `("experiments"
-                                              "crs-conventionality"
-                                              "logging"
-                                              ,(assqv :exp-top-dir experiment-parameters)
-                                              ,(assqv :datasplit experiment-parameters)
-                                              ,(assqv :exp-name experiment-parameters)))))
-           (notify series-finished series))
-  (notify batch-finished (symbol-name experiment-class)))
+(defun reset-primitive-inventory (agents)
+  (cond ((equal (type-of (first agents)) 'CRS-CONVENTIONALITY::NAMING-GAME-AGENT)
+         (loop for agent in agents
+               do (set-data (blackboard (grammar agent)) :primitive-inventory *naming-game-primitives*)
+                  (set-data (blackboard *naming-game-primitives*) :ontology (get-data (blackboard (grammar agent)) :ontology))))
+          
+        ((equal (type-of (first agents)) 'CRS-CONVENTIONALITY::CONCEPT-EMERGENCE-GAME-AGENT)
+         (loop for agent in agents 
+               do (set-data (blackboard (grammar agent)) :primitive-inventory *concept-emergence-game-primitives*)
+                  (set-data (blackboard *naming-game-primitives*) :ontology (get-data (blackboard (grammar agent)) :ontology))))))
+
+(defun store-experiment (experiment interaction)
+  
+  (let* ((exp-name (get-configuration experiment :exp-name))
+         (current-interaction (interaction-number interaction))
+         (date (get-current-date))
+         (filename (format nil "~a-int-~a-s~a" exp-name current-interaction (mkstr (random 10) (random 10) (random 10) (random 10) (random 10))))
+         (path (babel-pathname
+                :directory `("experiments" 
+                             "crs-conventionality" 
+                             "logging" 
+                             "stores"
+                             ,exp-name
+                             ,date)
+                :name filename
+                :type #+lispworks "lw.store" #+ccl "ccl.store" #+sbcl "sbcl.store")))
+    
+    (ensure-directories-exist path)
+
+    ;; clear primitive inventory
+    
+    (loop for agent in (agents (population experiment))
+            do (set-data (blackboard (grammar agent)) :primitive-inventory nil))
+    (cl-store:store experiment path)
+    (format t "Stored experiment: ~a~%" path)
+    
+    ;; reset primitive inventory
+
+    (reset-primitive-inventory (agents (population experiment)))))
+
+(defun load-experiment (path)
+  (let ((experiment (cl-store:restore path)))
+    
+    ;; reset primitive inventory
+
+    (reset-primitive-inventory (agents (population experiment)))
+    
+    experiment))
+
