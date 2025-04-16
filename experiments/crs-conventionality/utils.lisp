@@ -43,6 +43,26 @@
                    evo-plot-keyword-args)))
   (format t "~%Graphs have been created."))
 
+(defun create-graph-for-batch (batch-directory measure-names 
+                                                         &rest evo-plot-keyword-args)
+  "Creates a plot of the evolutionary dynamics from a given experiment (using exported data)."
+  (format t "~%Creating graph for experiment ~a with measures ~a" experiment-name measure-names)
+  (let* ((raw-file-paths
+          (loop for measure-name in measure-names
+                collect (loop for dir in (uiop:subdirectories batch-directory) collect `(,dir ,measure-name))))  
+         (default-plot-file-name
+          (reduce #'(lambda (str1 str2) (string-append str1 "+" str2)) 
+                  raw-file-paths :key #'(lambda (path) (first (last path)))))
+         (plot-file-name
+          (when (find :plot-file-name evo-plot-keyword-args)
+            (nth (1+ (position :plot-file-name evo-plot-keyword-args)) evo-plot-keyword-args))))
+    (apply #'raw-files->evo-plot
+           (append `(:raw-file-paths ,raw-file-paths
+                     :plot-directory `(,batch-directory "plots")
+                     :plot-file-name ,(if plot-file-name plot-file-name default-plot-file-name))
+                   evo-plot-keyword-args)))
+  (format t "~%Graphs have been created."))
+
 (defun create-graph-for-single-measure (measure-name experiment-names
                                                      &rest evo-plot-keyword-args)
   "Creates a plot for a single measure from several experiments (using exported data)."
