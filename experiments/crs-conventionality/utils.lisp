@@ -152,7 +152,7 @@
   (let* ((exp-top-dir (get-configuration experiment :exp-top-dir))
          (log-dir-name (get-configuration experiment :log-dir-name))
          (exp-name (get-configuration experiment :exp-name))
-         (dataset-split (get-configuration experiment :dataset-split))
+         (datasplit (get-configuration experiment :datasplit))
          (current-interaction (interaction-number interaction))
          (date (get-current-date))
          (filename (format nil "seed-~a-interaction-~a" (get-configuration experiment :seed) current-interaction))
@@ -161,7 +161,7 @@
                             "crs-conventionality"
                             "logging"
                              ,exp-top-dir
-                             ,dataset-split
+                             ,datasplit
                              ,exp-name
                              "stores")
                 :name filename
