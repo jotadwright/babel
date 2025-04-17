@@ -43,13 +43,12 @@
                    evo-plot-keyword-args)))
   (format t "~%Graphs have been created."))
 
-(defun create-graph-for-batch (batch-directory measure-names 
-                                                         &rest evo-plot-keyword-args)
-  "Creates a plot of the evolutionary dynamics from a given experiment (using exported data)."
-  (format t "~%Creating graph for experiment ~a with measures ~a" experiment-name measure-names)
+(defun create-graph-for-batch (measure-names exp-top-dir datasplit exp-name &rest evo-plot-keyword-args)
+  "Creates a plot of the evolutionary dynamics from a batch experiment (using exported data)."
+  (format t "~%Creating graph for experiment batch ~a with measures ~a" exp-name measure-names)
   (let* ((raw-file-paths
           (loop for measure-name in measure-names
-                collect (loop for dir in (uiop:subdirectories batch-directory) collect `(,dir ,measure-name))))  
+                collect `("experiments" "crs-conventionality" "logging" ,exp-top-dir ,datasplit ,exp-name "merged-data" ,measure-name))) 
          (default-plot-file-name
           (reduce #'(lambda (str1 str2) (string-append str1 "+" str2)) 
                   raw-file-paths :key #'(lambda (path) (first (last path)))))
@@ -58,7 +57,7 @@
             (nth (1+ (position :plot-file-name evo-plot-keyword-args)) evo-plot-keyword-args))))
     (apply #'raw-files->evo-plot
            (append `(:raw-file-paths ,raw-file-paths
-                     :plot-directory `(,batch-directory "plots")
+                     :plot-directory ("experiments" "crs-conventionality" "logging" ,exp-top-dir ,datasplit ,exp-name "plots")
                      :plot-file-name ,(if plot-file-name plot-file-name default-plot-file-name))
                    evo-plot-keyword-args)))
   (format t "~%Graphs have been created."))
