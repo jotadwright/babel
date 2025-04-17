@@ -30,6 +30,7 @@
     (setf config (append config (list (cons :log-dir-name log-dir-name))))
     ;; adapt file-writing monitors so they output in the correct log-dir
     (set-up-monitors (list "log-every-x-interactions-in-output-browser"
+                            "store-every-x-interactions"
                                     "export-communicative-success"
                                     "export-conventionalisation"
                                     "export-construction-inventory-size")
@@ -40,6 +41,8 @@
             (assqv :exp-top-dir config)
             (assqv :exp-name config)
             (assqv :log-dir-name config))
+    (set-seed (assqv :seed config))
+
     (time
      (run-batch 'concept-emergence-game-experiment (assqv :nr-of-interactions config) 1
                 :configuration (make-configuration :entries config))
