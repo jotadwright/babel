@@ -43,13 +43,12 @@
                    evo-plot-keyword-args)))
   (format t "~%Graphs have been created."))
 
-(defun create-graph-for-batch (batch-directory measure-names 
-                                                         &rest evo-plot-keyword-args)
-  "Creates a plot of the evolutionary dynamics from a given experiment (using exported data)."
-  (format t "~%Creating graph for experiment ~a with measures ~a" experiment-name measure-names)
+(defun create-graph-for-batch (measure-names exp-top-dir datasplit exp-name &rest evo-plot-keyword-args)
+  "Creates a plot of the evolutionary dynamics from a batch experiment (using exported data)."
+  (format t "~%Creating graph for experiment batch ~a with measures ~a" exp-name measure-names)
   (let* ((raw-file-paths
           (loop for measure-name in measure-names
-                collect (loop for dir in (uiop:subdirectories batch-directory) collect `(,dir ,measure-name))))  
+                collect `("experiments" "crs-conventionality" "logging" ,exp-top-dir ,datasplit ,exp-name "merged-data" ,measure-name))) 
          (default-plot-file-name
           (reduce #'(lambda (str1 str2) (string-append str1 "+" str2)) 
                   raw-file-paths :key #'(lambda (path) (first (last path)))))
@@ -58,7 +57,7 @@
             (nth (1+ (position :plot-file-name evo-plot-keyword-args)) evo-plot-keyword-args))))
     (apply #'raw-files->evo-plot
            (append `(:raw-file-paths ,raw-file-paths
-                     :plot-directory `(,batch-directory "plots")
+                     :plot-directory ("experiments" "crs-conventionality" "logging" ,exp-top-dir ,datasplit ,exp-name "plots")
                      :plot-file-name ,(if plot-file-name plot-file-name default-plot-file-name))
                    evo-plot-keyword-args)))
   (format t "~%Graphs have been created."))
@@ -174,7 +173,6 @@
          (exp-name (get-configuration experiment :exp-name))
          (datasplit (get-configuration experiment :datasplit))
          (current-interaction (interaction-number interaction))
-         (date (get-current-date))
          (filename (format nil "seed-~a-interaction-~a" (get-configuration experiment :seed) current-interaction))
          (path (babel-pathname
                 :directory `("experiments"
@@ -189,23 +187,70 @@
     
     (ensure-directories-exist path)
 
-    ;; clear primitive inventory
-    
+    ;; clear primitive inventory   
     (loop for agent in (agents (population experiment))
             do (set-data (blackboard (grammar agent)) :primitive-inventory nil))
     (cl-store:store experiment path)
     (format t "Stored experiment: ~a~%" path)
     
     ;; reset primitive inventory
-
     (reset-primitive-inventory (agents (population experiment)))))
 
-(defun load-experiment (path)
-  (let ((experiment (cl-store:restore path)))
-    
+(defun restore-experiment (path)
+  (let ((experiment (cl-store:restore path)))   
     ;; reset primitive inventory
-
-    (reset-primitive-inventory (agents (population experiment)))
-    
+    (reset-primitive-inventory (agents (population experiment)))   
     experiment))
+
+
+(defun merge-batch (measure-names exp-top-dir datasplit exp-name)
+  (let ((batch-directory (babel-pathname :directory `("experiments"
+                                                      "crs-conventionality"
+                                                      "logging"
+                                                      ,exp-top-dir
+                                                      ,datasplit
+                                                      ,exp-name))))
+    (loop for measure-name in measure-names
+          for merged-data = (list (loop for dir in (uiop:subdirectories batch-directory)
+                                        for path = (merge-pathnames (make-pathname :name measure-name :type "lisp") dir)
+                                        if (probe-file path)
+                                          collect (with-open-file (stream path)
+                                                    (caar (read stream)))))
+          do (with-open-file (file
+                              (ensure-directories-exist (babel-pathname
+                                                         :directory `("experiments"
+                                                                      "crs-conventionality"
+                                                                      "logging"
+                                                                      ,exp-top-dir
+                                                                      ,datasplit
+                                                                      ,exp-name
+                                                                      "merged-data")
+                                                         :name measure-name
+                                                         :type "lisp"))
+                              :direction :output
+                              :if-exists :supersede
+                              :if-does-not-exist :create)
+               (write-sequence (format nil "~a" merged-data) file)))))
+
+(defun restore-and-run-new-config (path
+                                   number-of-interactions
+                                   number-of-series
+                                   new-config
+                                   &key
+                                   (monitors (list "log-every-x-interactions-in-output-browser"
+                                                   "export-communicative-success"
+                                                   "export-conventionalisation"
+                                                   "export-construction-inventory-size")))
+  (let* ((experiment (restore-experiment path))
+         (config (get-configuration experiment)))
+    (set-configurations config new-config)
+    (set-up-monitors monitors config)
+    (notify reset-monitors)
+    (loop for series from 1 to number-of-series
+          do (run-series experiment (+ 1 number-of-interactions))
+             (notify series-finished series))
+    (notify batch-finished (symbol-name (type-of experiment)))))
+    
+    
+        
 
