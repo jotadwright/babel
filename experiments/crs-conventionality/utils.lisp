@@ -173,7 +173,6 @@
          (exp-name (get-configuration experiment :exp-name))
          (dataset-split (get-configuration experiment :dataset-split))
          (current-interaction (interaction-number interaction))
-         (date (get-current-date))
          (filename (format nil "seed-~a-interaction-~a" (get-configuration experiment :seed) current-interaction))
          (path (babel-pathname
                 :directory `("experiments"
@@ -202,4 +201,56 @@
     ;; reset primitive inventory
     (reset-primitive-inventory (agents (population experiment)))
     experiment))
+
+
+(defun merge-batch (measure-names exp-top-dir datasplit exp-name)
+  (let ((batch-directory (babel-pathname :directory `("experiments"
+                                                      "crs-conventionality"
+                                                      "logging"
+                                                      ,exp-top-dir
+                                                      ,datasplit
+                                                      ,exp-name))))
+    (loop for measure-name in measure-names
+          for merged-data = (list (loop for dir in (uiop:subdirectories batch-directory)
+                                        for path = (merge-pathnames (make-pathname :name measure-name :type "lisp") dir)
+                                        if (probe-file path)
+                                          collect (with-open-file (stream path)
+                                                    (caar (read stream)))))
+          do (with-open-file (file
+                              (ensure-directories-exist (babel-pathname
+                                                         :directory `("experiments"
+                                                                      "crs-conventionality"
+                                                                      "logging"
+                                                                      ,exp-top-dir
+                                                                      ,datasplit
+                                                                      ,exp-name
+                                                                      "merged-data")
+                                                         :name measure-name
+                                                         :type "lisp"))
+                              :direction :output
+                              :if-exists :supersede
+                              :if-does-not-exist :create)
+               (write-sequence (format nil "~a" merged-data) file)))))
+
+(defun restore-and-run-new-config (path
+                                   number-of-interactions
+                                   number-of-series
+                                   new-config
+                                   &key
+                                   (monitors (list "log-every-x-interactions-in-output-browser"
+                                                   "export-communicative-success"
+                                                   "export-conventionalisation"
+                                                   "export-construction-inventory-size")))
+  (let* ((experiment (restore-experiment path))
+         (config (get-configuration experiment)))
+    (set-configurations config new-config)
+    (set-up-monitors monitors config)
+    (notify reset-monitors)
+    (loop for series from 1 to number-of-series
+          do (run-series experiment (+ 1 number-of-interactions))
+             (notify series-finished series))
+    (notify batch-finished (symbol-name (type-of experiment)))))
+    
+    
+        
 
