@@ -187,7 +187,7 @@
     
     (ensure-directories-exist path)
 
-    ;; clear primitive inventory
+    ;; clear primitive inventory   
     (loop for agent in (agents (population experiment))
             do (set-data (blackboard (grammar agent)) :primitive-inventory nil))
     (cl-store:store experiment path)
@@ -197,9 +197,9 @@
     (reset-primitive-inventory (agents (population experiment)))))
 
 (defun restore-experiment (path)
-  (let ((experiment (cl-store:restore path)))
+  (let ((experiment (cl-store:restore path)))   
     ;; reset primitive inventory
-    (reset-primitive-inventory (agents (population experiment)))
+    (reset-primitive-inventory (agents (population experiment)))   
     experiment))
 
 
