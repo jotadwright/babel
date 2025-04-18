@@ -232,24 +232,25 @@
                               :if-does-not-exist :create)
                (write-sequence (format nil "~a" merged-data) file)))))
 
-(defun restore-and-run-new-config (path
-                                   number-of-interactions
-                                   number-of-series
-                                   new-config
-                                   &key
+(defun restore-and-run-new-config (path new-configs &key
+                                   (number-of-interactions 1000)
+                                   (number-of-series 1)
                                    (monitors (list "log-every-x-interactions-in-output-browser"
                                                    "export-communicative-success"
                                                    "export-conventionalisation"
                                                    "export-construction-inventory-size")))
-  (let* ((experiment (restore-experiment path))
-         (config (get-configuration experiment)))
-    (set-configurations config new-config)
-    (set-up-monitors monitors config)
-    (notify reset-monitors)
-    (loop for series from 1 to number-of-series
-          do (run-series experiment (+ 1 number-of-interactions))
-             (notify series-finished series))
-    (notify batch-finished (symbol-name (type-of experiment)))))
+  (let ((experiment (restore-experiment path)))
+         
+    (set-configurations experiment new-configs)
+    (let ((config (loop for k being the hash-key in (configuration experiment) using (hash-value v)
+                       collect (cons k v))))
+      (set-up-monitors monitors config)
+      
+      (loop for series from 1 to number-of-series
+            do (run-series experiment (+ 1 number-of-interactions))
+               (notify series-finished series))
+      (notify batch-finished (symbol-name (type-of experiment))))))
+
     
     
         
