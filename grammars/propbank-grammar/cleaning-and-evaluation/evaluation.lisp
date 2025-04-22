@@ -159,100 +159,104 @@
 
 (defun evaluate-predictions-per-frame (predictions &key (core-roles-only t) (selected-rolesets nil) (include-word-sense t) (include-timed-out-sentences t) (excluded-rolesets nil) (include-sentences-with-incomplete-role-constituent-mapping t))
   "Computes precision, recall and F1 score for a given list of predictions."
-  (loop with number-of-gold-standard-predictions-per-frame = (make-hash-table)
-        with number-of-grammar-predictions-per-frame = (make-hash-table)
-        with number-of-correct-predictions-per-frame = (make-hash-table)
-        for (sentence annotation solution) in predictions
-        when (and (or include-timed-out-sentences
-                      (not (eql solution 'time-out)))
-                  (or include-sentences-with-incomplete-role-constituent-mapping
-                      (loop for gold-frame in annotation
-                            always (spacy-benepar-compatible-annotation sentence (frame-name gold-frame)
-                                                                        :selected-role-types (if core-roles-only
-                                                                                               'core-only 'all)))))
-          do ;; count all gold standard predictions / frame
-            (loop for frame in annotation
-                  for frame-name = (if include-word-sense
-                                     (frame-name frame)
-                                     (truncate-frame-name (frame-name frame)))
-                  when (and (null (find frame-name excluded-rolesets :test #'equalp))
-                            (or (null selected-rolesets)
-                                (find frame-name selected-rolesets :test #'equalp)))
-                    do (setf (gethash frame-name number-of-gold-standard-predictions-per-frame)
-                             (+ (gethash frame-name number-of-gold-standard-predictions-per-frame)
-                                (loop for role in (frame-roles frame)
-                                      if core-roles-only
-                                        sum (if (core-role-p role)
-                                              (length (indices role)) 0)
-                                      else sum (length (indices role))))))
-            ;; count all grammar predictions / frame
-            (loop for predicted-frame in solution
-                  for frame-name = (if include-word-sense
-                                     (symbol-name (frame-name predicted-frame))
-                                     (truncate-frame-name (symbol-name (frame-name predicted-frame))))
-                  when (and frame-name
-                            (null (find frame-name excluded-rolesets :test #'equalp))
-                            (or (null selected-rolesets)
-                                (find frame-name selected-rolesets :test #'equalp))
-                            (find (truncate-frame-name frame-name) annotation
-                                  :key #'(lambda (frame)
-                                           (truncate-frame-name (frame-name frame)))
-                                  :test #'equalp))
-                    do (setf (gethash frame-name number-of-grammar-predictions-per-frame)
-                             (+ (gethash frame-name number-of-grammar-predictions-per-frame)
-                                (loop for role in (frame-elements predicted-frame)
-                                      if core-roles-only
-                                        sum (if (core-role-p role)
-                                              (length (indices role)) 0)
-                                      else sum (length (indices role)))
-                                (length (indices (frame-evoking-element predicted-frame)))))) ;;FEE
-            ;; count all correct predictions / frame
-            (loop for predicted-frame in solution 
-                  for frame-name = (if include-word-sense
-                                     (symbol-name (frame-name predicted-frame))
-                                     (truncate-frame-name (symbol-name (frame-name predicted-frame))))
-                  when (and frame-name
-                            (null (find frame-name excluded-rolesets :test #'equalp))
-                            (or (null selected-rolesets)
-                                (find frame-name selected-rolesets :test #'equalp)))
-                  do (setf (gethash frame-name number-of-correct-predictions-per-frame)
-                           (+ (gethash frame-name number-of-correct-predictions-per-frame)
-                              (loop for predicted-frame-element in (frame-elements predicted-frame) ;;frame elements
-                                 for predicted-indices = (indices predicted-frame-element)
-                                 if core-roles-only
-                                   sum (if (core-role-p predicted-frame-element)
-                                         (loop for index in predicted-indices
-                                               when (correctly-predicted-index-p index predicted-frame-element predicted-frame
-                                                                                 annotation include-word-sense)
-                                                 sum 1)
-                                         0)
-                                 else sum (loop for index in predicted-indices
-                                                when (correctly-predicted-index-p index predicted-frame-element predicted-frame
-                                                                                  annotation include-word-sense)
-                                                  sum 1))
-                              (if (correctly-predicted-fee-index-p (indices (frame-evoking-element predicted-frame)) ;;FEE
-                                                                predicted-frame annotation include-word-sense)
-                                (length (indices (frame-evoking-element predicted-frame)))
-                                0))))
+  (let ((number-of-gold-standard-predictions-per-frame (make-hash-table))
+        (number-of-grammar-predictions-per-frame (make-hash-table))
+        (number-of-correct-predictions-per-frame (make-hash-table)))
 
-        finally
-          (with-open-file (s "./evaluations-per-frame.csv"
-                             :if-does-not-exist :create
-                             :if-exists :supersede
-                             :direction :output)
-            (loop for frame-name being the hash-keys of number-of-gold-standard-predictions-per-frame
-                  for number-of-correct-predictions = (gethash frame-name number-of-correct-predictions-per-frame)
-                  for number-of-grammar-predictions = (gethash frame-name number-of-grammar-predictions-per-frame)
-                  for number-of-gold-standard-predictions = (gethash frame-name number-of-gold-standard-predictions-per-frame)
-                  do
-                    (write-line (format nil "~a,~a,~a,~a,~a,~a,~a %"
-                                        frame-name
-                                        (compute-precision number-of-correct-predictions number-of-grammar-predictions)
-                                        (compute-recall number-of-correct-predictions number-of-gold-standard-predictions)
-                                        (compute-f1-score number-of-correct-predictions number-of-grammar-predictions number-of-gold-standard-predictions)
-                                        number-of-correct-predictions
-                                        number-of-grammar-predictions
-                                        number-of-gold-standard-predictions) s)))))
+    (loop for (sentence annotation solution) in predictions
+          when (and solution
+                    (or include-timed-out-sentences
+                        (not (eql solution 'time-out)))
+                    (or include-sentences-with-incomplete-role-constituent-mapping
+                        (loop for gold-frame in annotation
+                              always (spacy-benepar-compatible-annotation sentence (frame-name gold-frame)
+                                                                          :selected-role-types (if core-roles-only
+                                                                                                 'core-only 'all)))))
+            do ;; count all gold standard predictions / frame
+              (loop for frame in annotation
+                    for frame-name = (if include-word-sense
+                                       (frame-name frame)
+                                       (truncate-frame-name (frame-name frame)))
+                    when (and (null (find frame-name excluded-rolesets :test #'equalp))
+                              (or (null selected-rolesets)
+                                  (find frame-name selected-rolesets :test #'equalp)))
+                      do
+                        (let* ((hash (gethash frame-name number-of-gold-standard-predictions-per-frame))
+                               (updated-count (+ (or hash 0)
+                                                 (loop for role in (frame-roles frame)
+                                                       if core-roles-only
+                                                         sum (if (core-role-p role)
+                                                               (length (indices role)) 0)
+                                                       else sum (length (indices role))))))
+                          (setf (gethash frame-name number-of-gold-standard-predictions-per-frame)
+                                updated-count)))
+              ;; count all grammar predictions / frame
+              (loop for predicted-frame in solution
+                    for frame-name = (if include-word-sense
+                                       (symbol-name (frame-name predicted-frame))
+                                       (truncate-frame-name (symbol-name (frame-name predicted-frame))))
+                    when (and frame-name
+                              (null (find frame-name excluded-rolesets :test #'equalp))
+                              (or (null selected-rolesets)
+                                  (find frame-name selected-rolesets :test #'equalp))
+                              (find (truncate-frame-name frame-name) annotation
+                                    :key #'(lambda (frame)
+                                             (truncate-frame-name (frame-name frame)))
+                                    :test #'equalp))
+                      do (setf (gethash frame-name number-of-grammar-predictions-per-frame)
+                               (+ (or (gethash frame-name number-of-grammar-predictions-per-frame) 0)
+                                  (loop for role in (frame-elements predicted-frame)
+                                        if core-roles-only
+                                          sum (if (core-role-p role)
+                                                (length (indices role)) 0)
+                                        else sum (length (indices role)))
+                                  (length (indices (frame-evoking-element predicted-frame)))))) ;;FEE
+              ;; count all correct predictions / frame
+              (loop for predicted-frame in solution 
+                    for frame-name = (if include-word-sense
+                                       (symbol-name (frame-name predicted-frame))
+                                       (truncate-frame-name (symbol-name (frame-name predicted-frame))))
+                    when (and frame-name
+                              (null (find frame-name excluded-rolesets :test #'equalp))
+                              (or (null selected-rolesets)
+                                  (find frame-name selected-rolesets :test #'equalp)))
+                      do (setf (gethash frame-name number-of-correct-predictions-per-frame)
+                               (+ (or (gethash frame-name number-of-correct-predictions-per-frame) 0)
+                                  (loop for predicted-frame-element in (frame-elements predicted-frame) ;;frame elements
+                                        for predicted-indices = (indices predicted-frame-element)
+                                        if core-roles-only
+                                          sum (if (core-role-p predicted-frame-element)
+                                                (loop for index in predicted-indices
+                                                      when (correctly-predicted-index-p index predicted-frame-element predicted-frame
+                                                                                        annotation include-word-sense)
+                                                        sum 1)
+                                                0)
+                                        else sum (loop for index in predicted-indices
+                                                       when (correctly-predicted-index-p index predicted-frame-element predicted-frame
+                                                                                         annotation include-word-sense)
+                                                         sum 1))
+                                  (if (correctly-predicted-fee-index-p (indices (frame-evoking-element predicted-frame)) ;;FEE
+                                                                       predicted-frame annotation include-word-sense)
+                                    (length (indices (frame-evoking-element predicted-frame)))
+                                    0)))))
+
+    (with-open-file (s "./evaluations-per-frame.csv"
+                       :if-does-not-exist :create
+                       :if-exists :supersede
+                       :direction :output)
+      (loop for frame-name being the hash-keys of number-of-gold-standard-predictions-per-frame
+            for number-of-correct-predictions = (or (gethash frame-name number-of-correct-predictions-per-frame) 0)
+            for number-of-grammar-predictions = (or (gethash frame-name number-of-grammar-predictions-per-frame) 0)
+            for number-of-gold-standard-predictions = (or (gethash frame-name number-of-gold-standard-predictions-per-frame) 0)
+            do
+              (write-line (format nil "~a,~a,~a,~a,~a,~a,~a %"
+                                  frame-name
+                                  (compute-precision number-of-correct-predictions number-of-grammar-predictions)
+                                  (compute-recall number-of-correct-predictions number-of-gold-standard-predictions)
+                                  (compute-f1-score number-of-correct-predictions number-of-grammar-predictions number-of-gold-standard-predictions)
+                                  number-of-correct-predictions
+                                  number-of-grammar-predictions
+                                  number-of-gold-standard-predictions) s)))))
       
   
 (defun correctly-predicted-index-p (index predicted-frame-element predicted-frame gold-frames include-word-sense)
@@ -307,19 +311,20 @@
 
 (defun compute-precision (nr-of-correct-predictions total-nr-of-predictions)
   "Computes Precision."
-  (when (> total-nr-of-predictions 0)
-    (float (/ nr-of-correct-predictions total-nr-of-predictions))))
+  (if (> total-nr-of-predictions 0)
+    (float (/ nr-of-correct-predictions total-nr-of-predictions))
+    0.0))
 
 (defun compute-recall (nr-of-correct-predictions nr-of-gold-standard-predictions)
   "Computes Recall."
-  (when (> nr-of-gold-standard-predictions 0)
-   ; (if (> nr-of-correct-predictions nr-of-gold-standard-predictions)
-   ;   1.0
-      (float (/ nr-of-correct-predictions nr-of-gold-standard-predictions))))
+  (if (> nr-of-gold-standard-predictions 0)
+    (float (/ nr-of-correct-predictions nr-of-gold-standard-predictions))
+    0.0))
 
 (defun compute-f1-score (nr-of-correct-predictions total-nr-of-predictions nr-of-gold-standard-predictions)
   "Computes F1-Score."
   (let ((precision (compute-precision nr-of-correct-predictions total-nr-of-predictions))
         (recall (compute-recall nr-of-correct-predictions nr-of-gold-standard-predictions)))
-    (when (and precision recall (> (+ precision recall) 0.0))
-      (float (* 2 (/ (* precision recall) (+ precision recall)))))))
+    (if (and precision recall (> (+ precision recall) 0.0))
+      (float (* 2 (/ (* precision recall) (+ precision recall))))
+      0.0)))
