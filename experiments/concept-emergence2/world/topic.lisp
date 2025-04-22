@@ -46,23 +46,25 @@
 ;;     (loop for agent in (interacting-agents experiment)
 ;;           do (set-data agent 'topic cle-topic))))
 
-;; (defmethod sample-topic (experiment (mode (eql :discriminative)))
-;;   "Only objects that can be distinguished using a single metadata dimension can serve as topic.
+(defmethod sample-topic (experiment (mode (eql :discriminative)))
+  "Only objects that can be distinguished using a single metadata dimension can serve as topic.
 
-;;    Assumes that the dataset contains symbolic annotations of the data.
-;;    Topic strategy corresponding to the Frontiers paper by Nevens et al. (2020)."
-;;   (let* ((interaction (current-interaction experiment))
-;;          (agent (first (interacting-agents experiment)))
-;;          (cle-scene (find-data agent 'context))
-;;          (world (world experiment))
-;;          (candidate-topics (filter-discriminative-topics world (objects cle-scene))))
-;;     (if candidate-topics
-;;       (loop with cle-topic = (random-elt candidate-topics)
-;;             for agent in (interacting-agents experiment)
-;;             do (set-data agent 'topic cle-topic))
-;;       (progn
-;;         (sample-scene experiment (get-configuration experiment :scene-sampling))
-;;         (sample-topic experiment (get-configuration experiment :topic-sampling))))))
+   Assumes that the dataset contains symbolic annotations of the data.
+   Topic strategy corresponding to the Frontiers paper by Nevens et al. (2020)."
+  (let* ((agent-1 (first (interacting-agents experiment)))
+         (agent-2 (second (interacting-agents experiment)))
+         (context (objects (find-data agent-1 'context)))
+         (candidate-topics (filter-discriminative-topics (world experiment) (current-view agent-1) context)))
+    (if candidate-topics
+      (let* ((cle-topic-1 (random-elt candidate-topics))
+             (cle-topic-2 (if (has-topic-id cle-topic-1)
+                            (find-topic-by-id cle-topic-1 (objects (find-data agent-2 'context)))
+                            (find-topic-by-equality cle-topic-1 (objects (find-data agent-2 'context))))))
+        (set-data agent-1 'topic cle-topic-1)
+        (set-data agent-2 'topic cle-topic-2))
+      (progn
+        (sample-scene experiment (get-configuration experiment :scene-sampling))
+        (sample-topic experiment (get-configuration experiment :topic-sampling))))))
 
 ;; (defmethod sample-topic (experiment (mode (eql :discr-color)))
 ;;   "Only objects that can be distinguished using a single metadata dimension can serve as topic."
@@ -90,35 +92,43 @@
   (let ((id (gethash :id (description agent-1-topic))))
     (find id agent-2-objects :test #'equalp :key (lambda (x) (gethash :id (description x))))))
 
-;; (defun filter-discriminative-topics (world context &key attribute)
-;;   "Determines which objects in the context are discriminative."
-;;   (loop for object in context
-;;         when (is-discriminative world object (remove object context) :attribute attribute)
-;;         collect object))
+(defun filter-discriminative-topics (world view-name context &key attribute)
+  "Determines which objects in the context are discriminative."
+  (loop for object in context
+        when (is-discriminative world view-name object (remove object context) :attribute attribute)
+          collect object))
 
-;; (defun is-discriminative (world object other-objects &key (attribute nil))
-;;   "Checks if the object has a single channel dimension that is different from all other objects."
-;;   (loop for attr being the hash-keys of (description object) 
-;;         using (hash-value val)
-;;         do (when (is-channel-available world attr (attributes object))
-;;              (let ((discriminative (cond ((and attribute (not (eq attr attribute))) ;; eq?
-;;                                           nil)
-;;                                          (t
-;;                                           (loop for other-object in other-objects
-;;                                                 for other-val = (gethash attr (description other-object))
-;;                                                 always (not (equal val other-val)))))))
-;;                (when discriminative
-;;                  (return t))))))
+(defun is-discriminative (world view-name object other-objects &key (attribute nil))
+  "Checks if the object has a single symbolic feature that is different from all other objects."
+  (loop for symbolic-feature being the hash-keys of (description object) 
+          using (hash-value symbolic-value)
+        do (when (is-channel-available world view-name symbolic-feature (attributes object))
+             (let ((discriminative (cond ((and attribute (not (eq symbolic-feature attribute))) ;; eq?
+                                          nil)
+                                         (t
+                                          (loop for other-object in other-objects
+                                                for other-value = (gethash symbolic-feature (description other-object))
+                                                always (not (equal symbolic-value other-value)))))))
+               (when discriminative
+                 (return t))))))
 
-;; ;; helper function for test.lisp
-;; (defun get-symbolic-discriminative-feature (world topic context)
-;;   "Returns which symbolic features of the topic are discriminative."
-;;   (let ((other-objects (remove topic (objects context))))
-;;     (loop for attr being the hash-keys of (description topic) 
-;;           using (hash-value val)
-;;           for available = (is-channel-available world attr (attributes topic))
-;;           for discriminative = (loop for other-object in other-objects
-;;                                      for other-val = (gethash attr (description other-object))
-;;                                      always (not (equal val other-val)))
-;;           if (and available discriminative)
-;;             collect (cons attr val))))
+(defun sample-discriminative-feature (agent)
+  (let* ((topic (find-data agent 'topic))
+         (context (find-data agent 'context))
+         (experiment (experiment agent))
+         (world (world experiment))
+         (current-view (current-view agent))
+         (discriminative-features (get-symbolic-discriminative-features world current-view topic context)))
+    (cdr (random-elt discriminative-features))))
+
+(defun get-symbolic-discriminative-features (world view-name topic context)
+  "Returns which symbolic features of the topic are discriminative."
+  (let ((other-objects (remove topic (objects context))))
+    (loop for symbolic-feature being the hash-keys of (description topic) 
+            using (hash-value symbolic-value)
+          for available = (is-channel-available world view-name symbolic-feature (attributes topic))
+          for discriminative = (loop for other-object in other-objects
+                                     for other-val = (gethash symbolic-feature (description other-object))
+                                     always (not (equal symbolic-value other-val)))
+          if (and available discriminative)
+            collect (cons symbolic-feature symbolic-value))))

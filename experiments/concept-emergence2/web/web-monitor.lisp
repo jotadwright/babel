@@ -201,7 +201,8 @@
   (if (utterance agent)
     (progn
       (add-element `((h2) ,(format nil "Step 2: SPEAKER produced an utterance: \"~a\" " (utterance agent))))
-      (add-cxn-to-interface (find-data agent 'applied-cxn) :disabled-channels (disabled-channels agent))
+      (when (eq (get-configuration (experiment agent) :learning-environment) :emergence)
+        (add-cxn-to-interface (find-data agent 'applied-cxn) :disabled-channels (disabled-channels agent)))
       )
     (add-element `((h2) ,(format nil "Step 2: SPEAKER could not produce an utterance")))))
 

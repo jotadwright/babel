@@ -12,16 +12,20 @@
               (previous-copy cxn))
 
 (defmethod align ((agent cle-agent))
-  (notify event-align-start agent)
   (case (discourse-role agent)
-    (speaker (speaker-alignment agent))
+    (speaker (speaker-alignment agent (get-configuration (experiment agent) :learning-environment)))
     (hearer (hearer-alignment agent))))
 
 ;; ---------------------
 ;; + Speaker Alignment +
 ;; ---------------------
-(defmethod speaker-alignment ((agent cle-agent))
+(defmethod speaker-alignment ((agent cle-agent) (mode (eql :tutor-learner)))
   "Speaker alignment."
+  nil)
+
+(defmethod speaker-alignment ((agent cle-agent) (mode (eql :emergence)))
+  "Speaker alignment."
+  (notify event-align-start agent)
   (let* ((topic (find-data agent 'topic))
          (applied-cxn (find-data agent 'applied-cxn))
          (previous-copy (copy-object applied-cxn)))
@@ -51,6 +55,7 @@
 ;; --------------------
 (defmethod hearer-alignment ((agent cle-agent))
   "Hearer alignment."
+  (notify event-align-start agent)
   (let* ((topic (get-data agent 'topic))
          (applied-cxn (find-data agent 'applied-cxn))
          (previous-copy (copy-object applied-cxn)))

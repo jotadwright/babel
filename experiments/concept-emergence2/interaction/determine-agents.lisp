@@ -32,6 +32,23 @@
         do (setf (discourse-role a) d))
   (notify interacting-agents-determined experiment interaction))
 
+(defmethod determine-interacting-agents (experiment (interaction interaction) (mode (eql :tutor-learner))
+                                                    &key &allow-other-keys)
+  "This default implementation randomly chooses two interacting agents
+   and adds the discourse roles speaker and hearer to them"
+  ;; set two random interacting agents
+  (let* ((agents (agents experiment))
+         (agent-1 (first agents))
+         (agent-2 (second agents))
+         (interacting-agents (list agent-1 agent-2)))
+    (setf (interacting-agents interaction) interacting-agents))
+  
+  ;; set discourse-role
+  (loop for a in (interacting-agents interaction)
+        for d in '(speaker hearer)
+        do (setf (discourse-role a) d))
+  (notify interacting-agents-determined experiment interaction))
+
 (defmethod determine-interacting-agents (experiment (interaction interaction) (mode (eql :boltzmann-partner-selection))
                                                     &key &allow-other-keys)
   "This default implementation randomly chooses two interacting agents

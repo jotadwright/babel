@@ -14,13 +14,56 @@
 (defmethod conceptualise ((agent cle-agent))
   ;; conceptualise ifo the role
   (case (discourse-role agent)
-    (speaker (speaker-conceptualise agent))
-    (hearer (hearer-conceptualise agent))))
+    (speaker (speaker-conceptualise agent (get-configuration (experiment agent) :learning-environment)))
+    (hearer (hearer-conceptualise agent (get-configuration (experiment agent) :learning-environment)))))
 
-;; -------------
-;; + Algorithm +
-;; -------------
-(defmethod speaker-conceptualise ((agent cle-agent))
+;; -----------------------------
+;; + Algorithm - tutor-learner +
+;; -----------------------------
+
+(defmethod speaker-conceptualise ((agent cle-agent) (mode (eql :tutor-learner)))
+  "Conceptualise the topic of the interaction."
+  (notify event-conceptualisation-start agent)
+  (let* ((form (sample-discriminative-feature agent))
+         (applied-cxn (make-cxn agent (get-data agent 'topic) form)))
+    (set-data agent 'meaning-competitors nil)
+    ;; set the applied-cxn slot
+    (set-data agent 'applied-cxn applied-cxn)
+    applied-cxn))
+
+(defmethod hearer-conceptualise ((agent cle-agent) (mode (eql :tutor-learner)))
+  "Conceptualise the topic as the hearer"
+  (if (empty-lexicon-p agent)
+    nil
+    (if (conceptualised-p agent)
+      ;; if already conceptualised, just return the result
+      (find-data agent 'hypothetical-cxn)
+      ;; get the topic and and context from the speaker's perspective
+      (let* ((experiment (experiment agent))
+             (speaker (speaker experiment))
+             (hearer (hearer experiment))
+             (topic (case (get-configuration experiment :coherence-perspective)
+                      (:speaker (get-data speaker 'topic))
+                      (:hearer (get-data hearer 'topic))))
+             (context (case (get-configuration experiment :coherence-perspective)
+                        (:speaker (remove topic (objects (get-data speaker 'context))))
+                        (:hearer (remove topic (objects (get-data hearer 'context)))))))
+        (destructuring-bind (hypothetical-cxn . competitors) (find-best-concept agent topic context)
+          ;; hypothetical-cxn corresponds to the concept that hearer would have produces as a speaker
+          (let* ((applied-cxn (find-data agent 'applied-cxn))
+                 (competitors (if hypothetical-cxn
+                                (cons hypothetical-cxn competitors)
+                                competitors))
+                 (all-competitors (remove applied-cxn competitors :test #'(lambda (x y) (equal x y)))))
+            (set-data agent 'meaning-competitors all-competitors))
+          ;; set the hypothetical-cxn slot
+          (set-data agent 'hypothetical-cxn hypothetical-cxn)
+          hypothetical-cxn)))))
+
+;; -------------------------
+;; + Algorithm - emergence +
+;; -------------------------
+(defmethod speaker-conceptualise ((agent cle-agent) (mode (eql :emergence)))
   "Conceptualise the topic of the interaction."
   (notify event-conceptualisation-start agent)
   (if (empty-lexicon-p agent)
@@ -34,7 +77,7 @@
         (set-data agent 'applied-cxn applied-cxn)
         applied-cxn))))
 
-(defmethod hearer-conceptualise ((agent cle-agent))
+(defmethod hearer-conceptualise ((agent cle-agent) (mode (eql :emergence)))
   "Conceptualise the topic as the hearer"
   (if (empty-lexicon-p agent)
     nil
