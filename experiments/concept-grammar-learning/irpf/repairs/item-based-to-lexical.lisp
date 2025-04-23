@@ -1,9 +1,10 @@
-;;;; item-based->lexical.lisp
-
 (in-package :clg)
 
-;;  ITEM-BASED -> LEXICAL
-;; -----------------------
+;; ---------------------------------
+;; + Repair: ITEM-BASED -> LEXICAL +
+;; ---------------------------------
+
+;; This repair is applied when a partial utterance was diagnosed.
 
 (define-event item-based->lexical-repair-started)
 (define-event item-based->lexical-new-cxn-and-th-links
@@ -11,8 +12,6 @@
 
 (defclass item-based->lexical (clevr-learning-repair)
   ((trigger :initform 'fcg::new-node)))
-
-;; This repair is applied when a partial utterance was diagnosed.
 
 (defmethod repair ((repair item-based->lexical)
                    (problem partial-utterance-problem)
@@ -28,63 +27,46 @@
 
 (defun create-lexical-cxn (problem node)
   ;(notify item-based->lexical-repair-started)
-  (let* ((agent (find-data problem :owner))
+  (let* (;; intention reading
+         (agent (find-data problem :owner))
+         ;; pattern finding
          (cxn-inventory (original-cxn-set (construction-inventory node)))
          (utterance (cipn-utterance node))
+         ;; what was able to apply/
          (applied-cxns (original-applied-constructions node))
-         (applied-lex-cxns
-          (find-all 'lexical applied-cxns :key #'get-cxn-type))
-         (applied-item-based-cxn
-          (find 'item-based applied-cxns :key #'get-cxn-type))
-         (remaining-strings-in-root
-          (get-strings-from-root node)))
+         (applied-lex-cxns (find-all 'lexical applied-cxns :key #'get-cxn-type))
+         (applied-item-based-cxn (find 'item-based applied-cxns :key #'get-cxn-type))
+         (remaining-strings-in-root (get-strings-from-root node)))
     (when (and (not (null applied-item-based-cxn))
                (= (length remaining-strings-in-root) 1)
                (= (item-based-number-of-slots applied-item-based-cxn)
                   (1+ (length applied-lex-cxns))))
-      (let* ((meaning-predicates-observed
-              (mapcan #'extract-meaning-predicates applied-cxns))
-             (composer-strategy
-              (get-configuration agent :composer-strategy))
-             (composer-solution
-              (compose-program agent (topic agent) utterance composer-strategy
-                               :partial-program meaning-predicates-observed)))
+      (let* ((meaning-predicates-observed (mapcan #'extract-meaning-predicates applied-cxns))
+             (composer-strategy (get-configuration agent :composer-strategy))
+             (composer-solution (compose-program agent (topic agent) utterance composer-strategy :partial-program meaning-predicates-observed)))
         (if composer-solution
-          (let* ((meaning-predicates-gold
-                  (append (bind-statements composer-solution)
-                          (irl-program (chunk composer-solution))))
-                 (meaning-predicates-lex-cxn
-                  (set-difference meaning-predicates-gold meaning-predicates-observed
-                                  :test #'unify-irl-programs)))
+          (let* ((meaning-predicates-gold (append (bind-statements composer-solution)
+                                                  (irl-program (chunk composer-solution))))
+                 (meaning-predicates-lex-cxn (set-difference meaning-predicates-gold
+                                                             meaning-predicates-observed
+                                                             :test #'unify-irl-programs)))
             ;; we don't know what the composer will return
             ;; so we make sure that the meaning for the new
             ;; lex cxn only contains a single element
             (if (length= meaning-predicates-lex-cxn 1)
-              (let* ((form-predicates-lex-cxn
-                      remaining-strings-in-root)
-                     (existing-lex-cxn
-                      (find-cxn-by-type-form-and-meaning 'lexical form-predicates-lex-cxn
-                                                         meaning-predicates-lex-cxn cxn-inventory))
-                     (cxn-name
-                      (make-const
-                       (make-cxn-name
-                        (third (first form-predicates-lex-cxn)) cxn-inventory)))
-                     (unit-name
-                      (second (first form-predicates-lex-cxn)))
-                     (lex-class
-                      (if existing-lex-cxn
-                        (lex-class-cxn existing-lex-cxn)
-                        (intern (symbol-name (make-const unit-name)) :fcg)))
-                     (args
-                      (mapcar #'third meaning-predicates-lex-cxn))
-                     (initial-cxn-score
-                      (get-configuration agent :initial-cxn-score))
-                     (interaction
-                      (current-interaction (experiment agent)))
-                     (interaction-nr
-                      (interaction-number interaction))
-                     (new-lex-cxn
-                      (or existing-lex-cxn
+              (let* ((form-predicates-lex-cxn remaining-strings-in-root)
+                     (existing-lex-cxn (find-cxn-by-type-form-and-meaning 'lexical form-predicates-lex-cxn
+                                                                          meaning-predicates-lex-cxn cxn-inventory))
+                     (cxn-name (make-const (make-cxn-name (third (first form-predicates-lex-cxn)) cxn-inventory)))
+                     (unit-name (second (first form-predicates-lex-cxn)))
+                     (lex-class (if existing-lex-cxn
+                                    (lex-class-cxn existing-lex-cxn)
+                                    (intern (symbol-name (make-const unit-name)) :fcg)))
+                     (args (mapcar #'third meaning-predicates-lex-cxn))
+                     (initial-cxn-score (get-configuration agent :initial-cxn-score))
+                     (interaction (current-interaction (experiment agent)))
+                     (interaction-nr (interaction-number interaction))
+                     (new-lex-cxn (or existing-lex-cxn
                           (second
                            (multiple-value-list
                             (eval
@@ -108,19 +90,14 @@
                                :cxn-inventory ,(copy-object cxn-inventory)
                                :cxn-set non-holophrase))))))
                      ;; make a list of all cxns, sort them
-                     (lex-cxns
-                      (sort-cxns-by-form-string
+                     (lex-cxns (sort-cxns-by-form-string
                        (cons new-lex-cxn applied-lex-cxns)
                        (remove-punctuation utterance)))
-                     (lex-classes-lex-cxns
-                      (mapcar #'lex-class-cxn lex-cxns))
-                     (lex-classes-item-based-units
-                      (get-all-unit-lex-classes applied-item-based-cxn))
+                     (lex-classes-lex-cxns (mapcar #'lex-class-cxn lex-cxns))
+                     (lex-classes-item-based-units (get-all-unit-lex-classes applied-item-based-cxn))
                      ;; assign all th links
-                     (type-hierarchy
-                      (categorial-network cxn-inventory))
-                     (th-links
-                      (when (and lex-classes-lex-cxns
+                     (type-hierarchy (categorial-network cxn-inventory))
+                     (th-links (when (and lex-classes-lex-cxns
                                  lex-classes-item-based-units
                                  (length= lex-classes-lex-cxns lex-classes-item-based-units))
                         (create-new-th-links lex-classes-lex-cxns

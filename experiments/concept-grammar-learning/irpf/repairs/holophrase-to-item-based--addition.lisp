@@ -1,7 +1,12 @@
 (in-package :clg)
 
-;;  HOLOPHRASE -> ITEM-BASED W/ ADDITION
-;; --------------------------------------
+;; ------------------------------------------------
+;; + Repair: HOLOPHRASE -> ITEM-BASED W/ ADDITION +
+;; ------------------------------------------------
+
+;; This repair is applied when the utterance is completely unknown
+;; or when all repairs using the partial utterance have failed
+;; or when interpretation has failed.
 
 (define-event holophrase->item-based-addition-repair-started)
 (define-event holophrase->item-based-addition-new-cxn-and-th-links
@@ -9,10 +14,6 @@
 
 (defclass holophrase->item-based--addition (clevr-learning-repair)
   ((trigger :initform 'fcg::new-node)))
-
-;; This repair is applied when the utterance is completely unknown
-;; or when all repairs using the partial utterance have failed
-;; or when interpretation has failed.
 
 (defmethod repair ((repair holophrase->item-based--addition)
                    (problem unknown-utterance-problem)
@@ -44,9 +45,6 @@
                      :repair repair
                      :problem problem
                      :restart-data constructions-and-th-links))))
-
-
-
 
 (defun create-item-based-cxn-addition (problem node composer-solution)
   (let* ((agent (find-data problem :owner))

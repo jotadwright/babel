@@ -1,7 +1,12 @@
 (in-package :clg)
 
-;;  HOLOPRHASE -> ITEM-BASED W/ SUBSTITUTION
-;; ------------------------------------------
+;; -----------------------------------------------------
+;; + Repair:  HOLOPHRASE -> ITEM-BASED W/ SUBSTITUTION +
+;; -----------------------------------------------------
+
+;; This repair is applied when the utterance is completely unknown
+;; or when all repairs using the partial utterance have failed
+;; or when interpretation has failed.
 
 (define-event holophrase->item-based-substitution-repair-started)
 (define-event holophrase->item-based-subsititution-new-cxn-and-th-links
@@ -9,10 +14,6 @@
 
 (defclass holophrase->item-based--substitution (clevr-learning-repair)
   ((trigger :initform 'fcg::new-node)))
-
-;; This repair is applied when the utterance is completely unknown
-;; or when all repairs using the partial utterance have failed
-;; or when interpretation has failed.
 
 (defmethod repair ((repair holophrase->item-based--substitution)
                    (problem unknown-utterance-problem)
@@ -198,8 +199,3 @@
                   ;; 4. th links
                   (list nil (list new-lex-cxn-2 item-based-cxn)
                         (list new-lex-cxn-1) (list th-link-1 th-link-2)))))))))
-  
-
-
-      
-

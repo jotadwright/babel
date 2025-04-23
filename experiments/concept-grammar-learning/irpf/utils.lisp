@@ -46,9 +46,9 @@
 ;; -------------------------
 
 ;; TO REMOVE?
-(defun initial-node-p (node)
-  "return t if node is initial node"
-  (null (all-parents node)))
+;; (defun initial-node-p (node)
+;;   "return t if node is initial node"
+;;   (null (all-parents node)))
 
 (defun initial-node-p (node)
   (find 'fcg::initial (fcg::statuses node)))

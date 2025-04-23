@@ -76,32 +76,34 @@
                              (:file "score")))
                (:module "irpf"
                 :serial t
-                :components ((:module "diagnostics"
+                :components ((:file "handle-fix")
+                             (:module "diagnostics"
                               :serial t
                               :components ((:file "diagnostic-failed")
                                            (:file "diagnostic-unknown")
                                            (:file "diagnostic-partial")
                                            (:file "diagnostic-meaning")))
+                             (:module "repairs"
+                              :serial t
+                              :components (
+                                           (:file "add-holophrase")
+                                           (:file "holophrase-to-item-based--substitution")
+                                           (:file "holophrase-to-item-based--addition")
+                                           (:file "holophrase-to-item-based--deletion")
+                                           (:file "item-based-to-lexical")
+                                           (:file "lexical-to-item-based")
+                                           (:file "add-th-links")
+                                           (:file "add-th-links-formulation")))  
                              (:file "composer")
-                             (:file "fcg-utils")
                              (:file "goal-tests")
                              (:file "grammar")
                              (:file "utils")
                              (:file "utils3")))
-               (:module "repairs"
-                :serial t
-                :components ((:file "clevr-learning-repair")
-                             (:file "add-holophrase")
-                             (:file "holophrase-to-item-based--substitution")
-                             (:file "holophrase-to-item-based--addition")
-                             (:file "holophrase-to-item-based--deletion")
-                             (:file "item-based-to-lexical")
-                             (:file "lexical-to-item-based")
-                             (:file "add-th-links")
-                             (:file "add-th-links-formulation")))               
+                            
                (:module "utils"
                 :serial t
-                :components ((:file "utils")
+                :components ((:file "fcg-utils")
+                             (:file "utils")
                              (:file "loading")
                              (:file "processes")
                              (:file "tasks")

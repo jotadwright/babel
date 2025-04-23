@@ -1,9 +1,8 @@
-;;;; add-th-links-formulation.lisp
-
 (in-package :clg)
 
-;;  ADD-TH-LINKS-FORMULATION
-;; -------------------------
+;; --------------------------------------------
+;; + Repair: ADD-CATEGORIAL-LINKS FORMULATION +
+;; --------------------------------------------
 
 (define-event add-th-links-formulation-repair-started)
 (define-event add-th-links-formulation-new-th-links
@@ -30,7 +29,6 @@
 
 ;; PATH REQUIRED
 ;; -------------
-
 (defun create-formulation-th-links-with-path (problem node)
   (let* ((agent (find-data problem :owner))
          (cxn-inventory (original-cxn-set (construction-inventory node)))
@@ -75,7 +73,6 @@
 
 ;; NO PATH REQUIRED
 ;; ----------------
-
 (defun get-meaning-from-root-first-merge-failed (node)
   (meaning-predicates-with-variables
    (extract-meaning

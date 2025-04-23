@@ -1,19 +1,18 @@
-;;;; add-holophrase.lisp
-
 (in-package :clg)
 
-;;  ADD-HOLOPHRASE
-;; ----------------
+;; --------------------------
+;; + Repair: ADD-HOLOPHRASE +
+;; --------------------------
+
+;; This repair is applied when the utterance is completely unknown
+;; or when all repairs using the partial utterance have failed
+;; or when interpretation has failed.
 
 (define-event add-holophrase-repair-started)
 (define-event add-holophrase-new-cxn (cxn construction))
 
 (defclass add-holophrase (repair)
   ((trigger :initform 'fcg::new-node)))
-
-;; This repair is applied when the utterance is completely unknown
-;; or when all repairs using the partial utterance have failed
-;; or when interpretation has failed.
 
 (defmethod repair ((repair add-holophrase)
                    (problem unknown-utterance-problem)
@@ -40,7 +39,6 @@
                  :restart-data (create-holophrase-cxn
                                 problem node
                                 (find-data problem :intention))))
-                                                        
 
 (defun create-holophrase-cxn (problem node reconstructed-intention)
   "Create a new holophrase construction from the reconstructed intention"
@@ -108,7 +106,9 @@
     (set-data interaction :applied-repair 'add-holophrase)
     holophrase-cxn))
 
-
+;; -------------------------------
+;; + HANDLE-FIX: only holophrase +
+;; -------------------------------
 (defmethod handle-fix ((fix fcg::cxn-fix) (repair add-holophrase)
                        (problem problem) (node cip-node)
                        &key &allow-other-keys)

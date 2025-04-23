@@ -1,9 +1,8 @@
-;;;; add-th-links.lisp
-
 (in-package :clg)
 
-;;  ADD-TH-LINKS
-;; --------------
+;; --------------------------------
+;; + Repair: ADD-CATEGORIAL-LINKS +
+;; --------------------------------
 
 (define-event add-th-links-repair-started)
 (define-event add-th-links-new-th-links

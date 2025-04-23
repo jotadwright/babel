@@ -1,5 +1,9 @@
 (in-package :clg)
 
+;; -----------
+;; + Repairs +
+;; -----------
+
 (defclass clevr-learning-repair (repair)
   ((trigger :initform 'fcg::new-node))
   (:documentation "Base class for all repairs."))
@@ -27,6 +31,9 @@
           ;; return the last node as first in the list!
           finally (return (reverse new-cipns)))))
 
+;; ----------------------------------
+;; + HANDLE-FIX: general handle fix +
+;; ----------------------------------
 (defmethod handle-fix ((fix fcg::cxn-fix) (repair clevr-learning-repair)
                        (problem problem) (node cip-node)
                        &key &allow-other-keys)
@@ -37,7 +44,7 @@
     (destructuring-bind (existing-cxns-to-apply new-cxns-to-apply other-new-cxns th-links) (restart-data fix)
       (let* ((orig-type-hierarchy (categorial-network (construction-inventory node)))
              (temp-type-hierarchy (copy-object (categorial-network (construction-inventory node)))) 
-             (th (loop for (from . to) in th-links
+             (th (loop for (from . to) in th-links ;; th is never used, maybe refactor get it out of the let
                        do (add-categories (list from to) temp-type-hierarchy)
                           (add-link from to temp-type-hierarchy
                                     :weight (get-configuration node :initial-th-link-weight))
@@ -47,7 +54,7 @@
                                   (append existing-cxns-to-apply new-cxns-to-apply)
                                   node)))
         (declare (ignorable th))
-        (set-categorial-network (construction-inventory node) orig-type-hierarchy)
+        (set-categorial-network (construction-inventory node) orig-type-hierarchy) ;; TODO: why??
         (set-data (car-resulting-cfs (cipn-car (first new-nodes)))
                   :fix-cxns (append new-cxns-to-apply other-new-cxns))
         ;(set-data (car-resulting-cfs (cipn-car (first new-nodes)))

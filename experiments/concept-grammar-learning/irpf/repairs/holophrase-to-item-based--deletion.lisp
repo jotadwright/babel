@@ -1,7 +1,12 @@
 (in-package :clg)
 
-;;  HOLOPRHASE -> ITEM-BASED W/ DELETION
-;; --------------------------------------
+;; -------------------------------------------------
+;; + Repair:  HOLOPHRASE -> ITEM-BASED W/ DELETION +
+;; -------------------------------------------------
+
+;; This repair is applied when the utterance is completely unknown
+;; or when all repairs using the partial utterance have failed
+;; or when interpretation has failed.
 
 (define-event holophrase->item-based-deletion-repair-started)
 (define-event holophrase->item-based-deletion-new-cxn-and-th-links
@@ -9,10 +14,6 @@
 
 (defclass holophrase->item-based--deletion (clevr-learning-repair)
   ((trigger :initform 'fcg::new-node)))
-
-;; This repair is applied when the utterance is completely unknown
-;; or when all repairs using the partial utterance have failed
-;; or when interpretation has failed.
 
 (defmethod repair ((repair holophrase->item-based--deletion)
                    (problem unknown-utterance-problem)

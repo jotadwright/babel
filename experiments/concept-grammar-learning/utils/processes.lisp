@@ -246,4 +246,3 @@
   (run-speaker-alignment agent (input process)
                          (get-configuration agent :alignment-strategy))
   (make-process-result 1 nil :process process))
-

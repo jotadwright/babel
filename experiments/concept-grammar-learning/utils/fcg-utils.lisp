@@ -17,19 +17,17 @@
     (initial-node cipn)
     :collect-fn #'statuses)))
 
-
+(defun extract-forms-from-cipn (cipn)
+  (extract-forms
+   (left-pole-structure
+    (car-resulting-cfs
+     (cipn-car cipn)))))
 
 (defun toggle-th-connected-mode (cxn-inventory mode)
   (set-configuration cxn-inventory :th-connected-mode mode :replace t))
 
 (defun extract-meanings-from-cipn (cipn)
   (extract-meanings
-   (left-pole-structure
-    (car-resulting-cfs
-     (cipn-car cipn)))))
-
-(defun extract-forms-from-cipn (cipn)
-  (extract-forms
    (left-pole-structure
     (car-resulting-cfs
      (cipn-car cipn)))))
