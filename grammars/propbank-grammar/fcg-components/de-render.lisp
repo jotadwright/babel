@@ -15,12 +15,14 @@
 (defmethod de-render ((utterance string) (mode (eql :de-render-constituents-dependents))
                       &key (syntactic-analysis nil) (tokenize? t) (model "en_benepar") &allow-other-keys)
   "De-renders an utterance as a combination of Spacy dependency structure and benepar constituency structure."
-  (let ((syntactic-analysis (cond (syntactic-analysis)
-                                  (tokenize?
-                                   (nlp-tools:get-penelope-syntactic-analysis utterance :model model))
-                                  ((not tokenize?)
-                                   (nlp-tools:get-penelope-syntactic-analysis
-                                    (split-sequence:split-sequence #\Space utterance :remove-empty-subseqs t) :model model)))))
+  (let* ((json:*json-identifier-name-to-lisp* 'json:camel-case-to-lisp)
+         (json:*lisp-identifier-name-to-json* 'json:lisp-to-camel-case)
+         (syntactic-analysis (cond (syntactic-analysis)
+                                   (tokenize?
+                                    (nlp-tools:get-penelope-syntactic-analysis utterance :model model))
+                                   ((not tokenize?)
+                                    (nlp-tools:get-penelope-syntactic-analysis
+                                     (split-sequence:split-sequence #\Space utterance :remove-empty-subseqs t) :model model)))))
     (create-initial-transient-structure-based-on-benepar-analysis syntactic-analysis)))
 
 
@@ -38,9 +40,9 @@
                       ;; attributes
                       for node-type = (node-type node)
                       for node-string = (node-string node)
-                      for parent-id = (if (and (or (equal (node-lex-class node) 'rp);;node itself is a particle
-                                                   (equal (node-dependency-label node) 'prt))
-                                               (equalp "V" (subseq (format nil "~a"
+                      for parent-id = (if (and (or (string= (node-lex-class node) 'rp) ;; node itself is a particle
+                                                   (string= (node-dependency-label node) 'prt))
+                                               (string= "V" (subseq (format nil "~a"
                                                                            (node-lex-class (get-node (node-dependency-head node)
                                                                                                      spacy-benepar-analysis)))
                                                                    0 1))
@@ -49,16 +51,16 @@
                                         (node-parent node))
                       for node-id = (node-id node)
                       for unit-name = (cdr (assoc node-id unit-name-ids))
-                      for syn-class = (cond ((equal node-type 'phrase)
+                      for syn-class = (cond ((string= node-type 'phrase)
                                              (node-phrase-types node))
-                                            ((and (equal (node-dependency-label node) 'aux)
-                                                  (not (equal (node-lex-class node) 'md)))
+                                            ((and (string= (node-dependency-label node) 'aux)
+                                                  (not (string= (node-lex-class node) 'md)))
                                              '(AUX))
-                                            ((equal (node-dependency-label node) 'auxpass)
+                                            ((string= (node-dependency-label node) 'auxpass)
                                              '(AUXPASS))
                                             ((equalp "V" (subseq (format nil "~a" (node-lex-class node)) 0 1))
                                              '(V))
-                                            ((and (member (node-lex-class node) '(nnp nns nn nnps prp prp$) :test #'equalp)
+                                            ((and (member (node-lex-class node) '(nnp nns nn nnps prp prp$) :test #'string=)
                                                   ;;
                                                   (not (and (find parent-id spacy-benepar-analysis ;; has parent
                                                                   :test #'equalp :key #'node-id)
@@ -77,10 +79,10 @@
                                      (span (,(node-start node) ,(node-end node)))
                                      (parent ,(cdr (assoc parent-id unit-name-ids)))
                                      (syn-class ,syn-class)
-                                     ,@(when (equal node-type 'phrase)
+                                     ,@(when (string= node-type 'phrase)
                                          `((constituents ,(find-constituents node-id spacy-benepar-analysis unit-name-ids))
                                            (word-order ,(find-adjacency-constraints node-id spacy-benepar-analysis unit-name-ids))))
-                                     ,@(when (and (equal node-type 'phrase)
+                                     ,@(when (and (string= node-type 'phrase)
                                                   (find 'vp syn-class))
                                          (loop for constituent in (find-constituent-units node-id spacy-benepar-analysis)
                                                for dependency-label = (assoc ':DEPENDENCY--LABEL constituent)
@@ -88,7 +90,7 @@
                                                          (string= (cdr dependency-label) "auxpass"))
                                                return '((passive +))
                                                finally (return '((passive -)))))
-                                     ,@(when (equal node-type 'leaf)
+                                     ,@(when (string= node-type 'leaf)
                                          `((lemma ,(node-lemma node))
                                            (dependency-label ,(node-dependency-label node)))))))
 
@@ -114,7 +116,7 @@
   (let* ((phrasal-verb-units
           (loop for unit in units
                 for parent-unit = (find (unit-feature-value unit 'parent) units :key #'unit-name)
-                when (equal (unit-feature-value parent-unit 'node-type) 'leaf)
+                when (string= (unit-feature-value parent-unit 'node-type) 'leaf)
                 collect (cons parent-unit unit)))
          (phrasal-vp-units
           (loop for unit in units
