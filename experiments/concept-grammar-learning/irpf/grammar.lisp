@@ -32,7 +32,7 @@
 
 
 
-(in-package :cgl)
+(in-package :clg)
 
 (defun default-clevr-grammar ()
   (let ((clevr-grammar (copy-object *CLEVR*)))

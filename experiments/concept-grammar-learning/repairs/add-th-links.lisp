@@ -1,6 +1,6 @@
 ;;;; add-th-links.lisp
 
-(in-package :cgl)
+(in-package :clg)
 
 ;;  ADD-TH-LINKS
 ;; --------------

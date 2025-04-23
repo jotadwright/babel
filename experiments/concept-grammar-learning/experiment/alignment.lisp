@@ -1,6 +1,6 @@
 ;;;; alignment.lisp
 
-(in-package :cgl)
+(in-package :clg)
 
 ;;;; store past scenes (composer strategy)
 ;;;; ==> store all past scenes with the applied utterance and correct answer

@@ -1,9 +1,9 @@
 (in-package :asdf)
 
-(defsystem #:clevr-grammar-learning
-  :description "Tutor-learner experiment to learn the clevr grammar"
+(defsystem :clg
+  :description "Tutor-learner experiment to learn the clevr grammar with concepts"
   :author "EHAI <ehai@ai.vub.ac.be>"
-  :maintainer "Jens Nevens <jens@ai.vub.ac.be>"
+  :maintainer "Jerome Botoko Ekila <jerome@ai.vub.ac.be>"
   :license "Babel Research License"
   :depends-on (:utils
                :experiment-framework

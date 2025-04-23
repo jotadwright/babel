@@ -1,6 +1,6 @@
 ;;;; processes.lisp
 
-(in-package :cgl)
+(in-package :clg)
 
 ;; -------------------
 ;; + Initial process +

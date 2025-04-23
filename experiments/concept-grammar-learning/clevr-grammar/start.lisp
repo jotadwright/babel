@@ -1,5 +1,5 @@
 ;(ql:quickload :clevr-grammar)
-(in-package :cgl)
+(in-package :clg)
 (activate-monitor trace-fcg)
 
 ;; depth first configurations

@@ -1,4 +1,4 @@
-(in-package :cgl)
+(in-package :clg)
 
 (defun all-linked-predicates (predicate var irl-program)
   "Find the next predicate, given a variable"

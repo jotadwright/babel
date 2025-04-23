@@ -1,4 +1,4 @@
-(in-package :cgl)
+(in-package :clg)
 
 (defun create-all-graphs-for-single-experiment (experiment-name)
   ;; This function creates all graphs that are relevant

@@ -1,6 +1,6 @@
 ;;;; web-monitors.lisp
 
-(in-package :cgl)
+(in-package :clg)
 
 (define-monitor trace-tasks-and-processes)
 

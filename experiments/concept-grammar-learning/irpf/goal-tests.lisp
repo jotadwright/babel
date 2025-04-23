@@ -1,6 +1,6 @@
 ;;;; goal-tests.lisp
 
-(in-package :cgl)
+(in-package :clg)
 
 (defmethod cip-goal-test ((node cip-node) (mode (eql :correct-interpretation)))
   "Checks whether the extracted meaning can be correctly interpreted.

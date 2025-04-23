@@ -4,8 +4,8 @@
 ;;                     ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(ql:quickload :cgl)
-(in-package :cgl)
+(ql:quickload :clg)
+(in-package :clg)
 
 ;;;; UTILS FOR PLOTTING
 ;;;; ------------------
@@ -16,7 +16,7 @@
   (format t "~%Creating graph for experiment ~a with measures ~a" experiment-name measure-names)
   (let* ((raw-file-paths
           (loop for measure-name in measure-names
-                collect `("experiments" "clevr-grammar-learning" "raw-data" ,experiment-name ,measure-name)))
+                collect `("experiments" "concept-grammar-learning" "raw-data" ,experiment-name ,measure-name)))
          (default-plot-file-name
           (reduce #'(lambda (str1 str2) (string-append str1 "+" str2)) 
                   raw-file-paths :key #'(lambda (path) (first (last path)))))
@@ -25,7 +25,7 @@
             (nth (1+ (position :plot-file-name evo-plot-keyword-args)) evo-plot-keyword-args))))
     (apply #'raw-files->evo-plot
            (append `(:raw-file-paths ,raw-file-paths
-                     :plot-directory ("experiments" "clevr-grammar-learning" "graphs" ,experiment-name)
+                     :plot-directory ("experiments" "concept-grammar-learning" "graphs" ,experiment-name)
                      :plot-file-name ,(if plot-file-name plot-file-name default-plot-file-name))
                    evo-plot-keyword-args)))
   (format t "~%Graphs have been created."))

@@ -1,6 +1,6 @@
 ;;;; intersect.lisp
 
-(in-package :cgl)
+(in-package :clg)
 
 ;; ---------------------
 ;; INTERSECT primtive ;;

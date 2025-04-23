@@ -1,6 +1,6 @@
 ;;;; grammar.lisp
 
-(in-package :cgl)
+(in-package :clg)
 
 (def-fcg-constructions clevr-grammar
     :feature-types ((args set-of-predicates)

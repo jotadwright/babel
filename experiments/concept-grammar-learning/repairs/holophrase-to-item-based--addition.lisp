@@ -1,4 +1,4 @@
-(in-package :cgl)
+(in-package :clg)
 
 ;;  HOLOPHRASE -> ITEM-BASED W/ ADDITION
 ;; --------------------------------------

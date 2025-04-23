@@ -1,6 +1,6 @@
 ;;;; agent.lisp
 
-(in-package :cgl)
+(in-package :clg)
 
 ;; -----------------
 ;; + Agent Classes +

@@ -1,5 +1,5 @@
 
-(in-package :cgl)
+(in-package :clg)
 
 (defun find-cxn-by-form-and-meaning (form meaning cxn-inventory)
   "returns a cxn with the same meaning and form if it's in the cxn-inventory"

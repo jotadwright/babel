@@ -1,6 +1,6 @@
 ;;;; experiment.lisp
 
-(in-package :cgl)
+(in-package :clg)
 
 ;; -----------------------------
 ;; + Experiment Configurations +

@@ -1,4 +1,4 @@
-(in-package :cgl)
+(in-package :clg)
 
 (define-monitor trace-grammar-learning-in-web-interface
                 :documentation "Prints progress of learning in the web interface")

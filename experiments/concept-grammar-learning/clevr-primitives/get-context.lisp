@@ -1,6 +1,6 @@
 ;;;; get-context.lisp
 
-(in-package :cgl)
+(in-package :clg)
 
 ;; -----------------------
 ;; GET-CONTEXT primtive ;;

@@ -1,6 +1,6 @@
 ;;;; exist.lisp
 
-(in-package :cgl)
+(in-package :clg)
 
 ;; -----------------
 ;; EXIST primtive ;;

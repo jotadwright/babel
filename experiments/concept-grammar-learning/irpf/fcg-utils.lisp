@@ -1,6 +1,6 @@
 ;;;; fcg-utils.lisp
 
-(in-package :cgl)
+(in-package :clg)
 
 (defun all-cip-nodes (cip)
   (remove nil

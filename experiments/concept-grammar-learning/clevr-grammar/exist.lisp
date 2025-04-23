@@ -1,6 +1,6 @@
 ;;;; exist.lisp
 
-(in-package :cgl)
+(in-package :clg)
 
 ;; ----------------------------------------------------- ;;
 ;; This file contains grammatical constructions for      ;;

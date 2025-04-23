@@ -1,6 +1,6 @@
 ;;;; interaction.lisp
 
-(in-package :cgl)
+(in-package :clg)
 
 ;; --------------------
 ;; + Initialize agent +

@@ -1,6 +1,6 @@
 ;;;; monitors.lisp
 
-(in-package :cgl)
+(in-package :clg)
 
 ;;;; Printing dots
 (defparameter *repair-to-id-map*

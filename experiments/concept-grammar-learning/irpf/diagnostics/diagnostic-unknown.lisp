@@ -1,4 +1,4 @@
-(in-package :cgl)
+(in-package :clg)
 
 ;; ---------------------------------
 ;; + Diagnostic: unknown utterance +

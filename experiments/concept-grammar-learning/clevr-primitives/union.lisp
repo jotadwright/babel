@@ -1,6 +1,6 @@
 ;;;; union.lisp
 
-(in-package :cgl)
+(in-package :clg)
 
 ;; -----------------
 ;; UNION primtive ;;

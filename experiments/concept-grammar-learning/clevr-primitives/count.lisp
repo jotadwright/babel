@@ -1,6 +1,6 @@
 ;;;; count.lisp
 
-(in-package :cgl)
+(in-package :clg)
 
 ;; -----------------
 ;; COUNT primtive ;;

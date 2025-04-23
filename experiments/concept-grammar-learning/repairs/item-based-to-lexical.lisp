@@ -1,6 +1,6 @@
 ;;;; item-based->lexical.lisp
 
-(in-package :cgl)
+(in-package :clg)
 
 ;;  ITEM-BASED -> LEXICAL
 ;; -----------------------

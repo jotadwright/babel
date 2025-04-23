@@ -1,6 +1,6 @@
 ;;;; monitors.lisp
 
-(in-package :cgl)
+(in-package :clg)
 
 ;;;; Communicative success             
 (define-monitor record-communicative-success

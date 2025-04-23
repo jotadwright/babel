@@ -1,6 +1,6 @@
 ;;;; preprocess-utterance.lisp
 
-(in-package :cgl)
+(in-package :clg)
 
 (export '(preprocess-utterance))
 

@@ -4,8 +4,8 @@
 ;;                           ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(ql:quickload :clevr-grammar-learning)
-(in-package :cgl)
+(ql:quickload :clg)
+(in-package :clg)
 
 (defparameter *configuration* (make-configuration
                                :entries '((:determine-interacting-agents-mode . :tutor-learner)
@@ -44,7 +44,7 @@
   (activate-monitor print-a-dot-for-each-interaction)
   (activate-monitor display-metrics)
 
-  (run-series *experiment* 500))
+  (run-series *experiment* 2500))
 
 
 ;; Option 2: run experiment with real-time tracing in the web-interface
@@ -59,7 +59,6 @@
   (activate-monitor trace-interactions-in-wi)
   ;(activate-monitor trace-tasks-and-processes)
 
-  (run-interaction *experiment*)  
-
+  (run-interaction *experiment*)
   )
 

@@ -1,6 +1,6 @@
 ;;;; ontology.lisp
 
-(in-package :cgl)
+(in-package :clg)
 
 (defparameter *challenge-level-primitive-dict*
   '((1 count! exist filter get-context query unique)

@@ -1,6 +1,6 @@
 ;;;; lex-and-morph.lisp
 
-(in-package :cgl)
+(in-package :clg)
 
 ;; ----------------------------------------------------- ;;
 ;; This file contains contains functions that read json  ;;

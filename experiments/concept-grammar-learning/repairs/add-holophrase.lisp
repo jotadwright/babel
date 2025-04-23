@@ -1,6 +1,6 @@
 ;;;; add-holophrase.lisp
 
-(in-package :cgl)
+(in-package :clg)
 
 ;;  ADD-HOLOPHRASE
 ;; ----------------

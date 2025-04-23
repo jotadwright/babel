@@ -1,4 +1,4 @@
-(in-package :cgl)
+(in-package :clg)
 
 (defclass clevr-learning-repair (repair)
   ((trigger :initform 'fcg::new-node))

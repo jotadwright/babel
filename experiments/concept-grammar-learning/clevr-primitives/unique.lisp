@@ -1,6 +1,6 @@
 ;;;; unique.lisp
 
-(in-package :cgl)
+(in-package :clg)
 
 ;; ------------------
 ;; UNIQUE primtive ;;

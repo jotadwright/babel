@@ -1,6 +1,6 @@
 ;;;; same.lisp
 
-(in-package :cgl)
+(in-package :clg)
 
 ;; ----------------
 ;; SAME primtive ;;

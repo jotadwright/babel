@@ -2,9 +2,8 @@
 
 (in-package :cl-user)
 
-(defpackage :clevr-grammar-learning
-  (:nicknames :cgl)
-  (:documentation "Tutor-learner experiment to learn the clevr grammar")
+(defpackage :clg
+  (:documentation "Tutor-learner experiment to learn the clevr grammar with concepts")
   (:use :common-lisp :common-lisp-user :utils :experiment-framework
         :plot-raw-data :monitors :web-interface
         :tasks-and-processes :meta-layer-learning

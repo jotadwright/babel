@@ -1,6 +1,6 @@
 ;;;; query.lisp
 
-(in-package :cgl)
+(in-package :clg)
 
 ;; -----------------
 ;; QUERY primtive ;;

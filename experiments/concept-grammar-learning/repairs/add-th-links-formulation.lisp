@@ -1,6 +1,6 @@
 ;;;; add-th-links-formulation.lisp
 
-(in-package :cgl)
+(in-package :clg)
 
 ;;  ADD-TH-LINKS-FORMULATION
 ;; -------------------------

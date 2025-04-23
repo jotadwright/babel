@@ -1,5 +1,5 @@
-(ql:quickload :clevr-grammar-learning)
-(in-package :cgl)
+(ql:quickload :clg)
+(in-package :clg)
 
 ;; --------------------
 ;; + FILE FOR TESTING +

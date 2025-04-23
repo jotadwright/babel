@@ -1,6 +1,6 @@
 ;;;; equal.lisp
 
-(in-package :cgl)
+(in-package :clg)
 
 ;; -----------------
 ;; EQUAL primtive ;;

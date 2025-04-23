@@ -1,6 +1,6 @@
 ;;;; relate.lisp
 
-(in-package :cgl)
+(in-package :clg)
 
 ;; ------------------
 ;; RELATE primtive ;;

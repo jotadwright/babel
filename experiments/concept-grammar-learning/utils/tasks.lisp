@@ -1,6 +1,6 @@
 ;;;; tasks.lisp
 
-(in-package :cgl)
+(in-package :clg)
 
 ;; -----------------------
 ;; + Learner Hearer Task +

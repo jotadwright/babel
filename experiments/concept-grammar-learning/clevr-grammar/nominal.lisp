@@ -1,6 +1,6 @@
 ;;;; nominal.lisp
 
-(in-package :cgl)
+(in-package :clg)
 
 ;; ----------------------------------------------------- ;;
 ;; This file contains  grammatical constructions to      ;;

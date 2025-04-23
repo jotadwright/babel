@@ -1,6 +1,6 @@
 ;;;; equal-less-greater.lisp
 
-(in-package :cgl)
+(in-package :clg)
 
 ;(export '(equal-integer less-than greater-than))
 

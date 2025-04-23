@@ -1,6 +1,6 @@
 ;;;; composer.lisp
 
-(in-package :cgl)
+(in-package :clg)
 
 ;; ------------
 ;; + Composer +
