@@ -2,7 +2,7 @@
 
 (defsystem :clg
   :description "Tutor-learner experiment to learn the clevr grammar with concepts"
-  :author "EHAI <ehai@ai.vub.ac.be>"
+  :author "Hermes I Research Team"
   :maintainer "Jerome Botoko Ekila <jerome@ai.vub.ac.be>"
   :license "Babel Research License"
   :depends-on (:utils
@@ -12,6 +12,7 @@
                :web-interface
                :tasks-and-processes
                :meta-layer-learning
+               :concept-representations
                :irl
                :fcg
                :clevr-world
