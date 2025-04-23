@@ -1,153 +1,96 @@
+;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                     ;;
+;; Script for PLOTTING ;;
+;;                     ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(ql:quickload :clevr-grammar-learning)
+(ql:quickload :cgl)
 (in-package :cgl)
 
-;;;; MONITORS
-;;;; --------
-(progn
-  (activate-monitor trace-fcg)
-  (activate-monitor trace-irl)
-  (activate-monitor print-a-dot-for-each-interaction)
-  (activate-monitor trace-interactions-in-wi)
-  (activate-monitor trace-tasks-and-processes))
+;;;; UTILS FOR PLOTTING
+;;;; ------------------
 
-(progn
-  (activate-monitor print-a-dot-for-each-interaction)
-  (activate-monitor display-metrics))
+(defun create-graph-for-single-strategy (experiment-name measure-names
+                                         &rest evo-plot-keyword-args)
+  ;; take some arguments, but pass along the rest to raw-files->evo-plot
+  (format t "~%Creating graph for experiment ~a with measures ~a" experiment-name measure-names)
+  (let* ((raw-file-paths
+          (loop for measure-name in measure-names
+                collect `("experiments" "clevr-grammar-learning" "raw-data" ,experiment-name ,measure-name)))
+         (default-plot-file-name
+          (reduce #'(lambda (str1 str2) (string-append str1 "+" str2)) 
+                  raw-file-paths :key #'(lambda (path) (first (last path)))))
+         (plot-file-name
+          (when (find :plot-file-name evo-plot-keyword-args)
+            (nth (1+ (position :plot-file-name evo-plot-keyword-args)) evo-plot-keyword-args))))
+    (apply #'raw-files->evo-plot
+           (append `(:raw-file-paths ,raw-file-paths
+                     :plot-directory ("experiments" "clevr-grammar-learning" "graphs" ,experiment-name)
+                     :plot-file-name ,(if plot-file-name plot-file-name default-plot-file-name))
+                   evo-plot-keyword-args)))
+  (format t "~%Graphs have been created."))
 
-(deactivate-all-monitors)
+(defun create-graph-comparing-strategies (&key experiment-names measure-name (average-windows 100)
+                                               (y-min 0) (y-max 1) xlabel y1-label y2-label
+                                               captions title open start end)
+  ;; This function allows you to compare a given measure accross different
+  ;; experiments, e.g. comparing lexicon size
+  (format t "~%Creating graph for experiments ~a with measure ~a" experiment-names measure-name)
+  (raw-files->evo-plot
+    :raw-file-paths
+    (loop for experiment-name in experiment-names
+          collect `("experiments" "clevr-learning" "raw-data" ,experiment-name ,measure-name))
+    :average-windows average-windows
+    :captions (if captions captions experiment-names)
+    :title (if title title "")
+    :plot-directory '("experiments" "clevr-learning" "graphs")
+    :error-bars '(:percentile 5 95)
+    :error-bar-modes '(:filled)
+    :y1-min y-min
+    :y1-max y-max
+    :x-label (if xlabel xlabel "Number of Games")
+    :y1-label (when y1-label y1-label)
+    :y2-label (when y2-label y2-label)
+    :open open
+    :start start :end end)
+  (format t "~%Graphs have been created"))
 
-(progn
-  (deactivate-monitor trace-fcg)
-  (deactivate-monitor trace-irl)
-  (deactivate-monitor trace-interactions-in-wi))
-
-(progn
-  (deactivate-monitor display-communicative-success))
-
-;;;; SINGLE EXPERIMENT
-;;;; -----------------
-
-(defparameter *experiment*
-   (make-instance 'clevr-learning-experiment
-                  :entries '((:determine-interacting-agents-mode . :tutor-learner)
-                             (:question-sample-mode . :all)
-                             ;(:questions-per-challenge . 1000)
-                             (:scenes-per-question . 50)
-                             (:confidence-threshold . 1.1)
-                             (:tutor-sample-mode . :smart)
-                             (:cxn-decf-score . 0.4)
-                             (:cxn-inhibit-score . 0.1)
-                             (:primitives . :symbolic)
-                             (:learner-cxn-supplier . :hashed-and-scored)
-                             (:alignment-strategy . :lateral-inhibition)
-                             (:hide-type-hierarchy . nil)
-                             (:remove-cxn-on-lower-bound . t)
-                             (:composer-strategy . :store-past-scenes)
-                             (:th-link-repair-mode-comprehension . :no-path-required)
-                             (:th-link-repair-mode-formulation . :path-required))))
-
-
-(clear-page)
-(run-interaction *experiment*)
-(run-series *experiment* 500)
-
-
-;; disable meta-layer and interpretation goal test
-(let ((grammar (grammar (learner *experiment*))))
-  (set-configuration grammar :parse-goal-tests
-                     (butlast (get-configuration grammar :parse-goal-tests)))
-  (set-configuration grammar :use-meta-layer nil)
-  (comprehend "What  material is the big blue object?"
-              :cxn-inventory grammar)
-  (set-configuration grammar :parse-goal-tests
-                     (append (get-configuration grammar :parse-goal-tests)
-                             '(:correct-interpretation)))
-  (set-configuration grammar :use-meta-layer t))
-
-(formulate-all '((bind color-category cat-1 red)
-                 (filter set-1 set-2 cat-1)
-                 (get-context set-2)
-                 (count answer set-1))
-               :cxn-inventory (grammar (learner *experiment*)))
-
-(add-element (make-html (grammar (learner *experiment*))))
-
-(add-element
- (make-html
-  (categorial-network (grammar (learner *experiment*)))
-  :weights? t))
-
-(let ((lexical-cxns (find-all 'lexical (constructions (grammar (learner *experiment*)))
-                              :key #'get-cxn-type)))
-  (loop for cxn in (sort lexical-cxns #'> :key #'cxn-score)
-        do (add-element (make-html cxn)))
-  (length lexical-cxns))
-
-(let ((item-based-cxns
-       (find-all 'item-based (constructions (grammar (learner *experiment*)))
-                 :key #'get-cxn-type)))
-  (loop for cxn in (sort item-based-cxns #'> :key #'cxn-score)
-        do (add-element (make-html cxn)))
-  (length item-based-cxns))
-
-(let ((holophrase-cxns
-       (find-all 'holophrase (constructions (grammar (learner *experiment*)))
-                 :key #'get-cxn-type)))
-  (loop for cxn in (sort holophrase-cxns #'> :key #'cxn-score)
-        do (add-element (make-html cxn)))
-  (length holophrase-cxns))
-
-      
-
-;;;; EXPERIMENT WITH CONFIGURATIONS
-;;;; ------------------------------
-
-;; test
-(run-experiments '(
-                   (formulation-all-composer-solutions-smart
-                    ((:determine-interacting-agents-mode . :default)
-                     (:question-sample-mode . :all)    
-                     (:scenes-per-question . 50)
-                     (:confidence-threshold . 1.1)
-                     (:tutor-sample-mode . :smart)
-                     (:cxn-decf-score . 0.3)
-                     (:cxn-inhibit-score . 0.1)
-                     (:primitives . :symbolic)
-                     (:learner-cxn-supplier . :hashed-and-scored)
-                     (:alignment-strategy . :lateral-inhibition)
-                     (:hide-type-hierarchy . t)))
-                   )
-                 :number-of-interactions 100000
-                 :number-of-series 1
-                 :monitors (append (get-all-lisp-monitors)
-                                   (list "print-a-dot-for-each-interaction")))
-
-(run-experiments '(
-                   (test 
-                    ((:determine-interacting-agents-mode . :default)
-                     (:question-sample-mode . :all)
-                     ;(:questions-per-challenge . 5000)
-                     (:scenes-per-question . 20)
-                     (:confidence-threshold . 1.1)
-                     (:tutor-sample-mode . :random)
-                     (:cxn-decf-score . 0.3)
-                     (:primitives . :symbolic)
-                     (:learner-cxn-supplier . :hashed-and-scored)
-                     (:alignment-strategy . :lateral-inhibition)
-                     (:hide-type-hierarchy . t)))
-                   )
-                 :number-of-interactions 50000
-                 :number-of-series 1
-                 :monitors (append (get-all-lisp-monitors)
-                                   (get-all-export-monitors)
-                                   (list "print-a-dot-for-each-interaction"
-                                         "display-metrics")))
+#|
+(defun create-graph-for-single-strategy (&key experiment-name measure-names (average-windows 100)
+                                              y-axis (y1-min 0) y1-max y2-max xlabel y1-label y2-label
+                                              captions open points series-numbers end key-location)
+  ;; This function allows you to plot one or more measures for a single experiment
+  ;; e.g. communicative success and lexicon size
+  (format t "~%Creating graph for experiment ~a with measures ~a" experiment-name measure-names)
+  (raw-files->evo-plot
+    :raw-file-paths
+    (loop for measure-name in measure-names
+          collect `("experiments" "clevr-learning" "raw-data" ,experiment-name ,measure-name))
+    :average-windows average-windows
+    :plot-directory `("experiments" "clevr-learning" "graphs" ,experiment-name)
+    :error-bars '(:percentile 5 95)
+    :error-bar-modes '(:filled)
+    :captions captions
+    :use-y-axis y-axis
+    :y1-min y1-min
+    :y1-max y1-max
+    :y2-min 0
+    :y2-max y2-max
+    :x-label (if xlabel xlabel "Number of Games")
+    :y1-label (when y1-label y1-label)
+    :y2-label (when y2-label y2-label)
+    :points points
+    :series-numbers series-numbers
+    :end end
+    :open open
+    :key-location key-location)
+  (format t "~%Graphs have been created"))
+|#
 
 
 
-;;;; CREATING GRAPHS
-;;;; ---------------
+
+;;;
 
 (create-all-graphs-for-single-experiment "th-link-mixed-mode-random-tutor")
 

@@ -55,44 +55,6 @@
         when (equal phrase-type type)
         collect orig-cxn))
 
-(defun create-new-th-links (lex-classes-lex-cxns lex-classes-item-based-units type-hierarchy)
-  "Creates all TH links for matching lexical cxns using their original lex-class."
-  (loop for lex-cxn-lex-class in lex-classes-lex-cxns
-        for item-slot-lex-class in lex-classes-item-based-units
-        unless (neighbouring-categories-p lex-cxn-lex-class item-slot-lex-class type-hierarchy)
-        collect (cons lex-cxn-lex-class item-slot-lex-class)))
-
-(defun create-th-links (problem node)
-  "Return the TH links and applied cxns from a comprehend with :th-connected-mode :path-exists instead of :neighbours"
-  (let* ((utterance (random-elt (get-data problem :utterances)))
-         (gold-standard-meaning (random-elt (get-data problem :meanings)))
-         (cxn-inventory (construction-inventory node))
-         (orig-cxn-set (original-cxn-set cxn-inventory))
-         (type-hierarchy (categorial-network cxn-inventory)))
-    (disable-meta-layer-configuration cxn-inventory) ;(fcg::unify-atom
-    (with-disabled-monitor-notifications
-      (let* ((comprehension-result (multiple-value-list (comprehend utterance :cxn-inventory orig-cxn-set :gold-standard-meaning gold-standard-meaning)))
-             (meaning-network (first comprehension-result))
-             (cip-node (second comprehension-result))
-             (cip (third comprehension-result)))
-        (enable-meta-layer-configuration cxn-inventory)
-
-        ;;there is a solution with connected links in the TH
-        (when (member 'succeeded (statuses cip-node) :test #'string=)
-          (let* ((applied-cxns (applied-constructions cip-node))
-                 (lex-cxns (sort-cxns-by-form-string (filter-by-phrase-type 'lexical applied-cxns) utterance))
-                 (lex-classes-lex-cxns (when lex-cxns
-                                         (map 'list #'lex-class-cxn lex-cxns)))
-                 (item-based-cxn (first (filter-by-phrase-type 'item-based applied-cxns)))
-                 (lex-classes-item-based-units (when item-based-cxn
-                                                 (get-all-unit-lex-classes item-based-cxn)))
-                 (th-links (when (and lex-classes-lex-cxns lex-classes-item-based-units (= (length lex-classes-lex-cxns) (length lex-classes-item-based-units)))
-                             (create-new-th-links lex-classes-lex-cxns lex-classes-item-based-units type-hierarchy))))
-            (when (filter-by-phrase-type 'holophrase applied-cxns)
-                   (format t "Something has gone horribly wrong!"))
-            (list applied-cxns th-links)))))))
-
-
 #|
 (defmethod handle-fix ((fix fcg::cxn-fix) (repair add-cxns-and-th-links) (problem problem) (node cip-node) &key &allow-other-keys)
   "Apply the construction provided by fix tot the result of the node and return the construction-application-result"

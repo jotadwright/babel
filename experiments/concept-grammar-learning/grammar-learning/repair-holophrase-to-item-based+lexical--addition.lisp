@@ -33,31 +33,7 @@
                        :problem problem
                        :restart-data constructions-and-th-links)))))
 
-;; todo: there could also be more than one subset cxn
-(defun find-subset-holophrase-cxn (transient-structure cxn-inventory gold-standard-meaning utterance)
-  (loop with ts-form-constraints = (transient-structure-form-constraints transient-structure)
-        for cxn in (constructions cxn-inventory)
-        for cxn-form-constraints = (extract-form-predicates cxn)
-        for cxn-meaning-constraints = (extract-meaning-predicates cxn)
-        for superset-form = (form-constraints-with-variables utterance (get-configuration (cxn-inventory cxn) :de-render-mode))
-        for non-overlapping-form = (diff-subset-superset-form cxn superset-form)
-        for non-overlapping-meaning = (set-difference gold-standard-meaning (extract-meaning-predicates cxn) :test #'irl:unify-irl-programs)
-        for cxn-type =  (phrase-type cxn)
-        when (and (eql cxn-type 'holophrase)
-                  (equal 1 (length non-overlapping-meaning))
-                  (equal 1 (length non-overlapping-form))
-                  ;; check if all the strings in the form constraints are present in the superset
-                  ;; todo: include precedes relations
-                  (loop for cxn-fc in cxn-form-constraints
-                        always (if (equal (first cxn-fc) 'string)
-                                 (find (third cxn-fc) ts-form-constraints :key #'third :test #'equalp)
-                                 t)) ;; loop returns true if all are true, the third elem is the string
-                  (loop for predicate in cxn-meaning-constraints
-                        always (if (equal (first predicate) 'bind)
-                                 (find (fourth predicate) gold-standard-meaning :key #'fourth)
-                                 (find (first predicate) gold-standard-meaning :key #'first))))
-        ;; needs to be a holophrase, the form constraints for string and precedes constraints need to be a subset of the cxn, the meaning constraints need to be a subset too (todo: see if this is really the case in IRL)
-        return (values cxn superset-form non-overlapping-form non-overlapping-meaning)))
+
 
 
 (defun create-repair-cxns-holophrase-single-addition (problem node) ;;node = cip node (transient struct, applied cxns, cxn-inventory, ..)

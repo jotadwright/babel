@@ -18,7 +18,7 @@
                :cl-json)
   :serial t
   :components ((:file "package")
-               (:module "primitives"
+               (:module "clevr-primitives"
                 :serial t
                 :components ((:file "primitive-inventory")
                              (:file "get-context")
@@ -61,26 +61,36 @@
                              (:file "utils")
                              (:file "goal-tests")
                              (:file "problems-diagnostics")
-                             (:file "repair-add-categorial-links")
-                             (:file "repair-nothing-to-holophrase-cxn")
-                             (:file "repair-holophrase-to-item-based+lexical+lexical--substitution")
-                             (:file "repair-holophrase-to-item-based+lexical--addition")
-                             (:file "repair-holophrase-to-item-based+lexical+holophrase--deletion")
-                             (:file "repair-lexical-to-item-based-cxn")
-                             (:file "repair-item-based-to-lexical")
-                             (:file "monitors")
+                            ;;  (:file "repair-add-categolrial-links")
+                            ;;  (:file "repair-nothing-to;-holophrase-cxn")
+                            ;;  (:file "repair-holophrase-to-item-based+lexical+lexical--substitution")
+                            ;;  (:file "repair-holophrase-to-item-based+lexical--addition")
+                            ;;  (:file "repair-holophrase-to-item-based+lexical+holophrase--deletion")
+                            ;;  (:file "repair-lexical-to-item-based-cxn")
+                            ;;  (:file "repair-item-based-to-lexical")
+                             ;(:file "monitors")
                              (:file "web-monitors")))
-               (:file "utils")
-               (:file "goal-tests")
-               (:file "grammar")
-               (:file "fcg-utils")
-               (:file "irl-utils")
-               (:file "ontology")
-               (:file "composer-utils") 
-               (:file "agent")
-               (:file "composer")
-               (:file "alignment")
-               (:file "diagnostics-and-repairs")
+               (:module "experiment"
+                :serial t
+                :components ((:file "agent")
+                             (:file "alignment")
+                             (:file "experiment")
+                             (:file "interaction")))
+               (:module "irpf"
+                :serial t
+                :components ((:module "diagnostics"
+                              :serial t
+                              :components ((:file "diagnostic-failed")
+                                           (:file "diagnostic-unknown")
+                                           (:file "diagnostic-partial")
+                                           (:file "diagnostic-meaning")))
+                             (:file "composer")
+                             (:file "fcg-utils")
+                             (:file "goal-tests")
+                             (:file "grammar")
+                             (:file "utils")
+                             
+                             (:file "utils3")))
                (:module "repairs"
                 :serial t
                 :components ((:file "clevr-learning-repair")
@@ -91,11 +101,13 @@
                              (:file "item-based-to-lexical")
                              (:file "lexical-to-item-based")
                              (:file "add-th-links")
-                             (:file "add-th-links-formulation")))
-               (:file "processes")
-               (:file "tasks")
-               (:file "experiment")
-               (:file "interaction")
+                             (:file "add-th-links-formulation")))               
+               (:module "utils"
+                :serial t
+                :components ((:file "utils")
+                             (:file "processes")
+                             (:file "tasks")
+                             (:file "ontology")))
                (:module "monitoring"
                 :serial t
                 :components ((:file "web-monitors")

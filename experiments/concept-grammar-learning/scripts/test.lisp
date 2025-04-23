@@ -1,9 +1,9 @@
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Loading the package and setup ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 (ql:quickload :clevr-grammar-learning)
 (in-package :cgl)
+
+;; --------------------
+;; + FILE FOR TESTING +
+;; --------------------
 
 (activate-monitor trace-fcg)
 (activate-monitor trace-irl)
@@ -91,10 +91,6 @@
                   (bind attribute-category ?attribute-1 material)))
   (run-interactions-until-cxn-inventory-size *experiment* 1))
 
-
-
-
-
 ;; SUBSTITUTION
 ;; question_000450_len_005.lisp => "What material is the big cube?"
 (progn
@@ -108,9 +104,6 @@
    *experiment* '((bind size-category ?size large)))
   (run-interactions-until-cxn-inventory-size *experiment* 4))
 
-
-
-
 ;; LEARN FROM PARTIAL MEANING
 ;; question_007114_len_006.lisp => "What shape is the big cyan object?"
 (progn
@@ -121,7 +114,6 @@
                                :name "question_007114_len_006" :type "lisp")
                 (get-configuration *experiment* :challenge-files-root)))))
   (run-interaction *experiment*))
-
 
 ;; question_146153_len_005.lisp => ""What material is the gray cube?""
 ;; Learn gray-cxn
@@ -135,8 +127,6 @@
   (run-interactions-until-cxn-with-meaning
    *experiment* '((bind color-category ?color gray)))
   (run-interaction *experiment*))
-
-
 
 ;; LEARN LINKS
 ;; question_022307_len_006.lisp => "What shape is the big gray object?"

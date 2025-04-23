@@ -17,8 +17,7 @@
     (initial-node cipn)
     :collect-fn #'statuses)))
 
-(defun initial-node-p (node)
-  (find 'fcg::initial (fcg::statuses node)))
+
 
 (defun toggle-th-connected-mode (cxn-inventory mode)
   (set-configuration cxn-inventory :th-connected-mode mode :replace t))
@@ -81,18 +80,6 @@
 (defun cxn-added-at (cxn)
   (attr-val cxn :added-at))
 
-(defun item-based-number-of-slots (cxn)
-  (when (eql (get-cxn-type cxn) 'item-based)
-    (1- (length (contributing-part cxn)))))
-
-(defun get-strings-from-root (node)
-  (form-predicates-with-variables
-   (extract-string
-    (get-root
-     (left-pole-structure
-      (car-resulting-cfs
-       (cipn-car node)))))))
-
 (defun get-meaning-from-root (node)
   (meaning-predicates-with-variables
    (extract-meaning
@@ -126,20 +113,6 @@
                   (irl:equivalent-irl-programs? meaning (extract-meaning-predicates cxn)))
         return cxn))
 
-(defun subunit-blocks-for-lex-cxns (lex-cxns lex-subunit-names args th-links)
-  (loop for lex-cxn in lex-cxns
-        for arg in args
-        for lex-cxn-unit-name in lex-subunit-names
-        for th-link in th-links
-        for lex-slot-lex-class = (cdr th-link)
-        collect `(,lex-cxn-unit-name
-                  (syn-cat (fcg::lex-class ,lex-slot-lex-class)))
-        into contributing-units
-        collect `(,lex-cxn-unit-name
-                  (args (,arg))
-                  --)
-        into conditional-units
-        finally (return (values conditional-units contributing-units))))
 
 (defun form-predicates->hash-string (form-predicates)
   ;; the last string predicate
