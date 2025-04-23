@@ -95,11 +95,6 @@
            (experiment agent)))))
     (setf (attr-val cxn :last-used) current-interaction-nr)))
 
-(defun extract-and-render (cxn)
-  (list-of-strings->string
-   (render (extract-form-predicates cxn)
-           (get-configuration (cxn-inventory cxn) :render-mode))))
-
 (defun get-cxns-of-type (agent type)
   (if (eql type 'all)
     (constructions-list (grammar agent))

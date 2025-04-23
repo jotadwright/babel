@@ -27,7 +27,7 @@
                          (:seq2seq-endpoint . "http://localhost:8888/next-cxn")
                          (:seq2seq-model-comprehension . "clevr_comprehension_model")
                          (:seq2seq-model-formulation . "clevr_formulation_model")
-                         (:seq2seq-rpn-fn . clevr-meaning->rpn)
+                         (:seq2seq-rpn-fn . irl->rpn)
                          
                          ;; For guiding search:
                          (:cxn-sets-with-sequential-application hashed-lex hashed-morph)

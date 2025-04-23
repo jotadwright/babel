@@ -258,6 +258,38 @@
   ;; check the confidence level and (maybe) transition to the next challenge
   (maybe-increase-level experiment))
 
+;;;; store past scenes (composer strategy)
+;;;; ==> store all past scenes with the applied utterance and correct answer
+;;;;     and use these when composing a new program (the new program must
+;;;;     lead to the correct answer in all of these scenes).
+
+(defun add-past-scene (agent)
+  ;; Add the current scene and answer to the list
+  ;; of past scenes for the current utterance
+  (let* ((clevr-scene (find-data (ontology agent) 'clevr-context))
+         (sample (cons (index clevr-scene) (topic agent)))
+         (hash-key (sxhash (utterance agent)))
+         (window-size (get-configuration agent :composer-past-scenes-window)))
+    (if (gethash hash-key (memory agent))
+      (if (>= (length (gethash hash-key (memory agent))) window-size)
+        (setf (gethash hash-key (memory agent))
+              (cons sample (butlast (gethash hash-key (memory agent)))))
+        (push sample (gethash hash-key (memory agent))))
+      (setf (gethash hash-key (memory agent)) (list sample)))))
+
+;;;; store past programs (composer strategy)
+;;;; ==> store all past programs and use these when composing a new program
+;;;;     (the new program must be different from all previous programs).
+
+(defun add-past-program (agent irl-program)
+  ;; Add the current irl-program to the list of
+  ;; failed programs for the current utterance
+  (when irl-program
+    (let ((hash-key (sxhash (utterance agent))))
+      (if (gethash hash-key (memory agent))
+        (push irl-program (gethash hash-key (memory agent)))
+        (setf (gethash hash-key (memory agent)) (list irl-program))))))
+
 
 (defun record-interaction-success-in-table (agent success)
   "The agent records the success for the current question in its memory"

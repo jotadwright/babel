@@ -35,26 +35,30 @@
                              (:file "equal-less-greater")))
                (:module "clevr-grammar"
                 :serial t
-                :components ((:module "fcg-utils"
+                :components ((:file "lex-and-morph")
+                             (:file "grammar")
+                             (:file "rpn-meaning")
+                             (:file "preprocess-utterance")
+                             (:module "fcg-utils"
                               :serial t
                               :components ((:file "cxn-supplier")
                                            (:file "de-render")
                                            (:file "node-test")))
-                             (:file "lex-and-morph")
-                             (:file "rpn-meaning")
-                             (:file "grammar")
-                             (:file "nominal")
-                             (:file "query")
-                             (:file "relate")
-                             (:file "count")
-                             (:file "exist")
-                             (:file "multi-hop")
-                             (:file "single-and")
-                             (:file "single-or")
-                             (:file "compare-integer")
-                             (:file "same-relate")
-                             (:file "comparison")
-                             (:file "preprocess-utterance")))
+                             (:module "constructions"
+                              :serial t
+                              :components ((:file "compare-integer")
+                                           (:file "comparison")
+                                           (:file "count")
+                                           (:file "exist")
+                                           
+                                           (:file "multi-hop")
+                                           (:file "nominal")
+                                           (:file "query")
+                                           (:file "relate")
+                                           (:file "same-relate")
+                                           (:file "single-and")
+                                           (:file "single-or")))
+                             ))
                (:module "grammar-learning"
                 :serial t
                 :components ((:file "fcg-utils")
@@ -66,8 +70,10 @@
                 :serial t
                 :components ((:file "agent")
                              (:file "alignment")
+                             (:file "competitors")
                              (:file "experiment")
-                             (:file "interaction")))
+                             (:file "interaction")
+                             (:file "score")))
                (:module "irpf"
                 :serial t
                 :components ((:module "diagnostics"
@@ -81,7 +87,6 @@
                              (:file "goal-tests")
                              (:file "grammar")
                              (:file "utils")
-                             
                              (:file "utils3")))
                (:module "repairs"
                 :serial t
@@ -97,6 +102,7 @@
                (:module "utils"
                 :serial t
                 :components ((:file "utils")
+                             (:file "loading")
                              (:file "processes")
                              (:file "tasks")
                              (:file "ontology")))
@@ -104,5 +110,4 @@
                 :serial t
                 :components ((:file "web-monitors")
                              (:file "monitors")
-                             (:file "lisp-monitors")
-                             (:file "plotting")))))
+                             (:file "lisp-monitors")))))

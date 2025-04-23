@@ -4,7 +4,43 @@
 
 (export '(preprocess-utterance))
 
-;;;; evaluation helper functions
+(defun preprocess-utterance (utterance)
+  "Preprocess the utterance for the clevr grammar"
+  (group-chunks (tokenize utterance)))
+
+(defun tokenize (utterance)
+  "Split the utterance in words, downcase every word,
+   remove the punctuation from the word"
+  (let ((words (split (remove-spurious-spaces utterance) #\space)))
+    (loop for word in words
+          append (detach-punctuation (downcase word)))))
+
+(defun group-chunks (list-of-words)
+  ;; group the chunks by length
+  ;; largest chunks first
+  ;; for every group size
+  ;;   go over the list-of-words with a sliding window of that size
+  ;;   this is called the sublist
+  ;;   when the sublist already contains a chunk, don't even bother to check again
+  ;;   otherwise, match it with all chunks of that size
+  ;;   if it matches, replace the sublist by the chunk
+  ;;   that is why we need to keep checking if 'end' is in bounds
+  ;;   because the length of list-of-words changes as we go
+  (loop for (chunk-size . chunks) in *sorted-form-chunks*
+        do (loop for start from 0 to (- (length list-of-words) chunk-size)
+                 for end from chunk-size to (length list-of-words)
+                 for sublist = (unless (> end (length list-of-words))
+                                 (subseq list-of-words start end))
+                 unless sublist
+                 return nil
+                 unless (sublist-contains-chunk sublist)
+                 do (loop for chunk in chunks
+                          when (sublist-matches-chunk sublist chunk)
+                          do (setf list-of-words (replace-by-chunk list-of-words start end chunk))
+                          and return nil)))
+  list-of-words)
+
+;; HELPER FUNCTIONS
 (defun detach-punctuation (word)
   "This function will check if the input string (word)
    has a punctuation at the end of it (e.g. it?)
@@ -17,13 +53,6 @@
         (list (subseq word 0 (1- (length word)))
               (subseq word (1- (length word)))))
       (list word))))
-
-(defun tokenize (utterance)
-  "Split the utterance in words, downcase every word,
-   remove the punctuation from the word"
-  (let ((words (split (remove-spurious-spaces utterance) #\space)))
-    (loop for word in words
-          append (detach-punctuation (downcase word)))))
 
 (defun extract-chunks ()
   "Extract all chunks in the cxn inventory"
@@ -71,32 +100,3 @@
   (group-and-sort-chunks
    (remove-duplicates (extract-chunks) :test #'string=))
   "All form chunks from the CLEVR grammar, sorted by length, longest first")
-
-(defun group-chunks (list-of-words)
-  ;; group the chunks by length
-  ;; largest chunks first
-  ;; for every group size
-  ;;   go over the list-of-words with a sliding window of that size
-  ;;   this is called the sublist
-  ;;   when the sublist already contains a chunk, don't even bother to check again
-  ;;   otherwise, match it with all chunks of that size
-  ;;   if it matches, replace the sublist by the chunk
-  ;;   that is why we need to keep checking if 'end' is in bounds
-  ;;   because the length of list-of-words changes as we go
-  (loop for (chunk-size . chunks) in *sorted-form-chunks*
-        do (loop for start from 0 to (- (length list-of-words) chunk-size)
-                 for end from chunk-size to (length list-of-words)
-                 for sublist = (unless (> end (length list-of-words))
-                                 (subseq list-of-words start end))
-                 unless sublist
-                 return nil
-                 unless (sublist-contains-chunk sublist)
-                 do (loop for chunk in chunks
-                          when (sublist-matches-chunk sublist chunk)
-                          do (setf list-of-words (replace-by-chunk list-of-words start end chunk))
-                          and return nil)))
-  list-of-words)
-
-(defun preprocess-utterance (utterance)
-  "Preprocess the utterance for the clevr grammar"
-  (group-chunks (tokenize utterance)))
