@@ -11,6 +11,12 @@
 ;;;;;;;;;;;;;;;;
 
 ;; Pointer to propbank annotated corpora
+
+;; Bind *babel-corpora* if not yet bound.
+(unless (boundp '*babel-corpora*)
+  (warn "*babel-corpora* not bound.")
+  (defparameter *babel-corpora* "no-corpus-path-provided"))
+
 (defparameter *ontonotes-annotations-directory* (merge-pathnames "English/propbank-release/data/" *babel-corpora*))
 (defparameter *ewt-annotations-directory* (merge-pathnames "English/propbank-release/data/google/ewt/" *babel-corpora*))
 
