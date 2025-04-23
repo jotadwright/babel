@@ -1,30 +1,118 @@
 (in-package :slp)
 
-;;-------------------------------------------;;
-;; adding hamnosys font to the web-interface ;;
-;;-------------------------------------------;;
-(progn
+;;----------------------------------;;
+;; links to helvetica hamnosys font ;;
+;;----------------------------------;;
   (setf web-interface::*dispatch-table*
         (append web-interface::*dispatch-table*
                 (list (web-interface::create-static-file-dispatcher-and-handler 
-                       "/hamnosys.css" (babel-pathname 
-                                        :directory '("systems" "web-interface" "hamnosys")
-                                        :name "hamnosys" :type "css") "text/css"))))
-    (progn 
-      (web-interface::define-css-link 'hamnosys.css "/hamnosys.css")
-      (web-interface::define-css 'main "ham {font-size: 10pt; font-family: hamnosysunicoderegular}")))
+                       "/HelveticaNeue-Hamnosys-Roman.ttf" (merge-pathnames
+                                        (make-pathname :directory '(:relative "GeoQuery-LSFB" "helveticaneue-hamnosys" "roman")
+                                        :name "HelveticaNeue-Hamnosys-Roman" :type "ttf")
+                                        *babel-corpora*))
+                      (web-interface::create-static-file-dispatcher-and-handler 
+                       "/HelveticaNeue-Hamnosys-Roman.woff" (merge-pathnames
+                                        (make-pathname :directory '(:relative "GeoQuery-LSFB" "helveticaneue-hamnosys" "roman")
+                                        :name "HelveticaNeue-Hamnosys-Roman" :type "woff")
+                                        *babel-corpora*))
+                      (web-interface::create-static-file-dispatcher-and-handler 
+                       "/HelveticaNeue-Hamnosys-Roman.woff2" (merge-pathnames
+                                        (make-pathname :directory '(:relative "GeoQuery-LSFB" "helveticaneue-hamnosys" "roman")
+                                        :name "HelveticaNeue-Hamnosys-Roman" :type "woff2")
+                                        *babel-corpora*))
+                      (web-interface::create-static-file-dispatcher-and-handler 
+                       "/HelveticaNeue-Hamnosys-Bold.ttf" (merge-pathnames
+                                        (make-pathname :directory '(:relative "GeoQuery-LSFB" "helveticaneue-hamnosys" "bold")
+                                        :name "HelveticaNeue-Hamnosys-Bold" :type "ttf")
+                                        *babel-corpora*))
+                      (web-interface::create-static-file-dispatcher-and-handler 
+                       "/HelveticaNeue-Hamnosys-Bold.woff" (merge-pathnames
+                                        (make-pathname :directory '(:relative "GeoQuery-LSFB" "helveticaneue-hamnosys" "bold")
+                                        :name "HelveticaNeue-Hamnosys-Bold" :type "woff")
+                                        *babel-corpora*))
+                      (web-interface::create-static-file-dispatcher-and-handler 
+                       "/HelveticaNeue-Hamnosys-Bold.woff2" (merge-pathnames
+                                        (make-pathname :directory '(:relative "GeoQuery-LSFB" "helveticaneue-hamnosys" "bold")
+                                        :name "HelveticaNeue-Hamnosys-Bold" :type "woff2")
+                                        *babel-corpora*))
+                      (web-interface::create-static-file-dispatcher-and-handler 
+                       "/courier-hamnosys.ttf" (merge-pathnames
+                                        (make-pathname :directory '(:relative "GeoQuery-LSFB" "courier-hamnosys")
+                                        :name "Courier-HamNoSys-Normal" :type "ttf")
+                                        *babel-corpora*))
+                      (web-interface::create-static-file-dispatcher-and-handler 
+                       "/courier-hamnosys.woff" (merge-pathnames
+                                        (make-pathname :directory '(:relative "GeoQuery-LSFB" "courier-hamnosys")
+                                        :name "Courier-HamNoSys-Normal" :type "woff")
+                                        *babel-corpora*))
+                      (web-interface::create-static-file-dispatcher-and-handler 
+                       "/courier-hamnosys.woff2" (merge-pathnames
+                                        (make-pathname :directory '(:relative "GeoQuery-LSFB" "courier-hamnosys")
+                                        :name "Courier-HamNoSys-Normal" :type "woff2")
+                                        *babel-corpora*)))))
+    ;(progn 
+      ;(web-interface::define-css-link 'hamnosys.css "/hamnosys.css")
+      ;(web-interface::define-css 'main "ham {font-size: 10pt; font-family: hamnosysunicoderegular}"))))
 
-
+ 
 (web-interface::define-css-link 'cwasa.css "https://vhg.cmp.uea.ac.uk/tech/jas/vhg2025/cwa/cwasa.css")
-
-(define-css 'page-background "
-html, body {background-color:#FFFFFF;}")
-
-(web-interface::clear-page) 
+ 
 
 ;;-----------------;;
 ;; CSS definitions ;;
 ;;-----------------;;
+
+(define-css 'helvetica-hamnosys-normal "
+@font-face {
+    font-family: 'Helvetica Neue Hamnosys';
+    src: url('http://localhost:8000/HelveticaNeue-Hamnosys-Roman.woff2') format('woff2'),
+         url('http://localhost:8000/HelveticaNeue-Hamnosys-Roman.woff') format('woff'),
+         url('http://localhost:8000/HelveticaNeue-Hamnosys-Roman.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+
+}")
+
+(define-css 'helvetica-hamnosys-bold "
+@font-face {
+    font-family: 'Helvetica Neue Hamnosys';
+    src: url('http://localhost:8000/HelveticaNeue-Hamnosys-Bold.woff2') format('woff2'),
+         url('http://localhost:8000/HelveticaNeue-Hamnosys-Bold.woff') format('woff'),
+         url('http://localhost:8000/HelveticaNeue-Hamnosys-Bold.ttf') format('truetype');
+    font-weight: bold;
+    font-style: bold;
+
+}")
+
+(define-css 'courier-hamnosys-normal "
+@font-face {
+    font-family: 'Courier Hamnosys';
+    src: url('http://localhost:8000/courier-hamnosys.woff2') format('woff2'),
+         url('http://localhost:8000/courier-hamnosys.woff') format('woff'),
+         url('http://localhost:8000/courier-hamnosys.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+
+}")
+
+
+;; overwriting some of the standard css definitions of the web-interface to switch fonts to ones that include HamNoSys
+
+(define-css 'web-interface::main "
+body, td { font-size: 9pt; font-family: Helvetica Neue Hamnosys, Helvetica Neue, Helvetica, Arial;}
+body {background-color:#FFFFFF;}
+a { color: #000066; text-decoration:none; }
+a:hover {text-decoration: underline}
+a.button { font-size: 8pt;}
+hr { border:0px;color:#777;background-color:#777;height:1px;width:100%;}
+")
+
+(define-css 'web-interface::pprint "
+div.pprint { margin-top:0px;}
+div.pprint * { font-family: Courier HamNoSys, Courier;font-weight:normal;font-size:9pt;line-height:10px;display:inline-block; }
+div.pprint span.table { margin-top:0px; margin-bottom:0px; display:inline-table;border-collapse:collapse;}
+div.pprint span.table > span { display:table-cell;vertical-align:top; margin-top:0px; margin-bottom:0px; }
+")
 
 ;; the whole table
 (define-css 'sign-table  "
@@ -86,3 +174,5 @@ h3 {background-color:none; color:black; margin-left: 10px; font-family: Helvetic
         padding: 10px;
         margin-left: 0px;
 }")
+
+(web-interface::clear-page)
