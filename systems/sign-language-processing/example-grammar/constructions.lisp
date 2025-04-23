@@ -138,7 +138,7 @@
 
 (def-fcg-cxn figure-adjacent-to-ground-cxn-1
              ((?figure-ground-unit
-               (subunits (?figure-unit ?ground-unit))
+               (subunits (?figure-unit ?ground-unit ?palm-up-unit ?dans-unit ?il-y-a-unit))
                (args ((target ?b)
                       (scope ?e)))
                (sentence-type declarative)
@@ -148,14 +148,20 @@
                (subunits (?ground-entity-cat-unit ?ground-classifier-unit))
                (sem-class entity-cat))
               <-
+              (?palm-up-unit
+               --
+               (HASH form ((two-hand-articulation ?palm-up-unit ""))))
+              (?dans-unit
+               --
+               (HASH form ((two-hand-articulation ?dans-unit ""))))
+              (?il-y-a-unit
+               --
+               (HASH form ((right-hand-articulation ?il-y-a-unit ""))))
               (?figure-ground-unit
                (HASH meaning ((next_to ?e ?b ?c)
                               (const ?e ?c ?f)))
                --
-               (HASH form ((two-hand-articulation ?palm-up-unit "")
-                           (two-hand-articulation ?dans-unit "")
-                           (right-hand-articulation ?il-y-a-unit "")
-                           (adjacent ?palm-up-unit ?dans-unit)
+               (HASH form ((adjacent ?palm-up-unit ?dans-unit)
                            (adjacent ?dans-unit ?ground-entity-cat-unit)
                            (adjacent ?ground-entity-cat-unit ?il-y-a-unit)
                            (adjacent ?il-y-a-unit ?ground-classifier-unit)
@@ -207,8 +213,9 @@
 
 (def-fcg-cxn pronoun-property-question-cxn-1
              ((?question-unit
-               (args ((scope ?e)))
-               (subunits (?pronoun-unit ?property-unit))
+               (args ((target ?b)
+                      (scope ?e)))
+               (subunits (?pronoun-unit ?property-unit ?quoi-unit))
                (sentence-type interrogative)
                (boundaries ((rh-left-boundary ?pronoun-unit)
                             (rh-right-boundary ?quoi-unit))))
@@ -217,11 +224,13 @@
                       (scope ?e)))
                (sem-class entity-cat))
               <-
+              (?quoi-unit
+               --
+               (HASH form ((right-hand-articulation ?quoi-unit ""))))
               (?question-unit
                (HASH meaning ((answer ?d ?a ?e)))
                --
-               (HASH form ((right-hand-articulation ?quoi-unit "")
-                           (adjacent ?pronoun-unit ?property-unit)
+               (HASH form ((adjacent ?pronoun-unit ?property-unit)
                            (adjacent ?property-unit ?quoi-unit))))
               (?pronoun-unit
                --
@@ -235,23 +244,33 @@
 
 (def-fcg-cxn figure-within-ground-cxn-1
              ((?figure-ground-unit
-               (subunits (?figure-unit ?ground-unit))
+               (subunits (?figure-unit ?ground-unit ?dans-unit-1 ?pt-unit-1 ?il-y-a-unit ?dans-unit-2 ?pt-unit-2))
                (args ((target ?a)
                       (scope ?d)))
                (sentence-type declarative)
                (boundaries ((rh-left-boundary ?dans-unit-1)
                             (rh-right-boundary ?pt-unit-2))))
               <-
+              (?dans-unit-1
+               --
+               (HASH form ((two-hand-articulation ?dans-unit-1 ""))))
+              (?pt-unit-1
+               --
+               (HASH form ((right-hand-articulation ?pt-unit-1 ""))))
+              (?il-y-a-unit
+               --
+               (HASH form ((right-hand-articulation ?il-y-a-unit ""))))
+              (?dans-unit-2
+               --
+               (HASH form ((two-hand-articulation ?dans-unit-2 ""))))
+              (?pt-unit-2
+               --
+               (HASH form ((right-hand-articulation ?pt-unit-2 ""))))
               (?figure-ground-unit
                (HASH meaning ((loc ?d ?a ?b)
                               (const ?d ?b ?e)))
                --
-               (HASH form ((two-hand-articulation ?dans-unit-1 "")
-                           (right-hand-articulation ?pt-unit-1 "")
-                           (right-hand-articulation ?il-y-a-unit "")
-                           (two-hand-articulation ?dans-unit-2 "")
-                           (right-hand-articulation ?pt-unit-2 "")
-                           (adjacent ?dans-unit-1 ?pt-unit-1)
+               (HASH form ((adjacent ?dans-unit-1 ?pt-unit-1)
                            (adjacent ?pt-unit-1 ?ground-unit)
                            (adjacent ?ground-unit ?il-y-a-unit)
                            (adjacent ?il-y-a-unit ?dans-unit-2)
@@ -271,7 +290,7 @@
 
 (def-fcg-cxn figure-within-ground-cxn-2
              ((?figure-ground-unit
-               (subunits (?figure-unit ?ground-unit))
+               (subunits (?figure-unit ?ground-unit ?dans-unit-1 ?dans-unit-2 ?il-y-a-unit))
                (args ((target ?a)
                       (scope ?d)))
                (sentence-type declarative)
@@ -282,15 +301,20 @@
               (?ground-classifier-unit
                (sem-class entity-cat))
               <-
+              (?dans-unit-1
+               --
+               (HASH form ((two-hand-articulation ?dans-unit-1 ""))))
+              (?dans-unit-2
+               --
+               (HASH form ((two-hand-articulation ?dans-unit-2 ""))))
+              (?il-y-a-unit
+               --
+               (HASH form ((right-hand-articulation ?il-y-a-unit ""))))
               (?figure-ground-unit
                (HASH meaning ((loc ?d ?a ?b)
                               (const ?d ?b ?e)))
                --
-               (HASH form ((two-hand-articulation ?dans-unit-1 "")
-                           (two-hand-articulation ?dans-unit-2 "")
-                           (right-hand-articulation ?il-y-a-unit "")
-                           
-                           (adjacent ?dans-unit-1 ?ground-classifier-unit)
+               (HASH form ((adjacent ?dans-unit-1 ?ground-classifier-unit)
                            (adjacent ?ground-classifier-unit ?ground-entity-unit)
                            (adjacent ?ground-entity-unit ?dans-unit-2)
                            (adjacent ?dans-unit-2 ?il-y-a-unit)
@@ -314,36 +338,54 @@
 
 (def-fcg-cxn question-cxn-1
              ((?question-unit
-               (args ((scope ?d)))
+               (args ((target ?a)
+                      (scope ?e)))
+               (subunits (?quoi-unit-1 ?me-dire-unit ?nom-unit ?quoi-unit-2))
                (sentence-type interrogative)
                (boundaries ((rh-left-boundary ?quoi-unit-1)
                             (rh-right-boundary ?quoi-unit-2))))
               <-
+              (?quoi-unit-1
+               --
+               (HASH form ((right-hand-articulation ?quoi-unit-1 ""))))
+              (?me-dire-unit
+               --
+               (HASH form ((right-hand-articulation ?me-dire-unit ""))))
+              (?nom-unit
+               --
+               (HASH form ((two-hand-articulation ?nom-unit ""))))
+              (?quoi-unit-2
+               --
+               (HASH form ((right-hand-articulation ?quoi-unit-2 ""))))
               (?question-unit
                (HASH meaning ((answer ?d ?a ?e)))
                --
-               (HASH form ((right-hand-articulation ?quoi-unit-1 "")
-                           (right-hand-articulation ?me-dire-unit "")
-                           (two-hand-articulation ?nom-unit "")
-                           (right-hand-articulation ?quoi-unit-2 "")
-                           (adjacent ?quoi-unit-1 ?me-dire-unit)
+               (HASH form ((adjacent ?quoi-unit-1 ?me-dire-unit)
                            (adjacent ?me-dire-unit ?nom-unit)
                            (adjacent ?nom-unit ?quoi-unit-2))))))
 
 (def-fcg-cxn question-cxn-2
              ((?question-unit
-               (args ((scope ?d)))
+               (args ((target ?a)
+                      (scope ?e)))
                (sentence-type interrogative)
+               (subunits (?quoi-unit-1 ?palm-up-unit ?me-dire-unit))
                (boundaries ((rh-left-boundary ?quoi-unit-1)
                             (rh-right-boundary ?me-dire-unit))))
               <-
+              (?quoi-unit-1
+               --
+               (HASH form ((right-hand-articulation ?quoi-unit-1 ""))))
+              (?palm-up-unit
+               --
+               (HASH form ((right-hand-articulation ?palm-up-unit ""))))
+              (?me-dire-unit
+               --
+               (HASH form ((two-hand-articulation ?me-dire-unit ""))))
               (?question-unit
                (HASH meaning ((answer ?d ?a ?e)))
                --
-               (HASH form ((right-hand-articulation ?quoi-unit-1 "")
-                           (right-hand-articulation ?palm-up-unit "")
-                           (two-hand-articulation ?me-dire-unit "")
-                           (adjacent ?quoi-unit-1 ?palm-up-unit)
+               (HASH form ((adjacent ?quoi-unit-1 ?palm-up-unit)
                            (adjacent ?palm-up-unit ?me-dire-unit))))))
 
 ;;--------------------------------;;
@@ -358,13 +400,15 @@
                --
                (HASH form ((adjacent ?theme-rightmost-unit ?question-leftmost-unit))))
               (?theme-unit
-               (args ((scope ?e)))
+               (args ((target ?a)
+                      (scope ?e)))
                (sentence-type declarative)
                --
                (sentence-type declarative)
                (boundaries ((rh-right-boundary ?theme-rightmost-unit))))
               (?question-unit
-               (args ((scope ?e)))
+               (args ((target ?a)
+                      (scope ?e)))
                (sentence-type interrogative)
                --
                (sentence-type interrogative)
