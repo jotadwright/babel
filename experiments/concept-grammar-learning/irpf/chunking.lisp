@@ -1,32 +1,8 @@
-;;;; composer-utils.lisp
-
 (in-package :irl)
 
-;; + chunk-node-tests +
-(defparameter *allowed-primitive-counts*
-  '((clevr-world:count! . 2)
-    (clevr-world:equal-integer . 1)
-    (clevr-world:less-than . 1)
-    (clevr-world:greater-than . 1)
-    (clevr-world:equal? . 1)
-    (clevr-world:exist . 1)
-    (clevr-world:filter . 50)
-    (clevr-world:get-context . 2)
-    (clevr-world:intersect . 1)
-    (clevr-world:query . 2)
-    (clevr-world:relate . 3)
-    (clevr-world:same . 1)
-    (clevr-world:union! . 1)
-    (clevr-world:unique . 4)))
-
-(defun counts-allowed-p (primitive-counts)
-  (let ((allowed t))
-    (loop for (primitive . count) in primitive-counts
-          for allowed-count = (rest (assoc primitive *allowed-primitive-counts*))
-          for count-exceeded = (> count allowed-count)
-          when count-exceeded
-          do (setf allowed nil) (return allowed))
-    allowed))
+;; --------------------
+;; + chunk-node tests +
+;; --------------------
 
 (defmethod chunk-node-test ((node chunk-composer-node)
                             (composer chunk-composer)
@@ -119,24 +95,33 @@
     (if test-pass test-pass
       (progn (format nil "hello!") nil))))
 
+helper functions
 
-; + Check chunk evaluation result +
-(defun traverse-irl-program (irl-program &key first-predicate-fn next-predicate-fn do-fn)
-  "General utility function that traverses a meaning network.
-   first-predicate-fn is used to compute the first meaning predicate from the network.
-   next-predicate-fn takes a predicate and the network and computes the next predicate(s)
-   do-fn is called on every predicate"
-  (let* ((first-predicate (funcall first-predicate-fn irl-program))
-         (stack (when first-predicate
-                  (list first-predicate)))
-         visited)
-    (loop while stack
-          for current-predicate = (pop stack)
-          for next-predicates = (funcall next-predicate-fn current-predicate irl-program)
-          unless (find current-predicate visited :test #'equal)
-          do (mapcar #'(lambda (p) (push p stack)) next-predicates)
-          (funcall do-fn current-predicate)
-          (push current-predicate visited))))
+(defun counts-allowed-p (primitive-counts)
+  (let ((allowed t))
+    (loop for (primitive . count) in primitive-counts
+          for allowed-count = (rest (assoc primitive *allowed-primitive-counts*))
+          for count-exceeded = (> count allowed-count)
+          when count-exceeded
+          do (setf allowed nil) (return allowed))
+    allowed))
+
+;; + chunk-node-tests +
+(defparameter *allowed-primitive-counts*
+  '((clevr-world:count! . 2)
+    (clevr-world:equal-integer . 1)
+    (clevr-world:less-than . 1)
+    (clevr-world:greater-than . 1)
+    (clevr-world:equal? . 1)
+    (clevr-world:exist . 1)
+    (clevr-world:filter . 50)
+    (clevr-world:get-context . 2)
+    (clevr-world:intersect . 1)
+    (clevr-world:query . 2)
+    (clevr-world:relate . 3)
+    (clevr-world:same . 1)
+    (clevr-world:union! . 1)
+    (clevr-world:unique . 4)))
 
 (defun collect-filter-groups (irl-program)
   "Collect groups of filter operations using traverse-meaning-network."
@@ -160,6 +145,25 @@
                       (prev-was-filter
                        (setf prev-was-filter nil)))))
     filter-groups))
+
+(defun traverse-irl-program (irl-program &key first-predicate-fn next-predicate-fn do-fn)
+  "General utility function that traverses a meaning network.
+   first-predicate-fn is used to compute the first meaning predicate from the network.
+   next-predicate-fn takes a predicate and the network and computes the next predicate(s)
+   do-fn is called on every predicate"
+  (let* ((first-predicate (funcall first-predicate-fn irl-program))
+         (stack (when first-predicate
+                  (list first-predicate)))
+         visited)
+    (loop while stack
+          for current-predicate = (pop stack)
+          for next-predicates = (funcall next-predicate-fn current-predicate irl-program)
+          unless (find current-predicate visited :test #'equal)
+          do (mapcar #'(lambda (p) (push p stack)) next-predicates)
+          (funcall do-fn current-predicate)
+          (push current-predicate visited))))
+
+
 
 (defmethod chunk-evaluation-goal-test ((result chunk-evaluation-result)
                                        (composer chunk-composer)

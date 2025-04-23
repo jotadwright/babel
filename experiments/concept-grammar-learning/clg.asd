@@ -98,8 +98,7 @@
                              (:file "goal-tests")
                              (:file "grammar")
                              (:file "utils")
-                             (:file "utils3")))
-                            
+                             (:file "chunking")))
                (:module "utils"
                 :serial t
                 :components ((:file "fcg-utils")

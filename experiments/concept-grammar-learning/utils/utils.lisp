@@ -1,5 +1,3 @@
-(in-package :clg)
-
 (in-package :monitors)
 
 (export '(store-monitor))
