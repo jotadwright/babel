@@ -73,6 +73,7 @@
                              (:file "competitors")
                              (:file "experiment")
                              (:file "interaction")
+                             (:file "ontology")
                              (:file "score")))
                (:module "irpf"
                 :serial t
@@ -105,8 +106,7 @@
                              (:file "utils")
                              (:file "loading")
                              (:file "processes")
-                             (:file "tasks")
-                             (:file "ontology")))
+                             (:file "tasks")))
                (:module "monitoring"
                 :serial t
                 :components ((:file "web-monitors")

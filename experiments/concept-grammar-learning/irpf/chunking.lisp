@@ -95,8 +95,6 @@
     (if test-pass test-pass
       (progn (format nil "hello!") nil))))
 
-helper functions
-
 (defun counts-allowed-p (primitive-counts)
   (let ((allowed t))
     (loop for (primitive . count) in primitive-counts
