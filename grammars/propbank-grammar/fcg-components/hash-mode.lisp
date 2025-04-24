@@ -11,7 +11,7 @@
                  &key &allow-other-keys)
   "Returns the lemma from the attributes of the construction"
   (when (attr-val construction :lemma)
-     (remove nil (list (attr-val construction :lemma)))))
+     (mapcar #'symbol-name (remove nil (list (attr-val construction :lemma))))))
 
 
 (defmethod hash ((node cip-node)
@@ -24,4 +24,4 @@
                       (or (unit-feature-value unit 'lemma) ;;for phrasals
                           (intern (upcase (unit-feature-value unit 'string)))))
         when lemma
-        collect it))
+        collect (symbol-name lemma)))
