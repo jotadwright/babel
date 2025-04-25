@@ -68,23 +68,25 @@
     (add-element `((h3) ,(format nil "The ~a is the listener."
                                  (downcase (mkstr (role hearer))))))))
     
-    
-
-(define-event-handler (trace-interactions-in-wi interaction-before-finished)
+(defun test (scene question answer)
   (let* ((img-src-path (image scene))
          (img-dst-path (make-pathname :directory `(:absolute "Users" ,(who-am-i) "Sites")
                                       :name (pathname-name img-src-path)
                                       :type (pathname-type img-src-path))))
     (copy-file img-src-path img-dst-path)
-    (add-element '((h2) "Current Scene:"))
+    (add-element `((h2) ,(format nil "Current Scene: ~a" (name scene))))
+    #|(add-element '((h2) "Current Scene:"))
     (add-element `((img :src ,(mkstr cl-user::*localhost-user-dir*
                                      (pathname-name img-src-path)
-                                     "." (pathname-type img-src-path)))))
+                                     "." (pathname-type img-src-path)))))|#
     (add-element '((h2) "Topic:"))
     (if (subtypep (type-of answer) 'entity)
       (add-element (make-html answer))
       (add-element `((p) ,(format nil "\"~a\"" answer))))
     (add-element `((h2) ,(format nil "Question: \"~a\"" question)))))
+
+(define-event-handler (trace-interactions-in-wi interaction-before-finished)
+  (test scene question answer))
 
 (define-event-handler (trace-interactions-in-wi production-finished)
   (add-element `((h2)
@@ -248,8 +250,4 @@
 
 (define-event-handler (trace-interactions-in-wi check-samples-started)
   (add-element `((h3) ,(format nil "Checking solution ~a against ~a past scenes"
-                               solution-index (length list-of-samples)))))
-
-(define-event-handler (trace-interactions-in-wi check-programs-started)
-  (add-element `((h3) ,(format nil "Checking solution ~a against ~a past programs"
                                solution-index (length list-of-samples)))))

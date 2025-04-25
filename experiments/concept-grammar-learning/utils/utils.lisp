@@ -14,3 +14,10 @@
   (setf (error-occured-during-initialization monitor) t)
   (setf (error-occured-during-initialization monitor) nil)
   (call-next-method))
+
+(defmethod print-object ((primitive irl::primitive) stream)
+  "Prints the concept."
+  (pprint-logical-block (stream nil)
+    (format stream "<Primitive: ~a"
+            (id primitive))
+    (format stream ">")))

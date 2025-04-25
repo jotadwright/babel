@@ -5,7 +5,7 @@
 ;(export '(equal-integer less-than greater-than))
 
 ;; -------------------------
-;; EQUAL-INTEGER primtive ;;
+;; EQUAL-INTEGER primitive ;;
 ;; -------------------------
 
 ;; For the moment, this is implemented without using the integer
@@ -31,7 +31,7 @@
   :primitive-inventory *clevr-primitives*)
 
 ;; ---------------------
-;; LESS-THAN primtive ;;
+;; LESS-THAN primitive ;;
 ;; ---------------------
 
 ;; For the moment, this is implemented without using the integer
@@ -57,7 +57,7 @@
   :primitive-inventory *clevr-primitives*)
 
 ;; ------------------------
-;; GREATER-THAN primtive ;;
+;; GREATER-THAN primitive ;;
 ;; ------------------------
 
 ;; For the moment, this is implemented without using the integer

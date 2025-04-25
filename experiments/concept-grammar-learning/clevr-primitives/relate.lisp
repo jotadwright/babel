@@ -3,7 +3,7 @@
 (in-package :clg)
 
 ;; ------------------
-;; RELATE primtive ;;
+;; RELATE primitive ;;
 ;; ------------------
 
 ;(export '(relate))

@@ -3,7 +3,7 @@
 (in-package :clg)
 
 ;; -----------------
-;; QUERY primtive ;;
+;; QUERY primitive ;;
 ;; -----------------
 
 ;(export '(query))

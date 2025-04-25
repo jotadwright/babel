@@ -3,7 +3,7 @@
 (in-package :clg)
 
 ;; -----------------
-;; EXIST primtive ;;
+;; EXIST primitive ;;
 ;; -----------------
 
 ;(export '(exist))

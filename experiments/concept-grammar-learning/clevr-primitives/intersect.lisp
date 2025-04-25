@@ -3,7 +3,7 @@
 (in-package :clg)
 
 ;; ---------------------
-;; INTERSECT primtive ;;
+;; INTERSECT primitive ;;
 ;; ---------------------
 
 ;(export '(intersect))

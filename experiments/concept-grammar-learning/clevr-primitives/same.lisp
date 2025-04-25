@@ -3,7 +3,7 @@
 (in-package :clg)
 
 ;; ----------------
-;; SAME primtive ;;
+;; SAME primitive ;;
 ;; ----------------
 
 ;(export '(same))

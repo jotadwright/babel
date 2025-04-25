@@ -3,7 +3,7 @@
 (in-package :clg)
 
 ;; -----------------------
-;; GET-CONTEXT primtive ;;
+;; GET-CONTEXT primitive ;;
 ;; -----------------------
 
 ;(export '(get-context))

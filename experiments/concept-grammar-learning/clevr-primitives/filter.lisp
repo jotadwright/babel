@@ -3,7 +3,7 @@
 (in-package :clg)
 
 ;; ------------------
-;; FILTER primtive ;;
+;; FILTER primitive ;;
 ;; ------------------
 
 ;(export '(filter))

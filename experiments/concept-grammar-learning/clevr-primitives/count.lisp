@@ -3,7 +3,7 @@
 (in-package :clg)
 
 ;; -----------------
-;; COUNT primtive ;;
+;; COUNT primitive ;;
 ;; -----------------
 
 ;(export '(count!))

@@ -3,7 +3,7 @@
 (in-package :clg)
 
 ;; ------------------
-;; UNIQUE primtive ;;
+;; UNIQUE primitive ;;
 ;; ------------------
 
 ;(export '(unique))

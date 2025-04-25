@@ -3,7 +3,7 @@
 (in-package :clg)
 
 ;; -----------------
-;; UNION primtive ;;
+;; UNION primitive ;;
 ;; -----------------
 
 ;(export '(union!))

@@ -3,7 +3,7 @@
 (in-package :clg)
 
 ;; -----------------
-;; EQUAL primtive ;;
+;; EQUAL primitive ;;
 ;; -----------------
 
 ;(export '(equal?))
