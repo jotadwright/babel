@@ -59,7 +59,11 @@
    (3d-coordinates :type list  :initarg :3d-coordinates :accessor 3d-coordinates)
    (rotation      :type number :initarg :rotation      :accessor rotation)
    ;; import data
-   (attr-area     :type (or number null) :initarg :attr-area     :accessor attr-area)
+   (attributes :type hash-table :initarg :attributes :accessor attributes)
+   (description :type hash-table :initarg :description :accessor description)
+
+   
+   #|(attr-area     :type (or number null) :initarg :attr-area     :accessor attr-area)
    (attr-wh-ratio :type (or number null) :initarg :attr-wh-ratio           :accessor attr-wh-ratio)
    (attr-nr-of-corners :type (or number null) :initarg :attr-nr-of-corners :accessor attr-nr-of-corners)
    (attr-nr-of-sides   :type (or number null) :initarg :attr-nr-of-sides   :accessor attr-nr-of-sides)
@@ -72,7 +76,7 @@
    (attr-zpos     :type (or number null) :initarg :attr-zpos     :accessor attr-zpos)
    (attr-xpos-3d  :type (or number null) :initarg :attr-xpos-3d  :accessor attr-xpos-3d)
    (attr-ypos-3d  :type (or number null) :initarg :attr-ypos-3d  :accessor attr-ypos-3d)
-   (attr-zpos-3d  :type (or number null) :initarg :attr-zpos-3d  :accessor attr-zpos-3d))
+   (attr-zpos-3d  :type (or number null) :initarg :attr-zpos-3d  :accessor attr-zpos-3d)|#)
   (:documentation "An object in the CLEVR world"))
 
 (defmethod x-pos ((object clevr-object))
@@ -113,8 +117,10 @@
                               collect (cons relation
                                             (loop for id in list-of-ids
                                                   collect (rest (assoc id id-dict))))))
-         (attributes (rest (assoc :attributes s-expr))))
-    (make-instance 'clevr-object :id (cdr id-dict-entry)
+         (description (alist->ht (rest (assoc :description s-expr))))
+         (attributes (alist->ht (rest (assoc :attributes s-expr)))))
+    (make-instance 'clevr-object
+                   :id (cdr id-dict-entry)
                    :shape (key->symbol s-expr :shape)
                    :size (key->symbol s-expr :size)
                    :color (key->symbol s-expr :color)
@@ -124,7 +130,9 @@
                    :3d-coordinates (rest (assoc :3d--coords s-expr))
                    :rotation (rest (assoc :rotation s-expr))
                    ;; import data
-                   :attr-area (rest (assoc :area attributes))
+                   :attributes attributes
+                   :description description
+                   #|:attr-area (rest (assoc :area attributes))
                    :attr-wh-ratio (rest (assoc :wh-ratio attributes))
                    :attr-nr-of-corners (rest (assoc :nr-of-corners attributes))
                    :attr-nr-of-sides (rest (assoc :nr-of-sides attributes))
@@ -137,7 +145,20 @@
                    :attr-zpos (rest (assoc :zpos attributes))
                    :attr-xpos-3d (rest (assoc :xpos-3d attributes))
                    :attr-ypos-3d (rest (assoc :ypos-3d attributes))
-                   :attr-zpos-3d (rest (assoc :zpos-3d attributes)))))
+                   :attr-zpos-3d (rest (assoc :zpos-3d attributes))|#)))
+
+
+(defun alist->ht (alist)
+  (loop with hash-table = (make-hash-table :test #'eq)
+        for (key . value) in alist
+        do (setf (gethash key hash-table) value)
+        finally (return hash-table)))
+
+
+;; cle utils
+
+(defmethod get-object-val ((object clevr-object) (attr symbol))
+  (gethash attr (attributes object)))
 
 (defmethod object->s-expr ((object clevr-object) &key)
   "Returns a clevr-object as an s-expr of the form
@@ -157,21 +178,9 @@
                  :coordinates (copy-object (coordinates obj))
                  :3d-coordinates (copy-object (3d-coordinates obj))
                  :rotation (copy-object (rotation obj))
-                 ;; import data
-                 :attr-area (attr-area obj)
-                 :attr-wh-ratio (attr-wh-ratio obj)
-                 :attr-nr-of-corners (attr-nr-of-corners obj)
-                 :attr-nr-of-sides (attr-nr-of-sides obj)
-                 :attr-roughness (attr-roughness obj)
-                 :attr-r (attr-r obj)
-                 :attr-g (attr-g obj)
-                 :attr-b (attr-b obj)
-                 :attr-xpos (attr-xpos obj)
-                 :attr-ypos (attr-ypos obj)
-                 :attr-zpos (attr-zpos obj)
-                 :attr-xpos-3d (attr-xpos-3d obj)
-                 :attr-ypos-3d (attr-ypos-3d obj)
-                 :attr-zpos-3d (attr-zpos-3d obj)))
+                 :attributes (copy-object (attributes obj))
+                 :description (copy-object (description obj))
+                 ))
 
 (defmethod print-object ((object clevr-object) stream)
   (if *print-pretty*
@@ -251,9 +260,8 @@
                            *clevr-data-path*)
                    :objects (loop for object in all-objects
                                   for (index . id) in id-dict
-                                  for object-relationships
-                                  = (collect-relations-for-object
-                                     all-relationships index)
+                                  for object-relationships = (collect-relations-for-object
+                                                              all-relationships index)
                                   collect (s-expr->object 'object object
                                                           :relationships object-relationships
                                                           :id-dict-entry (cons index id)
@@ -566,8 +574,7 @@
 (defmethod find-scene-by-name (name (world clevr-world))
   (let ((filename (find name (scenes world) :key #'namestring :test #'search)))
     (when filename
-      (setf (current-scene world)
-            (load-object 'scene filename))
+      (setf (current-scene world) (load-object 'scene filename))
       (when (question-sets world)
         (let* ((scene-index (position (source-path (current-scene world)) (scenes world)))
                (question-set-path (nth scene-index (question-sets world))))

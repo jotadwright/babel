@@ -9,11 +9,21 @@
 (defgeneric sample-question (agent mode)
   (:documentation "The agent samples a question from the dataset according to mode"))
 
-(defmethod sample ((agent clevr-learning-agent) (mode (eql :deterministic)))
-  ;; always load a specific question
-  (load-clevr-scene-and-answer agent (first (question-data (experiment agent)))))
+(defmethod sample-question ((agent clevr-learning-agent) (mode (eql :deterministic)))
+  (let* (;; sample a question
+         (question-scenes-answers-cons (first (question-data (experiment agent))))
+         ;; question
+         (question (car question-scenes-answers-cons))
+         ;; scenes-and-answers
+         (scenes-and-answers (cdr question-scenes-answers-cons))
+         ;; sample a scene + its answer
+         (scene-and-answer (first scenes-and-answers))
+         ;; find the answer and scene
+         (answer-entity (find-clevr-entity (cdr scene-and-answer) *clevr-ontology*))
+         (clevr-scene (find-scene-by-name (car scene-and-answer) (world (experiment agent)))))
+    (values question clevr-scene answer-entity)))
 
-(defmethod sample-question ((agent clevr-learning-agent) (mode (eql :randoms)))
+(defmethod sample-question ((agent clevr-learning-agent) (mode (eql :random)))
   ;; sample a random question
   (when (eql (role agent) 'tutor)
     (multiple-value-bind (unseen-question-indices seen-question-indices)
@@ -67,3 +77,12 @@
                        (sample (nth sample-index question-data)))
                   (setf (current-question-index agent) sample-index)
                   (load-clevr-scene-and-answer agent sample))))))))
+
+;; utility
+(defun load-clevr-scene-and-answer (agent question-scenes-answers-cons)
+  (let* ((question (car question-scenes-answers-cons))
+         (scenes-and-answers (cdr question-scenes-answers-cons))
+         (random-scene-and-answer (random-elt scenes-and-answers))
+         (answer-entity (find-clevr-entity (cdr random-scene-and-answer) *clevr-ontology*))
+         (clevr-scene (find-scene-by-name (car random-scene-and-answer) (world (experiment agent)))))
+    (values question clevr-scene answer-entity)))

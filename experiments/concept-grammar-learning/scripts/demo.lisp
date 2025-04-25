@@ -44,7 +44,7 @@
 
   (define-configuration-default-value :alignment-strategy :lateral-inhibition)
   (define-configuration-default-value :determine-interacting-agents-mode :default)
-  (define-configuration-default-value :tutor-sample-mode :smart) ; :random or :debug or :smart
+  (define-configuration-default-value :tutor-sample-mode :deterministic) ; :random or :debug or :smart
   (define-configuration-default-value :learner-cxn-supplier :hashed-and-scored)
   (define-configuration-default-value :composer-strategy :store-past-scenes)
   (define-configuration-default-value :composer-past-scenes-window 100)
