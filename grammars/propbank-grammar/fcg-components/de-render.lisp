@@ -266,7 +266,7 @@
   "Returns the phrase types of the node"
   (mapcar #'(lambda (phrase-type-string)
               (intern (upcase phrase-type-string) :propbank-grammar))
-          spacy-benepar-analysis-node))
+          (cdr (assoc :phrase--types spacy-benepar-analysis-node))))
 
 (defun node-id (spacy-benepar-analysis-node)
   "Returns the id of the node"
