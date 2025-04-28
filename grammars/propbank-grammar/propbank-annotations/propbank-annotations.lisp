@@ -17,8 +17,8 @@
   (warn "*babel-corpora* not bound.")
   (defparameter *babel-corpora* "no-corpus-path-provided"))
 
-(defparameter *ontonotes-annotations-directory* (merge-pathnames "English/propbank-release/data/" *babel-corpora*))
-(defparameter *ewt-annotations-directory* (merge-pathnames "English/propbank-release/data/google/ewt/" *babel-corpora*))
+(defparameter *ontonotes-annotations-directory* (merge-pathnames (make-pathname :directory (cons :relative '("Frames\ and\ Propbank" "propbank-release" "data" "ontonotes")))                                                                    *babel-corpora*))
+(defparameter *ewt-annotations-directory* (merge-pathnames (make-pathname :directory (cons :relative '("Frames\ and\ Propbank" "propbank-release" "data" "google" "ewt")))                                                                    *babel-corpora*))
 
 ;; Global variables where propbank annotations will be loaded.
 (defparameter *ontonotes-annotations* "Ontonotes annotations will be stored here.")
@@ -34,7 +34,7 @@
                                                                                    :name "ewt-annotations"
                                                                                    :type #+lispworks "lw.store" #+ccl "ccl.store" #+sbcl "sbcl.store")
                                                                     *babel-corpora*))
-
+#|
 ;; French data
 (defparameter *french-training-set* nil "Will contain the processed conll-sentences.")
 (defparameter *french-propbank-directory* nil "Directory where French data and models are stored.")
@@ -66,7 +66,7 @@
   (when save-after-loading
     (cl-store:store *french-training-set* *french-training-storage*))
   *french-training-set*)
-;; (load-french-training-set :from-scratch t :save-after-loading t)
+;; (load-french-training-set :from-scratch t :save-after-loading t)|#
   
 (defun load-propbank-annotations (corpus-name &key (store-data t) ignore-stored-data)
   "Loads ProbBank annotations and stores the result. It is loaded from a pb-annotations.store file if it
@@ -492,9 +492,18 @@
 
 (defun ontonotes-file-lists ()
   "Returns the filelists for train, dev and test splits."
-  (loop for split in (list (babel-pathname :directory '("grammars" "propbank-grammar" "propbank-annotations") :name "ontonotes-train-list" :type "txt")
-                           (babel-pathname :directory '("grammars" "propbank-grammar" "propbank-annotations") :name "ontonotes-dev-list" :type "txt")
-                           (babel-pathname :directory '("grammars" "propbank-grammar" "propbank-annotations") :name "ontonotes-test-list" :type "txt"))
+  (loop for split in (list (merge-pathnames (make-pathname :directory (cons :relative '("Frames\ and\ Propbank" "propbank-annotations"))
+                                                                                   :name "ontonotes-train-list"
+                                                                                   :type "txt")
+                                                                    *babel-corpora*)
+                           (merge-pathnames (make-pathname :directory (cons :relative '("Frames\ and\ Propbank" "propbank-annotations"))
+                                                                                   :name "ontonotes-dev-list"
+                                                                                   :type "txt")
+                                                                    *babel-corpora*)
+                           (merge-pathnames (make-pathname :directory (cons :relative '("Frames\ and\ Propbank" "propbank-annotations"))
+                                                                                   :name "ontonotes-test-list"
+                                                                                   :type "txt")
+                                                                    *babel-corpora*))
         collect
         (with-open-file (inputstream split :direction :input)
           (mapcar #'(lambda (subpath)
@@ -503,9 +512,18 @@
 
 (defun ewt-file-lists ()
   "Returns the filelists for train, dev and test splits."
-  (loop for split in (list (babel-pathname :directory '("grammars" "propbank-grammar" "propbank-annotations") :name "ewt-train-list" :type "txt")
-                            (babel-pathname :directory '("grammars" "propbank-grammar" "propbank-annotations") :name "ewt-dev-list" :type "txt")
-                            (babel-pathname :directory '("grammars" "propbank-grammar" "propbank-annotations") :name "ewt-test-list" :type "txt"))
+  (loop for split in (list (merge-pathnames (make-pathname :directory (cons :relative '("Frames\ and\ Propbank" "propbank-annotations"))
+                                                                                   :name "ewt-train-list"
+                                                                                   :type "txt")
+                                                                    *babel-corpora*)
+                           (merge-pathnames (make-pathname :directory (cons :relative '("Frames\ and\ Propbank" "propbank-annotations"))
+                                                                                   :name "ewt-dev-list"
+                                                                                   :type "txt")
+                                                                    *babel-corpora*)
+                           (merge-pathnames (make-pathname :directory (cons :relative '("Frames\ and\ Propbank" "propbank-annotations"))
+                                                                                   :name "ewt-test-list"
+                                                                                   :type "txt")
+                                                                    *babel-corpora*))
         collect
         (with-open-file (inputstream split :direction :input)
           (mapcar #'(lambda (subpath)
