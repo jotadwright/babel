@@ -70,7 +70,8 @@
                                             ((and ;; one of these categories
                                                   (member (node-lex-class node) '(nnp nns nn nnps prp prp$) :test #'eq)
                                                   ;; and not parent that is np
-                                                  (not (and (find parent-id spacy-benepar-analysis ;; has parent
+                                                  (not (and parent-id
+                                                            (find parent-id spacy-benepar-analysis ;; has parent
                                                                   :test #'= :key #'node-id)
                                                             (member 'np ;; parent is np
                                                                     (node-phrase-types (find parent-id spacy-benepar-analysis :test #'= :key #'node-id))
