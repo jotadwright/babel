@@ -17,7 +17,7 @@
   (warn "*babel-corpora* not bound.")
   (defparameter *babel-corpora* "no-corpus-path-provided"))
 
-(defparameter *ontonotes-annotations-directory* (merge-pathnames (make-pathname :directory (cons :relative '("Frames\ and\ Propbank" "propbank-release" "data" "ontonotes")))                                                                    *babel-corpora*))
+(defparameter *ontonotes-annotations-directory* (merge-pathnames (make-pathname :directory (cons :relative '("Frames\ and\ Propbank" "propbank-release" "data")))                                                                    *babel-corpora*))
 (defparameter *ewt-annotations-directory* (merge-pathnames (make-pathname :directory (cons :relative '("Frames\ and\ Propbank" "propbank-release" "data" "google" "ewt")))                                                                    *babel-corpora*))
 
 ;; Global variables where propbank annotations will be loaded.
