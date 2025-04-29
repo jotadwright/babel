@@ -307,6 +307,9 @@
                         :cxn-set (hashed hashed-lex)
                         :attributes (:string ,(downcase type)
                                      :meaning ,(internal-symb (hyphenize type)))))))
+(decode-json-from-source (babel-pathname :directory '("experiments" "concept-grammar-learning" "clevr-grammar" "data")
+                                        :name "metadata" :type "json"))
+
 
 (defun generate-lexical-constructions (cxn-inventory)
   ;; This function will read metadata.json and read all 'types'
@@ -318,7 +321,7 @@
   ;; since a lex cxn for a shape is different than for a color.
   ;; Additionally, there will be a generic 'thing-cxn' that is similar
   ;; to a shape. This is added manually in the end.
-  (let* ((metadata-file (babel-pathname :directory '("grammars" "clevr-grammar" "data")
+  (let* ((metadata-file (babel-pathname :directory '("experiments" "concept-grammar-learning" "clevr-grammar" "data")
                                         :name "metadata" :type "json"))
          (metadata (decode-json-from-source metadata-file))
          (metadata-types (cdr (assoc :types metadata))))
