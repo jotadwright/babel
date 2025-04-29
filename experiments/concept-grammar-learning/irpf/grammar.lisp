@@ -30,8 +30,6 @@
                       &key &allow-other-keys)
   (de-render utterance :de-render-string-meets))
 
-
-
 (in-package :clg)
 
 (defun default-clevr-grammar ()
@@ -70,13 +68,16 @@
                                    (subunits set)
                                    (footprints set))
                    :fcg-configurations ((:cxn-supplier-mode . ,cxn-supplier)
-                                        (:parse-goal-tests :no-applicable-cxns
-                                                           :connected-semantic-network
-                                                           :no-strings-in-root
-                                                           :correct-interpretation)
-                                        (:production-goal-tests :no-applicable-cxns
-                                                                :connected-structure
-                                                                :no-meaning-in-root)
+                                        (:parse-goal-tests
+                                         :no-applicable-cxns
+                                         :connected-semantic-network
+                                         :no-strings-in-root
+                                         :correct-interpretation
+                                         )
+                                        (:production-goal-tests
+                                         :no-applicable-cxns
+                                         :connected-structure
+                                         :no-meaning-in-root)
                                         (:consolidate-repairs . t)
                                         (:max-nr-of-nodes . 1000)
                                         (:shuffle-cxns-before-application . t)

@@ -89,3 +89,59 @@
           (setf (utterance a) nil)
           (setf (communicated-successfully a) nil))
     (notify interacting-agents-determined experiment interaction)))
+
+
+(progn
+  (define-configuration-default-value :challenge-files-root
+                                      (merge-pathnames
+                                       (make-pathname :directory '(:relative "CLEVR-intention-reading-data" "val"))
+                                       cl-user:*babel-corpora*))
+  (define-configuration-default-value :challenge-1-files
+                                      (make-pathname :directory '(:relative "stage-1")
+                                                     :name :wild :type "lisp"))
+  (define-configuration-default-value :challenge-2-files
+                                      (make-pathname :directory '(:relative "stage-2")
+                                                     :name :wild :type "lisp"))
+  (define-configuration-default-value :challenge-3-files
+                                      (make-pathname :directory '(:relative "stage-3")
+                                                     :name :wild :type "lisp"))
+  (define-configuration-default-value :questions-per-challenge 5000)
+  (define-configuration-default-value :scenes-per-question 20)
+  (define-configuration-default-value :question-sample-mode :first) ; random or first or all
+  (define-configuration-default-value :clevr-world-data-sets '("val"))
+
+  ;; Strategies and scores
+  (define-configuration-default-value :initial-cxn-score 0.5)
+  (define-configuration-default-value :initial-chunk-score 0.5)
+  (define-configuration-default-value :initial-th-link-weight 0.1)
+
+  (define-configuration-default-value :cxn-incf-score 0.1)
+  (define-configuration-default-value :cxn-decf-score 0.4)
+  (define-configuration-default-value :cxn-inhibit-score 0.1)
+  (define-configuration-default-value :chunk-incf-score 0.1)
+  (define-configuration-default-value :chunk-decf-score 0.1)
+
+  (define-configuration-default-value :alignment-strategy :lateral-inhibition)
+  (define-configuration-default-value :determine-interacting-agents-mode :default)
+  (define-configuration-default-value :tutor-sample-mode :deterministic) ; :random or :debug or :smart
+  (define-configuration-default-value :learner-cxn-supplier :hashed-and-scored)
+  (define-configuration-default-value :composer-strategy :store-past-scenes)
+  (define-configuration-default-value :composer-past-scenes-window 100)
+  (define-configuration-default-value :remove-cxn-on-lower-bound t)
+  (define-configuration-default-value :composer-force-shape-category nil)
+  (define-configuration-default-value :th-link-repair-mode-comprehension :no-path-required)
+  (define-configuration-default-value :th-link-repair-mode-formulation :path-required)
+
+  ;; Autotelic principle
+  (define-configuration-default-value :current-challenge-level 1)
+  (define-configuration-default-value :max-challenge-level 3)
+  (define-configuration-default-value :evaluation-window-size 1000)
+  (define-configuration-default-value :confidence-threshold 1.00)
+
+  ;; Hybrid or symbolic primitives
+  (define-configuration-default-value :primitives :symbolic) ; :symbolic or hybrid
+
+  ;; Misc
+  (define-configuration-default-value :dot-interval 100)
+  (define-configuration-default-value :hide-type-hierarchy t)
+  )

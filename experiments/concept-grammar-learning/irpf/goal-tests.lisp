@@ -7,21 +7,11 @@
    When arriving at this goal test, the other goal tests have already succeeded.
    Thus, we know the meaning is fully connected.
    We get all necessary information from the blackboard of the cxn-inventory."
-  (let* ((irl-program
-          (extract-meanings
-           (left-pole-structure
-            (car-resulting-cfs
-             (cipn-car node)))))
-         (ontology
-          (find-data (blackboard (construction-inventory node)) :ontology))
-         (primitive-inventory
-          (find-data (blackboard (construction-inventory node)) :primitive-inventory))
-         (ground-truth-topic
-          (find-data (blackboard (construction-inventory node)) :ground-truth-topic))
-         (all-irl-solutions
-          (evaluate-irl-program irl-program ontology
-                                :primitive-inventory
-                                primitive-inventory))
+  (let* ((irl-program (extract-meanings (left-pole-structure (car-resulting-cfs (cipn-car node)))))
+         (ontology (find-data (blackboard (construction-inventory node)) :ontology))
+         (primitive-inventory (find-data (blackboard (construction-inventory node)) :primitive-inventory))
+         (ground-truth-topic (find-data (blackboard (construction-inventory node)) :ground-truth-topic))
+         (all-irl-solutions (evaluate-irl-program irl-program ontology :primitive-inventory primitive-inventory))
          (computed-topic nil)
          (success nil))
     ;; store the computed topic in the goal-test data (to avoid recomputing it later)

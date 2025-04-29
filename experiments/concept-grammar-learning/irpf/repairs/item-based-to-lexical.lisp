@@ -17,8 +17,7 @@
                    (problem partial-utterance-problem)
                    (node cip-node) &key
                    &allow-other-keys)
-  (let ((lex-cxn-and-th-link
-         (create-lexical-cxn problem node)))
+  (let ((lex-cxn-and-th-link (create-lexical-cxn problem node)))
     (when lex-cxn-and-th-link
       (make-instance 'fcg::cxn-fix
                      :repair repair

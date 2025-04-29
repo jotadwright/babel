@@ -1,5 +1,3 @@
-;;;; ontology.lisp
-
 (in-package :clg)
 
 (defparameter *challenge-level-primitive-dict*
@@ -33,16 +31,15 @@
 (defun update-composer-chunks-w-primitive-inventory (agent)
   (loop for p in (irl::primitives (available-primitives agent))
         unless (find (irl::id p) (composer-chunks agent) :key #'id)
-        do (push (create-chunk-from-primitive p)
-                 (composer-chunks agent))))
-    
+          do (push (create-chunk-from-primitive p)
+                   (composer-chunks agent))))
 
 (defun find-clevr-entity (answer ontology)
   (let ((all-categories
          (loop for field in (fields ontology)
                for field-data = (get-data ontology field)
                when (listp field-data)
-               append field-data)))
+                 append field-data)))
     (cond
      ;; a number
      ((numberp answer) answer)
@@ -53,13 +50,11 @@
      ;; otherwise, its an ID of an entity
      (t (find answer all-categories :key #'id)))))
 
-
 (defun get-target-value (irl-program list-of-bindings)
   (let* ((target-variable (get-target-var irl-program))
          (target-binding (find target-variable list-of-bindings :key #'var)))
     (when target-binding
       (value target-binding))))
-
 
 (defun all-linked-predicates (predicate var irl-program)
   "Find the next predicate, given a variable"
@@ -81,7 +76,6 @@
   (unless (eql (first predicate) 'bind)
     (when (member (first predicate) '(filter query same equal? relate))
       (last-elt predicate))))
-
 
 (defun predicates->chunk-id (predicates)
   (list-of-strings->string
@@ -107,33 +101,30 @@
         (push new-chunk (composer-chunks agent))
         new-chunk))))
 
-
-
 (defun inc-chunk-score (chunk &key (delta 0.1)
-                               (upper-bound 1.0))
+                              (upper-bound 1.0))
   (incf (score chunk) delta)
   (when (> (score chunk) upper-bound)
     (setf (score chunk) upper-bound))
   (score chunk))
 
 (defun dec-chunk-score (chunk &key (delta 0.1)
-                               (lower-bound 0.1))
+                              (lower-bound 0.1))
   (decf (score chunk) delta)
   (when (< (score chunk) lower-bound)
     (setf (score chunk) lower-bound))
   (score chunk))
 
-
 (defun variablify-program (irl-program)
   (let* ((all-arguments
           (loop for predicate in irl-program
                 if (eql (first predicate) 'bind)
-                append (unless (variable-p (third predicate))
-                         (list (third predicate)))
+                  append (unless (variable-p (third predicate))
+                           (list (third predicate)))
                 else
-                append (loop for arg in (subseq predicate 1)
-                             unless (variable-p arg)
-                             collect arg)))
+                  append (loop for arg in (subseq predicate 1)
+                               unless (variable-p arg)
+                                 collect arg)))
          (unique-arguments
           (remove-duplicates all-arguments))
          (mappings
@@ -142,5 +133,5 @@
     (loop for predicate in irl-program
           collect (loop for sym in predicate
                         if (assoc sym mappings)
-                        append (list (cdr (assoc sym mappings)))
+                          append (list (cdr (assoc sym mappings)))
                         else append (list sym)))))
