@@ -91,18 +91,20 @@
                                         (:update-th-links . t)
                                         (:hash-mode . :hash-string-meaning-lex-id)
                                         (:initial-categorial-link-weight . 0.1))
-                   :diagnostics (diagnose-failed-interpretation
+                   :diagnostics (;diagnose-failed-interpretation
                                  diagnose-partial-utterance
-                                 diagnose-unknown-utterance
-                                 diagnose-partial-meaning)
-                   :repairs (add-th-links-formulation
-                             add-th-links
-                             item-based->lexical
-                             holophrase->item-based--substitution
-                             holophrase->item-based--addition
-                             holophrase->item-based--deletion
+                                 ;diagnose-unknown-utterance
+                                 ;diagnose-partial-meaning
+                                 )
+                   :repairs (;add-th-links-formulation
+                             ;add-th-links
+                             ;item-based->lexical
+                             ;holophrase->item-based--substitution
+                             ;holophrase->item-based--addition
+                             ;holophrase->item-based--deletion
                              lexical->item-based
-                             add-holophrase)
+                             ;add-holophrase
+                             )
                    :visualization-configurations ((:show-constructional-dependencies . nil)
                                                   (:show-categorial-network . ,(not hide-type-hierarchy))
                                                   (:hide-attributes . t))))))

@@ -1,5 +1,35 @@
 (in-package :clg)
 
+;; Make subclasses for concept-entity for each of the concept types
+(defclass clg-concept ()
+  ((id
+    :initarg :id :accessor id :initform (make-id "CONCEPT") :type symbol
+    :documentation "Id of the concept.")
+   (meaning
+    :initarg :meaning :accessor meaning :type concept))
+  (:documentation "Abstract class for representing concepts."))
+
+(defclass color-concept (clg-concept) ())
+(defclass size-concept (clg-concept) ())
+(defclass material-concept (clg-concept) ())
+(defclass shape-concept (clg-concept) ())
+(defclass spatial-concept (clg-concept) ())
+
+;; utility functions
+
+(defmethod copy-object ((concept clg-concept))
+  "Returns a copy of the concept."
+  (make-instance 'clg-concept
+                 :id (id concept)
+                 :meaning (copy-object (meaning concept))))
+
+(defmethod print-object ((concept clg-concept) stream)
+  "Prints the concept."
+  (pprint-logical-block (stream nil)
+    (format stream "<Concept: ~a>" (id concept))))
+
+;; old stuff
+
 (defparameter *challenge-level-primitive-dict*
   '((1 count! exist filter get-context query unique)
     (2 count! exist filter get-context query unique relate same)

@@ -1,12 +1,55 @@
-;;;; filter.lisp
-
 (in-package :clg)
 
-;; ------------------
-;; FILTER primitive ;;
-;; ------------------
+;; --------------------
+;; + filter primitive +
+;; --------------------
 
-;(export '(filter))
+(defprimitive filter ((target-set clevr-object-set)
+                      (source-set clevr-object-set)
+                      (category attribute))
+  ;; first case: if given source-set and category, compute target-set
+  ((source-set category => target-set)
+   (let ((computed-set (filter-by-category source-set category)))
+     (if computed-set
+       (bind (target-set 1.0 computed-set))
+       (bind (target-set 1.0 (make-instance 'clevr-object-set :id (make-id 'empty-set)))))))
+  
+  ;; second case: if given source-set and target-set, compute category
+  #|((source-set target-set => category)
+   (let ((computed-category
+          (find-if #'(lambda (cat) (equal-entity
+                                    target-set
+                                    (filter-by-category source-set cat)))
+                   (append
+                    (get-data ontology 'shapes)
+                    (get-data ontology 'sizes)
+                    (get-data ontology 'colors)
+                    (get-data ontology 'materials)))))
+     (when computed-category
+       (bind (category 1.0 computed-category)))))|#
+
+  ;; third case: if given source-set, compute pairs of target-set and category
+  #|((source-set => target-set category)
+   (let ((categories (append
+                      (get-data ontology 'shapes)
+                      (get-data ontology 'sizes)
+                      (get-data ontology 'colors)
+                      (get-data ontology 'materials))))
+     (loop for cat in categories
+           for computed-set = (filter-by-category source-set cat)
+           if computed-set
+             do (bind (category 1.0 cat)
+                      (target-set 1.0 computed-set))
+           else
+             do (bind (category 1.0 cat)
+                      (target-set 1.0 (make-instance 'clevr-object-set
+                                                     :id (make-id 'empty-set)))))))|#
+
+  ;; fourth case: if given source-set, target-set and category, check for consistency
+  #|((source-set target-set category =>)
+   (equal-entity target-set (filter-by-category source-set category)))|#
+  :primitive-inventory *clevr-primitives*)
+
 
 (defgeneric filter-by-category (set category)
   (:documentation "Filter the set by the given category."))
@@ -50,49 +93,46 @@
       (when filtered-objects
         (make-instance 'clevr-object-set :objects filtered-objects))))
 
-(defprimitive filter ((target-set clevr-object-set)
+
+
+
+
+
+#|(defprimitive filter ((target-set clevr-object-set)
                       (source-set clevr-object-set)
-                      (category attribute))
+                      (concept concept))
   ;; first case: if given source-set and category, compute target-set
-  ((source-set category => target-set)
-   (let ((computed-set (filter-by-category source-set category)))
-     (if computed-set
-       (bind (target-set 1.0 computed-set))
-       (bind (target-set 1.0 (make-instance 'clevr-object-set :id (make-id 'empty-set)))))))
-  
-  ;; second case: if given source-set and target-set, compute category
-  ((source-set target-set => category)
-   (let ((computed-category
-          (find-if #'(lambda (cat) (equal-entity
-                                    target-set
-                                    (filter-by-category source-set cat)))
-                   (append
-                    (get-data ontology 'shapes)
-                    (get-data ontology 'sizes)
-                    (get-data ontology 'colors)
-                    (get-data ontology 'materials)))))
-     (when computed-category
-       (bind (category 1.0 computed-category)))))
-
-  ;; third case: if given source-set, compute pairs of target-set and category
-  ((source-set => target-set category)
-   (let ((categories (append
-                      (get-data ontology 'shapes)
-                      (get-data ontology 'sizes)
-                      (get-data ontology 'colors)
-                      (get-data ontology 'materials))))
-     (loop for cat in categories
-           for computed-set = (filter-by-category source-set cat)
-           if computed-set
-           do (bind (category 1.0 cat)
-                    (target-set 1.0 computed-set))
-           else
-           do (bind (category 1.0 cat)
-                    (target-set 1.0 (make-instance 'clevr-object-set
-                                                   :id (make-id 'empty-set)))))))
-
-  ;; fourth case: if given source-set, target-set and category, check for consistency
-  ((source-set target-set category =>)
-   (equal-entity target-set (filter-by-category source-set category)))
+  ((source-set concept => target-set)
+   (test-me source-set concept target-set))
   :primitive-inventory *clevr-primitives*)
 
+(defun test-me (source-set concept target-set)
+  (let ((computed-set (filter-by-concept source-set concept ontology)))
+    (if computed-set
+      (bind (target-set 1.0 computed-set))
+      (bind (target-set 1.0 (make-instance 'clevr-object-set :id (make-id 'empty-set)))))))
+
+;; filter by category
+(defmethod filter-by-concept ((set clevr-object-set)
+                              (shape-concept shape-concept))
+  "Filter the set by the given shape category.
+   If the shape is 'thing', return the entire set."
+  (let ((concepts (get-data ontology 'shape-concepts))
+        (filtered-objects (loop for object in (objects set)
+                                if (equal-entity shape-concept (find-best-concept concepts entity))
+                                  collect object)))
+    (when filtered-objects
+      (make-instance 'clevr-object-set :objects filtered-objects))))
+
+;; Utility functions
+(defun find-best-concept (concepts entity)
+  (loop with best-concept = nil
+        with best-similarity = nil
+        for concept in concepts
+        for similarity = (concept-entity-similarity concept entity)
+        when (or (null best-concept)
+                 (> similarity best-similarity))
+          do (setf best-concept concept
+                   best-similarity similarity)
+        finally (return best-concept)))
+|#
