@@ -35,7 +35,7 @@
 (setf *experiment* (make-instance 'syntax-experiment
                                   :configuration (make-configuration :entries '((:population-size . 10)
                                                                                 (:strategy .  :categorisation-strategy)
-                                                                                (:alignment . :type-hierarchy)
+                                                                                (:alignment . :categorial-network)
                                                                                 (:li-incf-weight . 0.2)
                                                                                 (:li-decf-weight . 0.1)
                                                                                 (:trace-every-nth-interaction . 50)
@@ -57,6 +57,7 @@
                                                                                                       (large . "groot")
                                                                                                       (tiny . "minuscuul")
                                                                                                       (huge . "reusachtig")))))))))
+
 
 
 (run-interaction *experiment*)

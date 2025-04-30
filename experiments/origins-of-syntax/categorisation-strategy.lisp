@@ -9,19 +9,25 @@
   (let* ((grammar-name (make-const "SYNTAX-GRAMMAR"))
          (cxn-inventory
           (eval `(def-fcg-constructions ,grammar-name
+                   :hashed ,t 
                    :cxn-inventory ,grammar-name
                    :feature-types ((args sequence)
                                    (form set-of-predicates)
                                    (meaning set-of-predicates)
                                    (subunits set)
                                    (footprints set))
-                   :fcg-configurations ((:production-goal-tests :no-meaning-in-root :single-interpretation-in-world-formulation :not-more-than-two-unit-structures)
-                                        (:parse-goal-tests :no-strings-in-root :single-interpretation-in-world-comprehension :not-more-than-two-unit-structures)
+                   :fcg-configurations ((:production-goal-tests
+                                         :no-meaning-in-root :single-interpretation-in-world-formulation :not-more-than-two-unit-structures)
+                                        (:parse-goal-tests
+                                         :no-strings-in-root :single-interpretation-in-world-comprehension :not-more-than-two-unit-structures)
                                         (:cxn-supplier-mode . :cxn-supplier-categorisation-categorial-network)
                                         (:queue-mode . :backtrack-over-grammatical-cxns-only)
                                         (:priority-mode . :depth-first-with-type-hierachy-weights)
                                         (:create-initial-structure-mode . :root-with-redundant-meaning)
-                                        (:node-expansion-mode . :expand-with-multiple-cxns))
+                                        (:node-expansion-mode . :expand-with-multiple-cxns)
+                                        (:render-mode . :render-string-meets)
+                                        (:de-render-mode . :de-render-string-meets)
+                                        )
                    :visualization-configurations ((:with-search-debug-data . t))))))
     (add-words cxn-inventory word-list)))
 

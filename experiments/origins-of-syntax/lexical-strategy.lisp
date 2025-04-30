@@ -18,6 +18,7 @@
          (cxn-inventory
           (eval `(def-fcg-constructions ,grammar-name
                    :cxn-inventory ,grammar-name
+                   :hashed ,t
                    :feature-types ((args sequence)
                                    (form set-of-predicates)
                                    (meaning set-of-predicates)

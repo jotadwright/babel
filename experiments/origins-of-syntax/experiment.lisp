@@ -520,7 +520,8 @@ of the objects in the topic of the speaker and sets communicated-successfully ac
     (setf (population experiment)
           (loop for i from 1 to (get-configuration experiment :population-size)
                 collect (make-instance 'syntax-agent
-                                       :id i :grammar (initialize-lexicon word-list (get-configuration experiment :strategy))
+                                       :id i
+                                       :grammar (initialize-lexicon word-list (get-configuration experiment :strategy))
                                        :experiment experiment)))
     ;; Set world
     (setf (world experiment)
