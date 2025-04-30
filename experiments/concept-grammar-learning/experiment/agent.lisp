@@ -128,7 +128,7 @@
                                     :id form
                                     :meaning concept)))
     ;; add it to the ontology of the agent
-    (push-data ontology attribute-class (make-instance attribute-class :id (make-id form) :meaning concept))
+    (push-data ontology attribute-class (make-instance attribute-class :id (intern (upcase form) :clevr-world) :meaning concept))
     ;; add the morph
     ;(add-morph-cxn-for-concept grammar clg-concept form)
     ;; add the lex
