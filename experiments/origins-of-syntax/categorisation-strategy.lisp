@@ -8,7 +8,7 @@
   "Creates and returns a construction inventory with lexical constructions for word-list."
   (let* ((grammar-name (make-const "SYNTAX-GRAMMAR"))
          (cxn-inventory
-          (eval `(def-fcg-constructions-with-type-hierarchy ,grammar-name
+          (eval `(def-fcg-constructions ,grammar-name
                    :cxn-inventory ,grammar-name
                    :feature-types ((args sequence)
                                    (form set-of-predicates)
@@ -17,7 +17,7 @@
                                    (footprints set))
                    :fcg-configurations ((:production-goal-tests :no-meaning-in-root :single-interpretation-in-world-formulation :not-more-than-two-unit-structures)
                                         (:parse-goal-tests :no-strings-in-root :single-interpretation-in-world-comprehension :not-more-than-two-unit-structures)
-                                        (:cxn-supplier-mode . :cxn-supplier-categorisation-type-hierarchy)
+                                        (:cxn-supplier-mode . :cxn-supplier-categorisation-categorial-network)
                                         (:queue-mode . :backtrack-over-grammatical-cxns-only)
                                         (:priority-mode . :depth-first-with-type-hierachy-weights)
                                         (:create-initial-structure-mode . :root-with-redundant-meaning)
@@ -56,7 +56,7 @@
 (defun anti-unification-categorisation-processing-cxn (cxn transient-structure-units direction cxn-inventory)
   ""
   (let* ((matching-pattern (fcg::matching-pattern cxn direction))
-         (a-u-results (fcg::anti-unify-origins-of-syntax matching-pattern transient-structure-units cxn-inventory :fcg-with-type-hierarchy))
+         (a-u-results (fcg::anti-unify-origins-of-syntax matching-pattern transient-structure-units cxn-inventory :fcg-with-categorial-network))
         (a-u-result-lowest-score (first a-u-results))
         (resulting-pattern (first a-u-result-lowest-score))
         (resulting-th-links (fourth a-u-result-lowest-score))
@@ -103,14 +103,14 @@
            (loop for (source . pattern) in (second best-a-u-result)
                  do
                  (progn
-                   (add-categories (list source pattern) (get-type-hierarchy cxn-inventory))
-                   ;(if (and (node-p source (get-type-hierarchy cxn-inventory))
-                   ;           (node-p pattern (get-type-hierarchy cxn-inventory))
-                   ;           (directed-path-p source pattern (get-type-hierarchy cxn-inventory)))
+                   (add-categories (list source pattern) (categorial-network cxn-inventory))
+                   ;(if (and (node-p source (categorial-network cxn-inventory))
+                   ;           (node-p pattern (categorial-network cxn-inventory))
+                   ;           (directed-path-p source pattern (categorial-network cxn-inventory)))
                    ;  (progn
-                   ;    (set-link-weight source pattern (get-type-hierarchy cxn-inventory) (- (link-weight source pattern (get-type-hierarchy cxn-inventory)) 0.1))
+                   ;    (set-link-weight source pattern (categorial-network cxn-inventory) (- (link-weight source pattern (categorial-network cxn-inventory)) 0.1))
                    ;    )
-                     (add-link source pattern (get-type-hierarchy cxn-inventory)))
+                     (add-link source pattern (categorial-network cxn-inventory)))
                  finally (return t))))))
 
 (defun grammatical-cxns-with-n-units (cxn-inventory n)
@@ -137,7 +137,7 @@
                            :key #'(lambda (cxn)
                                     (attr-val cxn :categories))
                            :test #'(lambda (cats cats-cxn)
-                                     (categories-connected-through-type-hierarchy cats cats-cxn (get-type-hierarchy temp-cxn-set) :ordered nil))))
+                                     (categories-connected-through-categorial-network cats cats-cxn (categorial-network temp-cxn-set) :ordered nil))))
                 ;; See whether existing cxns can be adapted, using anti- and pro-unification
                 ;; True is returned if side-effects change temp-cxn-set, nil otherwise  
                 ((reuse-and-adapt-existing-cxns-for-categorisation-formulation problematic-cipn object cats temp-cxn-set))
@@ -179,8 +179,8 @@
           (t
            (loop for (source . pattern) in (second best-a-u-result)
                  do
-                 (add-categories (list source pattern) (get-type-hierarchy cxn-inventory))
-                 (add-link source pattern (get-type-hierarchy cxn-inventory))
+                 (add-categories (list source pattern) (categorial-network cxn-inventory))
+                 (add-link source pattern (categorial-network cxn-inventory))
                  finally (return t))))))
 
 (defun lexical-units-for-string-cat-meaning-tuples (units string-cat-meaning-tuples)
@@ -245,7 +245,7 @@
                             :key #'(lambda (cxn)
                                      (attr-val cxn :categories))
                             :test #'(lambda (cats cats-cxn)
-                                      (categories-connected-through-type-hierarchy cats cats-cxn (get-type-hierarchy temp-cxn-set) :ordered t))))
+                                      (categories-connected-through-categorial-network cats cats-cxn (categorial-network temp-cxn-set) :ordered t))))
                 ((reuse-and-adapt-existing-cxns-for-categorisation-comprehension problematic-cipn cats string-cat-meaning-tuples temp-cxn-set))
                 ;; Else: make a completely new cxn
                 (t
@@ -257,31 +257,31 @@
                    :problem problem
                    :restart-data temp-cxn-set)))
 
-(defun categories-connected-through-type-hierarchy (categories categories-cxn type-hierarchy &key (ordered nil))
-  "Returns true if for every category there exists a path from each category to each categorie-cxn in the type-hierarchy"
+(defun categories-connected-through-categorial-network (categories categories-cxn categorial-network &key (ordered nil))
+  "Returns true if for every category there exists a path from each category to each categorie-cxn in the categorial-network"
   (and (= (length categories) (length categories-cxn))
        (if ordered
          ;; Requirement: categories are connected through th in that order
          (loop for cat in categories
                for cat-cxn in categories-cxn
-               always (and (type-hierarchies::directed-path-p (intern (symbol-name cat) :type-hierarchies)
-                                                         (intern (symbol-name cat-cxn) :type-hierarchies)
-                                                         type-hierarchy)
-                           ;(< (link-weight (intern (symbol-name cat) :type-hierarchies)
-                           ;             (intern (symbol-name cat-cxn) :type-hierarchies)
-                           ;             type-hierarchy) 1.0)
+               always (and (link-exists-p (intern (symbol-name cat) :fcg)
+                                          (intern (symbol-name cat-cxn) :fcg)
+                                          categorial-network)
+                           ;(< (link-weight (intern (symbol-name cat) :fcg)
+                           ;             (intern (symbol-name cat-cxn) :fcg)
+                           ;             categorial-network) 1.0)
                            ))
                
          ;; Categories are connected through th in any order
          (loop for cat-permuation in (permutations-of-length categories (length categories))
-               when (categories-connected-through-type-hierarchy cat-permuation categories-cxn type-hierarchy :ordered t)
+               when (categories-connected-through-categorial-network cat-permuation categories-cxn categorial-network :ordered t)
                do (return t)))))
 
 #|
 (defun make-and-add-categorisation-cxns (cats cxn-set)
   (cond ((= 2 (length cats))
-         (let ((new-cat-1 (intern (symbol-name (make-const "SLOT-1of2")) :type-hierarchies))
-               (new-cat-2 (intern (symbol-name (make-const "SLOT-2of2")) :type-hierarchies)))
+         (let ((new-cat-1 (intern (symbol-name (make-const "SLOT-1of2")) :fcg))
+               (new-cat-2 (intern (symbol-name (make-const "SLOT-2of2")) :fcg)))
            (eval `(def-fcg-cxn ,(make-symbol (upcase (string-append
                                                       "categorisation-"
                                                       (symbol-name new-cat-1) "-"
@@ -316,16 +316,16 @@
                                  (HASH form ((meets ?lex-1-unit ?lex-2-unit)))))
                                :cxn-inventory ,cxn-set
                                :attributes (:categories ,new-cat-1 ,new-cat-2)))
-           ;; Add categories and links in the type-hierarchy
-           (add-categories (list (intern (symbol-name (first cats)) :type-hierarchies)
-                                 (intern (symbol-name (second cats)) :type-hierarchies)
-                                 new-cat-1 new-cat-2) (get-type-hierarchy cxn-set))
-           (add-link  (intern (symbol-name (first cats)) :type-hierarchies) new-cat-1 (get-type-hierarchy cxn-set) :weight 0.5)
-           (add-link  (intern (symbol-name (second cats)) :type-hierarchies) new-cat-2 (get-type-hierarchy cxn-set) :weight 0.5)))       
+           ;; Add categories and links in the categorial-network
+           (add-categories (list (intern (symbol-name (first cats)) :fcg)
+                                 (intern (symbol-name (second cats)) :fcg)
+                                 new-cat-1 new-cat-2) (categorial-network cxn-set))
+           (add-link  (intern (symbol-name (first cats)) :fcg) new-cat-1 (categorial-network cxn-set) :weight 0.5)
+           (add-link  (intern (symbol-name (second cats)) :fcg) new-cat-2 (categorial-network cxn-set) :weight 0.5)))       
         ((= 3 (length cats))
-         (let ((new-cat-1 (intern (symbol-name (make-const "SLOT-1of3")) :type-hierarchies))
-               (new-cat-2 (intern (symbol-name (make-const "SLOT-2of3")) :type-hierarchies))
-               (new-cat-3 (intern (symbol-name (make-const "SLOT-3of3")) :type-hierarchies)))
+         (let ((new-cat-1 (intern (symbol-name (make-const "SLOT-1of3")) :fcg))
+               (new-cat-2 (intern (symbol-name (make-const "SLOT-2of3")) :fcg))
+               (new-cat-3 (intern (symbol-name (make-const "SLOT-3of3")) :fcg)))
            (eval `(def-fcg-cxn ,(make-symbol (upcase (string-append
                                                       "categorisation-"
                                                       (symbol-name new-cat-1) "-"
@@ -371,21 +371,21 @@
                                              (meets ?lex-2-unit ?lex-3-unit)))))
                                :cxn-inventory ,cxn-set
                                :attributes (:categories ,new-cat-1 ,new-cat-2 ,new-cat-3)))
-           ;; Add categories and links in the type-hierarchy
-           (add-categories (list (intern (symbol-name (first cats)) :type-hierarchies)
-                                 (intern (symbol-name (second cats)) :type-hierarchies)
-                                 (intern (symbol-name (third cats)) :type-hierarchies)
+           ;; Add categories and links in the categorial-network
+           (add-categories (list (intern (symbol-name (first cats)) :fcg)
+                                 (intern (symbol-name (second cats)) :fcg)
+                                 (intern (symbol-name (third cats)) :fcg)
                              new-cat-1 new-cat-2 new-cat-3)
-                           (get-type-hierarchy cxn-set))
-           (add-link  (intern (symbol-name (first cats)) :type-hierarchies) new-cat-1  (get-type-hierarchy cxn-set) :weight 0.5)
-           (add-link  (intern (symbol-name (second cats)) :type-hierarchies) new-cat-2 (get-type-hierarchy cxn-set) :weight 0.5)
-           (add-link  (intern (symbol-name (third cats)) :type-hierarchies) new-cat-3 (get-type-hierarchy cxn-set) :weight 0.5))) 
+                           (categorial-network cxn-set))
+           (add-link  (intern (symbol-name (first cats)) :fcg) new-cat-1  (categorial-network cxn-set) :weight 0.5)
+           (add-link  (intern (symbol-name (second cats)) :fcg) new-cat-2 (categorial-network cxn-set) :weight 0.5)
+           (add-link  (intern (symbol-name (third cats)) :fcg) new-cat-3 (categorial-network cxn-set) :weight 0.5))) 
         
         ((= 4 (length cats))
-         (let ((new-cat-1 (intern (symbol-name (make-const "SLOT-1of4")) :type-hierarchies))
-               (new-cat-2 (intern (symbol-name (make-const "SLOT-2of4")) :type-hierarchies))
-               (new-cat-3 (intern (symbol-name (make-const "SLOT-3of4")) :type-hierarchies))
-               (new-cat-4 (intern (symbol-name (make-const "SLOT-4of4")) :type-hierarchies)))
+         (let ((new-cat-1 (intern (symbol-name (make-const "SLOT-1of4")) :fcg))
+               (new-cat-2 (intern (symbol-name (make-const "SLOT-2of4")) :fcg))
+               (new-cat-3 (intern (symbol-name (make-const "SLOT-3of4")) :fcg))
+               (new-cat-4 (intern (symbol-name (make-const "SLOT-4of4")) :fcg)))
            (eval `(def-fcg-cxn ,(make-symbol (upcase (string-append
                                                       "categorisation-"
                                                       (symbol-name new-cat-1) "-"
@@ -442,24 +442,24 @@
                                              (meets ?lex-3-unit ?lex-4-unit)))))
                                :cxn-inventory ,cxn-set
                                :attributes (:categories ,new-cat-1 ,new-cat-2 ,new-cat-3 ,new-cat-4)))
-                 ;; Add categories and links in the type-hierarchy
-                 (add-categories (list (intern (symbol-name (first cats)) :type-hierarchies)
-                                       (intern (symbol-name (second cats)) :type-hierarchies)
-                                       (intern (symbol-name (third cats)) :type-hierarchies)
-                                       (intern (symbol-name (fourth cats)) :type-hierarchies)
+                 ;; Add categories and links in the categorial-network
+                 (add-categories (list (intern (symbol-name (first cats)) :fcg)
+                                       (intern (symbol-name (second cats)) :fcg)
+                                       (intern (symbol-name (third cats)) :fcg)
+                                       (intern (symbol-name (fourth cats)) :fcg)
                              new-cat-1 new-cat-2 new-cat-3 new-cat-4)
-                           (get-type-hierarchy cxn-set))
-           (add-link  (intern (symbol-name (first cats)) :type-hierarchies) new-cat-1 (get-type-hierarchy cxn-set) :weight 0.5)
-           (add-link  (intern (symbol-name (second cats)) :type-hierarchies) new-cat-2 (get-type-hierarchy cxn-set) :weight 0.5)
-           (add-link  (intern (symbol-name (third cats)) :type-hierarchies)  new-cat-3 (get-type-hierarchy cxn-set) :weight 0.5)
-           (add-link  (intern (symbol-name (fourth cats)) :type-hierarchies) new-cat-4 (get-type-hierarchy cxn-set) :weight 0.5)))))
+                           (categorial-network cxn-set))
+           (add-link  (intern (symbol-name (first cats)) :fcg) new-cat-1 (categorial-network cxn-set) :weight 0.5)
+           (add-link  (intern (symbol-name (second cats)) :fcg) new-cat-2 (categorial-network cxn-set) :weight 0.5)
+           (add-link  (intern (symbol-name (third cats)) :fcg)  new-cat-3 (categorial-network cxn-set) :weight 0.5)
+           (add-link  (intern (symbol-name (fourth cats)) :fcg) new-cat-4 (categorial-network cxn-set) :weight 0.5)))))
 
 |#
 
 (defun make-and-add-categorisation-cxns (cats cxn-set)
-         (let ((new-cat-1 (intern (symbol-name (make-const "FIRST-SLOT")) :type-hierarchies))
-               (new-cat-2 (intern (symbol-name (make-const "SECOND-SLOT")) :type-hierarchies))
-               (new-cat-3 (intern (symbol-name (make-const "THIRD-SLOT")) :type-hierarchies)))
+         (let ((new-cat-1 (intern (symbol-name (make-const "FIRST-SLOT")) :fcg))
+               (new-cat-2 (intern (symbol-name (make-const "SECOND-SLOT")) :fcg))
+               (new-cat-3 (intern (symbol-name (make-const "THIRD-SLOT")) :fcg)))
            (eval `(def-fcg-cxn ,(make-symbol (upcase (string-append
                                                       "categorisation-"
                                                       (symbol-name new-cat-1) "-"
@@ -611,15 +611,15 @@
                                :cxn-inventory ,cxn-set
                                :attributes (:categories ,new-cat-1 ,new-cat-2 ,new-cat-3)))
 
-           (add-categories (list new-cat-1 new-cat-2 new-cat-3) (get-type-hierarchy cxn-set))
-           (add-categories  (list (intern (symbol-name (first cats)) :type-hierarchies)
-                                  (intern (symbol-name (second cats)) :type-hierarchies))
-                            (get-type-hierarchy cxn-set))
-           (add-link  (intern (symbol-name (first cats)) :type-hierarchies) new-cat-1 (get-type-hierarchy cxn-set) :weight 0.5)
-           (add-link  (intern (symbol-name (second cats)) :type-hierarchies) new-cat-2 (get-type-hierarchy cxn-set) :weight 0.5)
+           (add-categories (list new-cat-1 new-cat-2 new-cat-3) (categorial-network cxn-set))
+           (add-categories  (list (intern (symbol-name (first cats)) :fcg)
+                                  (intern (symbol-name (second cats)) :fcg))
+                            (categorial-network cxn-set))
+           (add-link  (intern (symbol-name (first cats)) :fcg) new-cat-1 (categorial-network cxn-set) :weight 0.5)
+           (add-link  (intern (symbol-name (second cats)) :fcg) new-cat-2 (categorial-network cxn-set) :weight 0.5)
            (when (= (length cats) 3)
-             (add-category  (intern (symbol-name (third cats)) :type-hierarchies) (get-type-hierarchy cxn-set))
-             (add-link  (intern (symbol-name (third cats)) :type-hierarchies)  new-cat-3 (get-type-hierarchy cxn-set) :weight 0.5))
+             (add-category  (intern (symbol-name (third cats)) :fcg) (categorial-network cxn-set))
+             (add-link  (intern (symbol-name (third cats)) :fcg)  new-cat-3 (categorial-network cxn-set) :weight 0.5))
            ))
 
 (defmethod find-same-cxn ((cxn fcg-construction) (cxn-inventory fcg-construction-set) (mode (eql :categorisation-strategy)))
@@ -654,11 +654,11 @@
                                                    (all-parents solution-cipn))))
          (cipn-cars (mapcar #'cipn-car cip-nodes-through-cat-cxn))
          (competing-th-links (mappend #'competing-th-links-cipn-car cipn-cars)))
-    (loop with type-hierarchy = (get-type-hierarchy (construction-inventory solution-cipn))
+    (loop with categorial-network = (categorial-network (construction-inventory solution-cipn))
           for c-t-l in competing-th-links
-          when (and (node-p (car c-t-l) type-hierarchy)
-                    (node-p (cdr c-t-l) type-hierarchy)
-                    (directed-path-p (car c-t-l) (cdr c-t-l) type-hierarchy))
+          when (and (category-exists-p (car c-t-l) categorial-network)
+                    (category-exists-p (cdr c-t-l) categorial-network)
+                    (link-exists-p (car c-t-l) (cdr c-t-l) categorial-network))
           collect c-t-l)))
 
 (defun competing-th-links-cipn-car (cipn-car)
@@ -680,7 +680,7 @@
            (cost-of-links (mapcar #'(lambda (link)
                                       (link-weight (car link)
                                                    (cdr link)
-                                                   (get-type-hierarchy (construction-inventory node))))
+                                                   (categorial-network (construction-inventory node))))
                                   (used-th-links-cipn-car (cipn-car node)))))
       (if cost-of-links
         (+ base-priority (/ (sum (mapcar #'(lambda (cost) (- 1.0 cost)) cost-of-links))
@@ -698,15 +698,15 @@
 
 
 
-(defclass cxn-supplier-categorisation-type-hierarchy (cxn-supplier-with-ordered-labels)
+(defclass cxn-supplier-categorisation-categorial-network (cxn-supplier-with-ordered-labels)
   ())
 
-(defmethod create-cxn-supplier ((node cip-node) (mode (eql :cxn-supplier-categorisation-type-hierarchy)))
+(defmethod create-cxn-supplier ((node cip-node) (mode (eql :cxn-supplier-categorisation-categorial-network)))
   (let* ((parent (car (all-parents node))))
     (if parent
       ;; copy most of the stuff from the the pool of the parent
       (make-instance 
-       'cxn-supplier-categorisation-type-hierarchy
+       'cxn-supplier-categorisation-categorial-network
        :current-label (current-label (cxn-supplier parent))
        :remaining-labels (remaining-labels (cxn-supplier parent))
        :all-constructions-of-current-label (all-constructions-of-current-label (cxn-supplier parent)))
@@ -715,13 +715,13 @@
                                        (if (eq (direction (cip node)) '->)
                                          :production-order :parse-order))))
         (make-instance 
-         'cxn-supplier-categorisation-type-hierarchy
+         'cxn-supplier-categorisation-categorial-network
          :current-label (car labels)
          :remaining-labels (cdr labels)
          :all-constructions-of-current-label
-         (all-constructions-of-label-categorisation-type-hierarchy node (car labels)))))))
+         (all-constructions-of-label-categorisation-categorial-network node (car labels)))))))
 
-(defun all-constructions-of-label-categorisation-type-hierarchy (node label)
+(defun all-constructions-of-label-categorisation-categorial-network (node label)
   "Returns all constructions that of label 'label', order by number of categories and score."
   (let ((cxns-of-label (copy-object
                         (loop for cxn in (constructions-for-application (construction-inventory (cip node)))
@@ -740,7 +740,7 @@
                                     (t nil)))))
       cxns-of-label)))
 
-(defmethod next-cxn ((cxn-supplier cxn-supplier-categorisation-type-hierarchy) (node cip-node))
+(defmethod next-cxn ((cxn-supplier cxn-supplier-categorisation-categorial-network) (node cip-node))
   (cond ;; For lexical cxns: just pop
         ((and (remaining-constructions cxn-supplier)
               (equalp (current-label cxn-supplier) 'lex))
@@ -779,7 +779,7 @@
          (setf (current-label cxn-supplier) (car (remaining-labels cxn-supplier)))
          (setf (remaining-labels cxn-supplier) (cdr (remaining-labels cxn-supplier)))
          (setf (all-constructions-of-current-label cxn-supplier)
-               (all-constructions-of-label-categorisation-type-hierarchy node (current-label cxn-supplier)))
+               (all-constructions-of-label-categorisation-categorial-network node (current-label cxn-supplier)))
          (setf (remaining-constructions cxn-supplier)
                (all-constructions-of-current-label cxn-supplier))
          (next-cxn cxn-supplier node))))
@@ -837,27 +837,25 @@
 
 
 (defun unify-atom (x y bindings &key cxn-inventory)
-  "unify-atom function for use with type-hierarchies"
+  "unify-atom function for use with fcg"
   (cond ((eq bindings +fail+) +fail+)
 	;; handle strings and interned symbols
 	((equal x y) bindings)
 	;; unify uninterned symbols 
 	((and (symbolp x) (symbolp y)
 	      (equal (symbol-name x) (symbol-name y)) bindings))
-        ;; unify symbols on type-hierarchy-basis
+        ;; unify symbols on categorial-network-basis
         ((and cxn-inventory
-              (type-hierarchies::get-type-hierarchy cxn-inventory)
+              (categorial-network cxn-inventory)
               (symbolp x) (symbolp y)
-              (type-hierarchies::node-p (intern (symbol-name x) :type-hierarchies)
-                                        (type-hierarchies:get-type-hierarchy cxn-inventory))
-              (type-hierarchies::node-p (intern (symbol-name y) :type-hierarchies)
-                                        (type-hierarchies:get-type-hierarchy cxn-inventory))
-              (type-hierarchies::directed-path-p (intern (symbol-name y) :type-hierarchies)
-                                                 (intern (symbol-name x) :type-hierarchies)
-                                                 (type-hierarchies:get-type-hierarchy cxn-inventory))
-              ;(< (type-hierarchies:link-weight (intern (symbol-name y) :type-hierarchies)
-              ;                                 (intern (symbol-name x) :type-hierarchies)
-              ;                                 (type-hierarchies:get-type-hierarchy cxn-inventory))
+              (category-exists-p  (intern (symbol-name x) :fcg) (categorial-network cxn-inventory))
+              (category-exists-p (intern (symbol-name y) :fcg) (categorial-network cxn-inventory))
+              (link-exists-p (intern (symbol-name y) :fcg)
+                             (intern (symbol-name x) :fcg)
+                             (categorial-network cxn-inventory))
+              ;(< (link-weight (intern (symbol-name y) :fcg)
+              ;                                 (intern (symbol-name x) :fcg)
+              ;                                 (categorial-network cxn-inventory))
               ;   1.0)
               bindings))
 	;; unify variables
