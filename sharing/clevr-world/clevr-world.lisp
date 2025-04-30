@@ -59,7 +59,7 @@
    (3d-coordinates :type list  :initarg :3d-coordinates :accessor 3d-coordinates)
    (rotation      :type number :initarg :rotation      :accessor rotation)
    ;; import data
-   (attributes :type hash-table :initarg :attributes :accessor attributes)
+   (features :type hash-table :initarg :features :accessor features)
    (description :type hash-table :initarg :description :accessor description)
 
    
@@ -118,7 +118,7 @@
                                             (loop for id in list-of-ids
                                                   collect (rest (assoc id id-dict))))))
          (description (alist->ht (rest (assoc :description s-expr))))
-         (attributes (alist->ht (rest (assoc :attributes s-expr)))))
+         (features (alist->ht (rest (assoc :attributes s-expr)))))
     (make-instance 'clevr-object
                    :id (cdr id-dict-entry)
                    :shape (key->symbol s-expr :shape)
@@ -130,22 +130,8 @@
                    :3d-coordinates (rest (assoc :3d--coords s-expr))
                    :rotation (rest (assoc :rotation s-expr))
                    ;; import data
-                   :attributes attributes
-                   :description description
-                   #|:attr-area (rest (assoc :area attributes))
-                   :attr-wh-ratio (rest (assoc :wh-ratio attributes))
-                   :attr-nr-of-corners (rest (assoc :nr-of-corners attributes))
-                   :attr-nr-of-sides (rest (assoc :nr-of-sides attributes))
-                   :attr-roughness (rest (assoc :roughness attributes))
-                   :attr-r (rest (assoc :r attributes))
-                   :attr-g (rest (assoc :g attributes))
-                   :attr-b (rest (assoc :b attributes))
-                   :attr-xpos (rest (assoc :xpos attributes))
-                   :attr-ypos (rest (assoc :ypos attributes))
-                   :attr-zpos (rest (assoc :zpos attributes))
-                   :attr-xpos-3d (rest (assoc :xpos-3d attributes))
-                   :attr-ypos-3d (rest (assoc :ypos-3d attributes))
-                   :attr-zpos-3d (rest (assoc :zpos-3d attributes))|#)))
+                   :features features
+                   :description description)))
 
 
 (defun alist->ht (alist)
@@ -158,7 +144,7 @@
 ;; cle utils
 
 (defmethod get-object-val ((object clevr-object) (attr symbol))
-  (gethash attr (attributes object)))
+  (gethash attr (features object)))
 
 (defmethod object->s-expr ((object clevr-object) &key)
   "Returns a clevr-object as an s-expr of the form
@@ -178,7 +164,7 @@
                  :coordinates (copy-object (coordinates obj))
                  :3d-coordinates (copy-object (3d-coordinates obj))
                  :rotation (copy-object (rotation obj))
-                 :attributes (copy-object (attributes obj))
+                 :features (copy-object (features obj))
                  :description (copy-object (description obj))
                  ))
 
@@ -192,11 +178,13 @@
 ;; clevr scene
 ;; ################################
 
-(export '(clevr-object-set objects equal-entity find-entity-by-id empty-set-p
+(export '(clevr-object-set objects similarities equal-entity find-entity-by-id empty-set-p
           clevr-scene index name source-path data-set image))
 
 (defclass clevr-object-set (entity)
-  ((objects :type list :initarg :objects :accessor objects :initform nil))
+  ((objects :type list :initarg :objects :accessor objects :initform nil)
+   (similarities :type list :initarg :similarities :accessor similarities :initform nil)
+   )
   (:documentation "A set of clevr-object instances"))
 
 (defclass clevr-scene (clevr-object-set)

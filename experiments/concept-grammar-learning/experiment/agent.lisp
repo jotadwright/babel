@@ -107,7 +107,7 @@
     (loop for form being the hash-keys of concepts
             using (hash-value concept)
           do (cond ;; spatials
-                   #|((member form '("behind" "front" "left" "right") :test #'equalp)
+                   ((member form '("behind" "front" "left" "right") :test #'equalp)
                     (add-cxn-and-ontology agent 'spatial-concept concept form 'spatial))
                    ;; colors
                    ((member form '("blue" "brown" "cyan" "gray" "green" "purple" "red" "yellow") :test #'equalp)
@@ -115,32 +115,32 @@
                    ((member form '("metal" "rubber") :test #'equalp)
                     (add-cxn-and-ontology agent 'material-concept concept form 'material))
                    ((member form '("small" "large") :test #'equalp)
-                    (add-cxn-and-ontology agent 'size-concept concept form 'size))|#
+                    (add-cxn-and-ontology agent 'size-concept concept form 'size))
                    ((member form '("cube" "cylinder" "sphere") :test #'equalp)
-                    (add-cxn-and-ontology agent 'shape-concept concept form 'shape))))))
+                    (add-cxn-and-ontology agent 'shape-concept concept form 'shape :add-plural t))))))
 
-
-
-(defun add-cxn-and-ontology (agent attribute-class concept form sem-class)
+(defun add-cxn-and-ontology (agent attribute-class concept form sem-class &key (add-plural nil))
   (let ((grammar (grammar agent))
         (ontology (ontology agent))
         (clg-concept (make-instance attribute-class
-                                    :id form
+                                    :id (intern (upcase form) :clevr-world)
                                     :meaning concept)))
     ;; add it to the ontology of the agent
-    (push-data ontology attribute-class (make-instance attribute-class :id (intern (upcase form) :clevr-world) :meaning concept))
+    (push-data ontology attribute-class clg-concept)
     ;; add the morph
     ;(add-morph-cxn-for-concept grammar clg-concept form)
     ;; add the lex
-    (add-lex-cxn-for-concept agent grammar clg-concept form sem-class)))
+    (add-lex-cxn-for-concept agent grammar clg-concept form sem-class :add-plural add-plural)))
 
-(defmethod add-lex-cxn-for-concept (agent cxn-inventory concept word sem-class) ; (type (eql :*shape)))
+(defmethod add-lex-cxn-for-concept (agent cxn-inventory concept word sem-class &key (add-plural nil)) ; (type (eql :*shape)))
   (let* ((lex-id (upcase (id concept)))
          (cxn-name (internal-symb (upcase (string-append (hyphenize lex-id) "-lex-cxn"))))
+         (cxn-pl-name (internal-symb (upcase (string-append (hyphenize lex-id) "s-lex-cxn"))))
          (unit-name (make-var (upcase (string-append (hyphenize lex-id) "-unit"))))
          (out-var (make-var sem-class))
          (initial-cxn-score (get-configuration agent :initial-cxn-score)))
-                     
+
+    ;; singular
     (eval `(def-fcg-cxn ,cxn-name
                         ((,unit-name
                           (syn-cat (phrase-type lexical)
@@ -162,4 +162,30 @@
                                      :meaning ,(internal-symb (hyphenize lex-id))
                                      ;:lex-id ,(internal-symb (hyphenize lex-id)) 
                                      ;:clevr-datatype ,(symbol-name type)
-                                     )))))
+                                     )))
+
+    ;; plural
+    #|(when add-plural   
+      (eval `(def-fcg-cxn ,cxn-pl-name
+                          ((,unit-name
+                            (syn-cat (phrase-type lexical)
+                                     (fcg::lex-class ,(intern (symbol-name (make-const word)) :fcg)))
+                            (args (,out-var))
+                            )
+                           <-
+                           (,unit-name
+                            (HASH meaning ((bind shape-category ,out-var ,(internal-symb (hyphenize lex-id)))))
+                            --
+                            (HASH form ((string ,unit-name ,(concatenate 'string word "s"))))
+                            ))
+                          :cxn-inventory ,cxn-inventory
+                          :cxn-set (hashed hashed-lex)
+                          :attributes (:score ,initial-cxn-score
+                                       :cxn-type lexical
+                                       :repair concept-learning ;; TODO
+                                       :string ,word
+                                       :meaning ,(internal-symb (hyphenize lex-id))
+                                     ;:lex-id ,(internal-symb (hyphenize lex-id)) 
+                                     ;:clevr-datatype ,(symbol-name type)
+                                       ))))|#))
+

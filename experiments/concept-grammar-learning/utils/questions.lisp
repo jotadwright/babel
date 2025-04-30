@@ -9,6 +9,10 @@
 (defgeneric sample-question (agent mode)
   (:documentation "The agent samples a question from the dataset according to mode"))
 
+;; ---------------------------
+;; + DETERMINISTIC questions +
+;; ---------------------------
+
 (defmethod sample-question ((agent clevr-learning-agent) (mode (eql :deterministic)))
   (let* (;; sample a question
          (question-scenes-answers-cons (first (question-data (experiment agent))))
@@ -23,6 +27,10 @@
          (clevr-scene (find-scene-by-name (car scene-and-answer) (world (experiment agent)))))
     (values question clevr-scene answer-entity)))
 
+;; ---------------------
+;; + RANDOM  questions +
+;; ---------------------
+
 (defmethod sample-question ((agent clevr-learning-agent) (mode (eql :random)))
   ;; sample a random question
   (when (eql (role agent) 'tutor)
@@ -35,6 +43,9 @@
       (notify log-unseen-questions (length unseen-question-indices))))
   (load-clevr-scene-and-answer agent (random-elt (question-data (experiment agent)))))
 
+;; -------------------
+;; + DEBUG questions +
+;; -------------------
 (defmethod sample-question ((agent clevr-learning-agent) (mode (eql :debug)))
   ;; sample a question according to the index of the interaction
   (let* ((current-interaction-nr (interaction-number (current-interaction (experiment agent))))
@@ -43,6 +54,9 @@
          (nth-sample (nth n (question-data (experiment agent)))))
     (load-clevr-scene-and-answer agent nth-sample)))
 
+;; -------------------
+;; + SMART questions +
+;; -------------------
 (defmethod sample-question ((agent clevr-learning-tutor) (mode (eql :smart)))
   ;; sample a question according to previous successes
   (let ((question-data (question-data (experiment agent))))
@@ -78,7 +92,8 @@
                   (setf (current-question-index agent) sample-index)
                   (load-clevr-scene-and-answer agent sample))))))))
 
-;; utility
+
+;; Utility functions
 (defun load-clevr-scene-and-answer (agent question-scenes-answers-cons)
   (let* ((question (car question-scenes-answers-cons))
          (scenes-and-answers (cdr question-scenes-answers-cons))

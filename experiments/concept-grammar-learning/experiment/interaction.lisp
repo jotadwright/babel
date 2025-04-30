@@ -9,6 +9,9 @@
 (define-event agent-confidence-level (level float))
 (define-event log-unseen-questions (n number))
 
+;; ----------------------
+;; + BEFORE Interaction +
+;; ----------------------
 (defmethod interact :before ((experiment clevr-learning-experiment)
                              interaction &key)
   ;; Choose a random scene and a random question and initialize the agents
@@ -19,6 +22,9 @@
           do (initialize-agent agent question clevr-scene answer-entity))
     (notify interaction-before-finished clevr-scene question answer-entity)))
 
+;; ----------------------
+;; + DURING Interaction +
+;; ----------------------
 (defmethod interact ((experiment clevr-learning-experiment)
                      interaction &key)
   (case (role (speaker interaction))
@@ -49,6 +55,9 @@
        (loop for agent in (population experiment)
              do (setf (communicated-successfully agent) successp))))))
 
+;; ----------------------
+;; + AFTER Interaction +
+;; ----------------------
 (defmethod interact :after ((experiment clevr-learning-experiment)
                             interaction &key)
   (let ((successp (loop for agent in (population experiment)
