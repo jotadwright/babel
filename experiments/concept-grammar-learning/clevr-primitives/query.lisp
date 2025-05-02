@@ -1,58 +1,48 @@
-;;;; query.lisp
-
 (in-package :clg)
 
-;; -----------------
-;; QUERY primitive ;;
-;; -----------------
+;; -------------------
+;; + QUERY primitive +
+;; -------------------
 
-;(export '(query))
-
-(defgeneric query-object-attribute (object attribute ontology)
-  (:documentation "Extract the attribute from the object and
-   get the corresponding category from the ontology"))
-
-(defmethod query-object-attribute ((object clevr-object)
-                                   (attribute-category attribute-category)
-                                   ontology)
-  "Given an object and an attribute; get the attribute
-   from the object and create a category from it."
-  (case (attribute attribute-category)
-    (shape (find-entity-by-id ontology (shape object)))
-    (size (find-entity-by-id ontology (cw::size object)))
-    (color (find-entity-by-id ontology (color object)))
-    (material (find-entity-by-id ontology (material object)))))
 
 (defprimitive query ((target-category attribute)
                      (source-object clevr-object)
                      (attribute attribute-category))
   ;; first case; given attribute and source-object, compute the target category
   ((source-object attribute => target-category)
-   (bind (target-category 1.0 (query-object-attribute source-object attribute ontology))))
+   (let* ((res (query-object-attribute source-object attribute ontology))
+          (feature (car res)))
+   (bind (target-category 1.0 feature))))
 
-  ;; second case; given source-object and target-category, compute the attribute
-  ((source-object target-category => attribute)
-   (let ((computed-attribute
-          (find-if #'(lambda (attr)
-                       (equal-entity
-                        target-category
-                        (query-object-attribute source-object attr ontology)))
-                   (get-data ontology 'cw::attributes))))
-     (when computed-attribute
-       (bind (attribute 1.0 computed-attribute)))))
-
-  ;; third case; given source-object, compute pairs of attribute and target-category
-  ((source-object => target-category attribute)
+  ;; second case; given source-object, compute pairs of attribute and target-category
+  ((source-object => attribute target-category)
    (loop for attr in (get-data ontology 'cw::attributes)
-         for target-cat = (query-object-attribute source-object attr ontology)
+         for (target-cat . sim) = (query-object-attribute source-object attr ontology)
          when target-cat
-         do (bind (attribute 1.0 attr)
-                  (target-category 1.0 target-cat))))
-
-  ;; fourth case; if given source-object, attribute and target-category, check
-  ;; for consistency
-  ((source-object attribute target-category =>)
-   (equal-entity target-category (query-object-attribute source-object attribute ontology)))
+           do (bind (attribute 1.0 attr)
+                    (target-category sim target-cat)))
+   )
+  
   :primitive-inventory *clevr-primitives*)
+
+;; Utilities
+(defmethod query-object-attribute ((object clevr-object)
+                                   (attribute-category attribute-category)
+                                   ontology)
+  (multiple-value-bind (candidates concepts) (get-attribute-candidates ontology attribute-category)
+    (let* ((res (find-best-concept concepts object))
+           (best-concept (car res))
+           (similarity (cdr res)))
+      (cons (find-entity-by-id ontology (id best-concept)) similarity))))
+
+(defun get-attribute-candidates (ontology attribute-category)
+  (cond ((eq (id attribute-category) 'clevr-world::color)
+         (values (get-data ontology 'clevr-world::colors) (get-data ontology 'clg::color-concept)))
+        ((eq (id attribute-category) 'clevr-world::material)
+         (values (get-data ontology 'clevr-world::materials) (get-data ontology 'clg::material-concept)))
+        ((eq (id attribute-category) 'clevr-world::size)
+         (values (get-data ontology 'clevr-world::sizes) (get-data ontology 'clg::size-concept)))
+        ((eq (id attribute-category) 'clevr-world::shape)
+         (values (get-data ontology 'clevr-world::shapes) (get-data ontology 'clg::shape-concept)))))
 
 
