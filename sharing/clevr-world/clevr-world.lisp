@@ -38,26 +38,28 @@
 ;; clevr object
 ;; ################################
 
-(export '(clevr-object shape size color material relationships
-          coordinates 3d-coordinates rotation x-pos y-pos z-pos feature-values
+(export '(clevr-object features description
+
+          #|clevr-object shape size color material relationships
+          coordinates 3d-coordinates rotation x-pos y-pos z-pos feature-values|#
           ;; import data
-          attr-area
+          #|attr-area
           attr-wh-ratio attr-nr-of-corners attr-nr-of-sides
           attr-roughness
           attr-r attr-g attr-b
           attr-xpos attr-ypos attr-zpos 
-          attr-xpos-3d attr-ypos-3d attr-zpos-3d
+          attr-xpos-3d attr-ypos-3d attr-zpos-3d|#
           ))
 
 (defclass clevr-object (entity)
-  ((shape         :type symbol :initarg :shape         :accessor shape)
+  (#|(shape         :type symbol :initarg :shape         :accessor shape)
    (size          :type symbol :initarg :size          :accessor size)
    (color         :type symbol :initarg :color         :accessor color)
-   (material      :type symbol :initarg :material      :accessor material)
-   (relationships :type list   :initarg :relationships :accessor relationships)
-   (coordinates   :type list   :initarg :coordinates   :accessor coordinates)
-   (3d-coordinates :type list  :initarg :3d-coordinates :accessor 3d-coordinates)
-   (rotation      :type number :initarg :rotation      :accessor rotation)
+   (material      :type symbol :initarg :material      :accessor material)|#
+   #|(relationships :type list   :initarg :relationships :accessor relationships)|#
+   #|(coordinates   :type list   :initarg :coordinates   :accessor coordinates)|#
+   #|(3d-coordinates :type list  :initarg :3d-coordinates :accessor 3d-coordinates)|#
+   #|(rotation      :type number :initarg :rotation      :accessor rotation)|#
    ;; import data
    (features :type hash-table :initarg :features :accessor features)
    (description :type hash-table :initarg :description :accessor description)
@@ -79,7 +81,7 @@
    (attr-zpos-3d  :type (or number null) :initarg :attr-zpos-3d  :accessor attr-zpos-3d)|#)
   (:documentation "An object in the CLEVR world"))
 
-(defmethod x-pos ((object clevr-object))
+#|(defmethod x-pos ((object clevr-object))
   (first (coordinates object)))
 
 (defmethod y-pos ((object clevr-object))
@@ -101,7 +103,7 @@
   (list (cons :shape (shape object))
         (cons :size (size object))
         (cons :color (color object))
-        (cons :material (material object))))
+        (cons :material (material object))))|#
 
 (defun key->symbol (s-expr key)
   (internal-symb
@@ -121,14 +123,14 @@
          (features (alist->ht (rest (assoc :attributes s-expr)))))
     (make-instance 'clevr-object
                    :id (cdr id-dict-entry)
-                   :shape (key->symbol s-expr :shape)
-                   :size (key->symbol s-expr :size)
-                   :color (key->symbol s-expr :color)
-                   :material (key->symbol s-expr :material)
-                   :relationships relationships
-                   :coordinates (rest (assoc :pixel--coords s-expr))
-                   :3d-coordinates (rest (assoc :3d--coords s-expr))
-                   :rotation (rest (assoc :rotation s-expr))
+                   ;:shape (key->symbol s-expr :shape)
+                   ;:size (key->symbol s-expr :size)
+                   ;:color (key->symbol s-expr :color)
+                   ;:material (key->symbol s-expr :material)
+                   ;:relationships relationships
+                   ;:coordinates (rest (assoc :pixel--coords s-expr))
+                   ;:3d-coordinates (rest (assoc :3d--coords s-expr))
+                   ;:rotation (rest (assoc :rotation s-expr))
                    ;; import data
                    :features features
                    :description description)))
@@ -158,12 +160,12 @@
 
 (defmethod copy-object ((obj clevr-object))
   (make-instance 'clevr-object :id (id obj)
-                 :shape (shape obj) :size (size obj)
-                 :color (color obj) :material (material obj)
-                 :relationships (copy-object (relationships obj))
-                 :coordinates (copy-object (coordinates obj))
-                 :3d-coordinates (copy-object (3d-coordinates obj))
-                 :rotation (copy-object (rotation obj))
+                 ;:shape (shape obj) :size (size obj)
+                 ;:color (color obj) :material (material obj)
+                 ;:relationships (copy-object (relationships obj))
+                 ;:coordinates (copy-object (coordinates obj))
+                 ;:3d-coordinates (copy-object (3d-coordinates obj))
+                 ;:rotation (copy-object (rotation obj))
                  :features (copy-object (features obj))
                  :description (copy-object (description obj))
                  ))

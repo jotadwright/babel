@@ -18,7 +18,7 @@
 (defmethod loaded-data->entities (hash-tables)
   "Given a list of hash-tables (each representing a single entity), create a list of entities."
   (loop for hash-table in hash-tables
-        for entity = (create-entity (gethash :attributes hash-table)
+        for entity = (create-entity (gethash :features hash-table)
                                     (gethash :description hash-table))
         collect entity))
 
