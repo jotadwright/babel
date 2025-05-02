@@ -18,13 +18,13 @@
 (defmethod filter-by-concept ((source-set clevr-object-set)
                               (category category)
                               (ontology blackboard))
-  "Filter the set by the given shape category."
+  "Filter the set by the given category."
   (multiple-value-bind (candidates concepts) (get-attribute-candidates ontology category)
     (let ((filtered-objects (filter-objects-by-concepts concepts (objects source-set) category)))
       (if filtered-objects
         (make-instance 'clevr-object-set
                        :objects (first filtered-objects)
-                       :similarities (cons (list shape-concept (second filtered-objects)) (similarities source-set)))
+                       :similarities (cons (list category (second filtered-objects)) (similarities source-set)))
         (make-instance 'clevr-object-set
                        :id (make-id 'empty-set))))))
 

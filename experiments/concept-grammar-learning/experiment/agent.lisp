@@ -108,18 +108,18 @@
             using (hash-value concept)
           do (cond ;; spatials
                    ((member form '("behind" "front" "left" "right") :test #'equalp)
-                    (add-cxn-and-ontology agent 'spatial-concept concept form 'spatial))
+                    (add-cxn-and-ontology agent 'spatial-concept concept form 'spatial 'spatial-category))
                    ;; colors
                    ((member form '("blue" "brown" "cyan" "gray" "green" "purple" "red" "yellow") :test #'equalp)
-                    (add-cxn-and-ontology agent 'color-concept concept form 'color))
+                    (add-cxn-and-ontology agent 'color-concept concept form 'color 'color-category))
                    ((member form '("metal" "rubber") :test #'equalp)
-                    (add-cxn-and-ontology agent 'material-concept concept form 'material))
+                    (add-cxn-and-ontology agent 'material-concept concept form 'material 'material-category))
                    ((member form '("small" "large") :test #'equalp)
-                    (add-cxn-and-ontology agent 'size-concept concept form 'size))
+                    (add-cxn-and-ontology agent 'size-concept concept form 'size 'size-category))
                    ((member form '("cube" "cylinder" "sphere") :test #'equalp)
-                    (add-cxn-and-ontology agent 'shape-concept concept form 'shape :add-plural t))))))
+                    (add-cxn-and-ontology agent 'shape-concept concept form 'shape 'shape-category :add-plural t))))))
 
-(defun add-cxn-and-ontology (agent attribute-class concept form sem-class &key (add-plural nil))
+(defun add-cxn-and-ontology (agent attribute-class concept form sem-class category-type &key (add-plural nil))
   (let ((grammar (grammar agent))
         (ontology (ontology agent))
         (clg-concept (make-instance attribute-class
@@ -130,9 +130,9 @@
     ;; add the morph
     ;(add-morph-cxn-for-concept grammar clg-concept form)
     ;; add the lex
-    (add-lex-cxn-for-concept agent grammar clg-concept form sem-class :add-plural add-plural)))
+    (add-lex-cxn-for-concept agent grammar clg-concept form sem-class category-type :add-plural add-plural)))
 
-(defmethod add-lex-cxn-for-concept (agent cxn-inventory concept word sem-class &key (add-plural nil)) ; (type (eql :*shape)))
+(defmethod add-lex-cxn-for-concept (agent cxn-inventory concept word sem-class category-type &key (add-plural nil)) ; (type (eql :*shape)))
   (let* ((lex-id (upcase (id concept)))
          (cxn-name (internal-symb (upcase (string-append (hyphenize lex-id) "-lex-cxn"))))
          (cxn-pl-name (internal-symb (upcase (string-append (hyphenize lex-id) "s-lex-cxn"))))
@@ -149,7 +149,7 @@
                           )
                          <-
                          (,unit-name
-                          (HASH meaning ((bind shape-category ,out-var ,(internal-symb (hyphenize lex-id)))))
+                          (HASH meaning ((bind ,category-type ,out-var ,(internal-symb (hyphenize lex-id)))))
                           --
                           (HASH form ((string ,unit-name ,word)))
                           ))
