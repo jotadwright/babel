@@ -12,16 +12,17 @@
                       (source-set clevr-object-set))
   ;; first case; given source set, compute target object
   ((source-set => target-object)
-   (if (length= (objects source-set) 1) ;; to remove
+   (if (and (objects source-set) (length= (objects source-set) 1)) ;; to remove
      (bind (target-object 1.0 (first (objects source-set)))) ;; to remove
-
+     
      (let* ((result (loop for entity in (objects source-set)
                           for similarity = (get-sim-for-object source-set entity)
                           collect (list similarity entity) into results
                           finally (return (extremum results :key #'first :test #'>))))
             (similarity (first result))
             (entity (second result)))
-       do (bind (target-object similarity entity)))))
+       (when entity
+         (bind (target-object similarity entity))))))
 
   ;; second case; given source set and target object
   ;; check for consistency
