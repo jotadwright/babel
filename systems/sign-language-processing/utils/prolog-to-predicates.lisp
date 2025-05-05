@@ -1,5 +1,9 @@
 (in-package :slp)
 
+;;------------------------------------------------------------------;;
+;; code for transforming geo-prolog strings into predicate notation ;;
+;;------------------------------------------------------------------;;
+
 (defun get-all-vars (geo-prolog-string)
   (loop for raw-el in (remove "" (cl-ppcre::split "[,\(\)]" geo-prolog-string) :test #'equal)
         for el = (string-trim " " raw-el)
