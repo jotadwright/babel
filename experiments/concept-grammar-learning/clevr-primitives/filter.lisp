@@ -19,6 +19,24 @@
                               (category category)
                               (ontology blackboard))
   "Filter the set by the given category."
+  ;(multiple-value-bind (candidates concepts) (get-attribute-candidates ontology category)
+  (let* ((concept (get-associated-concept ontology category))
+         (filtered-objects (filter-objects-by-concepts (list concept) (objects source-set) category)))
+    (if filtered-objects
+      (make-instance 'clevr-object-set
+                     :objects (first filtered-objects)
+                     :similarities (cons (list category (second filtered-objects)) (similarities source-set)))
+      (make-instance 'clevr-object-set
+                     :id (make-id 'empty-set)))))
+
+(defun get-associated-concept (ontology category)
+  (gethash (id category) (first (get-data ontology 'all-concepts))))
+
+
+#|(defmethod filter-by-concept ((source-set clevr-object-set)
+                              (category category)
+                              (ontology blackboard))
+  "Filter the set by the given category."
   (multiple-value-bind (candidates concepts) (get-attribute-candidates ontology category)
     (let ((filtered-objects (filter-objects-by-concepts concepts (objects source-set) category)))
       (if filtered-objects
@@ -26,7 +44,7 @@
                        :objects (first filtered-objects)
                        :similarities (cons (list category (second filtered-objects)) (similarities source-set)))
         (make-instance 'clevr-object-set
-                       :id (make-id 'empty-set))))))
+                       :id (make-id 'empty-set))))))|#
 
 (defmethod filter-objects-by-concepts (concepts entities category)
   (loop for entity in entities
@@ -48,4 +66,3 @@
           do (setf best-concept concept
                    best-similarity similarity)
         finally (return (cons best-concept best-similarity))))
-

@@ -103,27 +103,35 @@
                                                     "cle4-grammar")
                                        :name (format nil "inventory")
                                        :type "store"))))
-    (loop for form being the hash-keys of concepts
+    (loop with new-hash-table = (make-hash-table :test 'eq)
+          for form being the hash-keys of concepts
             using (hash-value concept)
+          
+         ; do (setf (gethash (intern (upcase form) 'clevr-world) new-hash-table) concept)
           do (cond ;; spatials
                    ((member form '("behind" "front" "left" "right") :test #'equalp)
-                    (add-cxn-and-ontology agent 'spatial-concept concept form 'spatial 'spatial-category))
+                    (add-cxn-and-ontology agent 'spatial-concept concept form 'spatial 'spatial-category new-hash-table))
                    ;; colors
                    ((member form '("blue" "brown" "cyan" "gray" "green" "purple" "red" "yellow") :test #'equalp)
-                    (add-cxn-and-ontology agent 'color-concept concept form 'color 'color-category))
+                    (add-cxn-and-ontology agent 'color-concept concept form 'color 'color-category new-hash-table))
+                   ;; materials
                    ((member form '("metal" "rubber") :test #'equalp)
-                    (add-cxn-and-ontology agent 'material-concept concept form 'material 'material-category))
+                    (add-cxn-and-ontology agent 'material-concept concept form 'material 'material-category new-hash-table))
+                   ;; size
                    ((member form '("small" "large") :test #'equalp)
-                    (add-cxn-and-ontology agent 'size-concept concept form 'size 'size-category))
+                    (add-cxn-and-ontology agent 'size-concept concept form 'size 'size-category new-hash-table))
+                   ;; shapes
                    ((member form '("cube" "cylinder" "sphere") :test #'equalp)
-                    (add-cxn-and-ontology agent 'shape-concept concept form 'shape 'shape-category :add-plural t))))))
+                    (add-cxn-and-ontology agent 'shape-concept concept form 'shape 'shape-category new-hash-table :add-plural t)))
+          finally (push-data ontology 'all-concepts new-hash-table))))
 
-(defun add-cxn-and-ontology (agent attribute-class concept form sem-class category-type &key (add-plural nil))
+(defun add-cxn-and-ontology (agent attribute-class concept form sem-class category-type new-hash-table &key (add-plural nil))
   (let ((grammar (grammar agent))
         (ontology (ontology agent))
         (clg-concept (make-instance attribute-class
                                     :id (intern (upcase form) :clevr-world)
                                     :meaning concept)))
+    (setf (gethash (intern (upcase form) 'clevr-world) new-hash-table) clg-concept)
     ;; add it to the ontology of the agent
     (push-data ontology attribute-class clg-concept)
     ;; add the morph
