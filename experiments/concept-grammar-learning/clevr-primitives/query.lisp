@@ -20,8 +20,7 @@
          for (target-cat . sim) = (query-object-attribute source-object attr ontology)
          when target-cat
            do (bind (attribute 1.0 attr)
-                    (target-category sim target-cat)))
-   )
+                    (target-category sim target-cat))))
   
   :primitive-inventory *clevr-primitives*)
 

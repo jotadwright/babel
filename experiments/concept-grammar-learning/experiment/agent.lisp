@@ -74,8 +74,7 @@
     ;; set the agent as the owner of the grammar
     (set-data (blackboard (grammar learner)) :owner learner)
     ;; initialise the primitives
-    (set-primitives-for-current-challenge-level
-     learner (get-configuration experiment :primitives))
+    (set-primitives-for-current-challenge-level learner (get-configuration experiment :primitives))
     ;; update the composer chunks
     (update-composer-chunks-w-primitive-inventory learner)
     learner))
