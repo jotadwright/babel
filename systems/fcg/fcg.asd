@@ -140,6 +140,7 @@
                  (:file "html")
                  (:file "css")
                  (:file "js")))
+   (:file "make-json")
    (:module tests
     :serial t
     :components ((:file "helpers")
