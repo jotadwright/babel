@@ -57,23 +57,22 @@
 ;; xml-structures of utterances are transformed into predicates using elan->predicates (input should be xmls-node):
 (defparameter *test-utterance-1-predicates*
  (elan->predicates *test-utterance-xml-1*))
-;(pprint  (predicates *test-utterance-1-predicates*))
+;(add-element (make-html *test-utterance-1-predicates*))
 
 (defparameter *test-utterance-2-predicates*
  (elan->predicates *test-utterance-xml-2*))
-;(pprint  (predicates *test-utterance-2-predicates*))
+;(add-element (make-html *test-utterance-2-predicates*))
 
 (defparameter *test-utterance-3-predicates*
  (elan->predicates *test-utterance-xml-3*))
-;(pprint  (predicates *test-utterance-3-predicates*))
+;(add-element (make-html *test-utterance-3-predicates*))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; create fingerspelled forms (LSFB) ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; create a fingerspelled form in hamnosys (LSFB alphabet) for a string
-(make-fingerspelling "arizona")
-
+;(make-fingerspelling "ccxg")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; representing time alignment of predicates ;;
@@ -99,12 +98,14 @@
                    :name "geoquery-lsfb-250" :type "xml")
     *geoquery-lsfb-data*)))
 
+#|
 (defparameter *geoquery-lsfb-4500-xml*
   (load-geoquery-corpus-xml
    (merge-pathnames
     (make-pathname :directory '(:relative "xml-files")
                    :name "geoquery-lsfb-4500" :type "xml")
     *geoquery-lsfb-data*)))
+|#
 
 ;; json  versions
 (defparameter *geoquery-lsfb-250-jsonl*
@@ -114,13 +115,14 @@
                    :name "geoquery-lsfb-250" :type "jsonl")
     *geoquery-lsfb-data*)))
 
+#|
 (defparameter *geoquery-lsfb-4500-jsonl*
   (load-geoquery-corpus-jsonl
    (merge-pathnames
     (make-pathname :directory '(:relative "json-files")
                    :name "geoquery-lsfb-4500" :type "jsonl")
     *geoquery-lsfb-data*)))
-
+|#
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Processing signed forms ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -137,15 +139,13 @@
 (defparameter *test-meaning-3*
   (meaning (third (data *geoquery-lsfb-250-xml*))))
 
-(formulate-all *test-meaning-3*)
+;(formulate-all *test-meaning-3*)
 
-(comprehend-and-formulate *test-utterance-1-predicates*)
+;(comprehend-and-formulate *test-utterance-1-predicates*)
 
-(comprehend-and-formulate *test-utterance-2-predicates*)
+;(comprehend-and-formulate *test-utterance-2-predicates*)
 
-(comprehend-and-formulate *test-utterance-3-predicates*)
+;(comprehend-and-formulate *test-utterance-3-predicates*)
 
-(comprehend-all *test-utterance-1-predicates*)
-(formulate-all *test-meaning-1*)
-
-
+;(comprehend-all *test-utterance-1-predicates*)
+;(formulate-all *test-meaning-1*)
