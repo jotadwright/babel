@@ -3,6 +3,7 @@
 ;;----------------------------------;;
 ;; links to helvetica hamnosys font ;;
 ;;----------------------------------;;
+
   (setf web-interface::*dispatch-table*
         (append web-interface::*dispatch-table*
                 (list (web-interface::create-static-file-dispatcher-and-handler 
@@ -50,24 +51,24 @@
                                         (make-pathname :directory '(:relative "GeoQuery-LSFB" "courier-hamnosys")
                                         :name "Courier-HamNoSys-Normal" :type "woff2")
                                         *babel-corpora*)))))
-    ;(progn 
-      ;(web-interface::define-css-link 'hamnosys.css "/hamnosys.css")
-      ;(web-interface::define-css 'main "ham {font-size: 10pt; font-family: hamnosysunicoderegular}"))))
 
- 
-(web-interface::define-css-link 'cwasa.css "https://vhg.cmp.uea.ac.uk/tech/jas/vhg2025/cwa/cwasa.css")
  
 
 ;;-----------------;;
 ;; CSS definitions ;;
 ;;-----------------;;
 
+;; link to the avatar css library
+(web-interface::define-css-link 'cwasa.css "https://vhg.cmp.uea.ac.uk/tech/jas/vhg2025/cwa/cwasa.css")
+
+
+;; define fonts that include hamnosys
 (define-css 'helvetica-hamnosys-normal "
 @font-face {
     font-family: 'Helvetica Neue Hamnosys';
-    src: url('http://localhost:8000/HelveticaNeue-Hamnosys-Roman.woff2') format('woff2'),
-         url('http://localhost:8000/HelveticaNeue-Hamnosys-Roman.woff') format('woff'),
-         url('http://localhost:8000/HelveticaNeue-Hamnosys-Roman.ttf') format('truetype');
+    src: url('./HelveticaNeue-Hamnosys-Roman.woff2') format('woff2'),
+         url('./HelveticaNeue-Hamnosys-Roman.woff') format('woff'),
+         url('./HelveticaNeue-Hamnosys-Roman.ttf') format('truetype');
     font-weight: normal;
     font-style: normal;
 
@@ -76,9 +77,9 @@
 (define-css 'helvetica-hamnosys-bold "
 @font-face {
     font-family: 'Helvetica Neue Hamnosys';
-    src: url('http://localhost:8000/HelveticaNeue-Hamnosys-Bold.woff2') format('woff2'),
-         url('http://localhost:8000/HelveticaNeue-Hamnosys-Bold.woff') format('woff'),
-         url('http://localhost:8000/HelveticaNeue-Hamnosys-Bold.ttf') format('truetype');
+    src: url('./HelveticaNeue-Hamnosys-Bold.woff2') format('woff2'),
+         url('./HelveticaNeue-Hamnosys-Bold.woff') format('woff'),
+         url('./HelveticaNeue-Hamnosys-Bold.ttf') format('truetype');
     font-weight: bold;
     font-style: bold;
 
@@ -87,9 +88,9 @@
 (define-css 'courier-hamnosys-normal "
 @font-face {
     font-family: 'Courier Hamnosys';
-    src: url('http://localhost:8000/courier-hamnosys.woff2') format('woff2'),
-         url('http://localhost:8000/courier-hamnosys.woff') format('woff'),
-         url('http://localhost:8000/courier-hamnosys.ttf') format('truetype');
+    src: url('./courier-hamnosys.woff2') format('woff2'),
+         url('./courier-hamnosys.woff') format('woff'),
+         url('./courier-hamnosys.ttf') format('truetype');
     font-weight: normal;
     font-style: normal;
 
@@ -114,9 +115,9 @@ div.pprint span.table { margin-top:0px; margin-bottom:0px; display:inline-table;
 div.pprint span.table > span { display:table-cell;vertical-align:top; margin-top:0px; margin-bottom:0px; }
 ")
 
-;; the whole table
+;; the whole sign table
 (define-css 'sign-table  "
-.sign-table {width: 100%; fixed-layout:fixed;}")
+.sign-table {width: 80%; fixed-layout:fixed; position: relative; top: -20px;}")
 
 ;; empty cells in table
 (define-css 'empty "
@@ -147,6 +148,7 @@ div.pprint span.table > span { display:table-cell;vertical-align:top; margin-top
 .articulation-tag {color: white; display: inline-block; font-weight:400px; font-size: 10px;}
 ")
 
+;; button for playing one sign
 (define-css 'play-sigml-button "
 .playsigml {color: white; font-size: 10px;font-weight: 400px; margin-left: 2px; border: none; background-color: transparent; overflow: hidden;}
 ")
@@ -160,11 +162,13 @@ h2 {background-color:none; color:black; margin-top: 2px; margin-left: 10px; marg
 (define-css 'h3 "
 h3 {background-color:none; color:black; margin-left: 10px; font-family: Helvetica Neue;}")
 
+;; background of the avatar
 (define-css 'divav "
 .divAv {
 	box-sizing: border-box;
 	position: relative; background: #DEEFE7;
 	width: 100%; height: 100%;
+min-height: 200px;
 	margin: 0px; border: 1px solid; padding: 0px;
 }")
 
@@ -175,4 +179,24 @@ h3 {background-color:none; color:black; margin-left: 10px; font-family: Helvetic
         margin-left: 0px;
 }")
 
+
+;; add onmouseover action to body of interface to initiate avatar use (not sure if this is the best option)
+(wi::define-easy-handler (wi::main-page :uri "/") ()
+  (render-xml
+   `((html :xmlns "http://www.w3.org/1999/xhtml")
+     ((head)
+      ((title) "Babel web interface")
+      ((link :rel "icon" :href "/favicon.ico" :type "image/png"))
+      ,(wi::generate-prologue wi::*ajax-processor*)
+      ,@(wi::get-combined-js-library-definitions)
+      ,@(wi::get-combined-css-link-definitions)
+      ,(wi::get-combined-js-definitions)
+      ,(wi::get-combined-css-definitions))
+     ((body :onLoad "window.setTimeout(getRequests,500);" :onmouseover "CWASA.init({ambIdle:false,useClientConfig:false});")
+      ((div :id "content"))
+      ,@(unless wi::*no-reset-button*
+                '(((p) ((a :class "button" :href "javascript:ajax_reset();") 
+                        "reset"))))))))
+
+;; resetting web-interface with new values
 (web-interface::clear-page)
