@@ -12,21 +12,16 @@
         ;; return the reverse list of predicates
         finally (return (reverse predicates))))
 
-(defun find-position (interval list)
-  (loop with counter = 0
-     for item in list
-        when (eql item interval)
-          return counter
-        do (incf counter)))
 
 (defun sort-elan-intervals (elan-intervals)
+  "returns a chronologically sorted version of the input list of elan-intervals"
   (loop with output = '()
         for interval in elan-intervals
         when output
           do (loop with item-added = nil
                    for item in output
                    when (< (cdr (begin interval))(cdr (begin item)))
-                     do (insert-after output (- (find-position item output) 1) interval)
+                     do (insert-after output (- (position item output) 1) interval)
                         (setf item-added t)
                    when item-added
                      do (return t)
