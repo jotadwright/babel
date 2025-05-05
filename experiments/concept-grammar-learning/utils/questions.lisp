@@ -100,4 +100,6 @@
          (random-scene-and-answer (random-elt scenes-and-answers))
          (answer-entity (find-clevr-entity (cdr random-scene-and-answer) *clevr-ontology*))
          (clevr-scene (find-scene-by-name (car random-scene-and-answer) (world (experiment agent)))))
-    (values question clevr-scene answer-entity)))
+    (if clevr-scene
+      (values question clevr-scene answer-entity)
+      (load-clevr-scene-and-answer agent question-scenes-answers-cons))))
