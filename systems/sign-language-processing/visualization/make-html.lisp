@@ -11,6 +11,7 @@
   `((td :class "empty" :style "width: 20px;")))
 
 (defun clean-file-name (filename)
+  "clean a filename so that it conforms to norms of filenames"
   (let ((output filename))
     (setf output (remove #\\ output))
     (setf output (remove #\/ output))
@@ -23,7 +24,21 @@
     (setf output (remove #\| output))
     output))
 
-(defun make-id-gloss-cell (span-id fcg-tag colspan hamnosys)
+(defun find-lh-cell-by-column-nr (column-nr lh-cells)
+  "Finds the lh-cell occurring at the column-nr by looking at its start and end points.
+   If no such a cell exists, the function does not return anything"
+  (loop for lh-cell in lh-cells
+        for start-column-nr = (start-column-nr lh-cell)
+        for end-column-nr = (end-column-nr lh-cell)
+        when (or
+              (eql start-column-nr column-nr)
+              (eql end-column-nr column-nr)
+              (and (> column-nr start-column-nr)
+                   (< column-nr end-column-nr)))
+          do (return lh-cell)))
+
+
+(defun make-id-gloss-cell (span-id fcg-tag colspan hamnosys &key (avatar t))
   "makes and returns the html for an id-gloss-cell with the given span-id,
    fcg-tag and colspan. The cell contains a play button, sending the sigml
    of the provided hamnosys to the avatar"
@@ -55,26 +70,28 @@
      :class "id-gloss-cell"
      :colspan
      ,(write-to-string colspan))
-    ((span)
+    ((span :style "display:inline-block")
      ((span
        :id ,(string span-id)
        :onclick
        ,(format
          nil
          "highlightSymbol('~a','~a','~a');"
-         fcg-tag
+         (string-upcase fcg-tag)
          span-id
-         (web-interface::get-color-for-symbol fcg-tag)))
+         (web-interface::get-color-for-symbol (string-upcase fcg-tag))))
       ((p
         :class "articulation-tag"
         :name ,fcg-tag)
        ,fcg-tag)))
-    ((button :type "button"
+    ,(if avatar
+       `((button :type "button"
              :class "playsigml"
              :onclick
              ,(format
                nil
-               "CWASA.playSiGMLURL(`~a`, ~a)" url *avatar-counter*)) "&#9658;" ))))
+               "CWASA.playSiGMLURL(`~a`, ~a)" url *avatar-counter*)) "&#9658;" )
+       `((p)"")))))
 
 (defun make-hamnosys-cell (value colspan)
    "makes and returns the html for a hamnosys-cell
@@ -83,16 +100,15 @@
      :class "hamnosys-cell"
      :colspan
      ,(write-to-string colspan))
-    ((span)
-     ((ham)
-      ,value))))
+     ((p)
+      ,value)))
 
-(defun make-right-hand-rows (right-hand-cells number-of-columns)
+(defun make-right-hand-rows (right-hand-cells number-of-columns &key (avatar t))
   "makes and returns html for both the id-gloss and hamnosys-rowsof the right hand"
   (loop with right-hand-id-gloss-row
           = `((TR :CLASS "header" :style "width:100%;")
               ((TD :CLASS "header")
-               "RH"))
+               "right hand"))
         with right-hand-hamnosys-row
           = `((TR :CLASS "header" :style "width:100%;")
               ((TD :CLASS "header")))
@@ -130,7 +146,8 @@
                 span-id
                 fcg-tag
                 1
-                value)
+                value
+                :avatar avatar)
                right-hand-id-gloss-row)
               (pushend
                (make-hamnosys-cell
@@ -143,12 +160,12 @@
             right-hand-id-gloss-row
             right-hand-hamnosys-row))))
 
-(defun make-left-hand-rows (left-hand-cells number-of-columns)
+(defun make-left-hand-rows (left-hand-cells number-of-columns &key (avatar t))
   "makes and returns html for both the id-gloss and hamnosys-rows of the left hand"
   (loop with left-hand-id-gloss-row
           = `((tr :class "header" :style "width:100%;")
               ((td :class "header")
-               "LH"))
+               "Left hand"))
         with left-hand-hamnosys-row
           = `((tr :class "header" :style "width:100%;")
               ((td :class "header")))
@@ -199,7 +216,8 @@
                   span-id
                   fcg-tag
                   colspan
-                  sigml-source)
+                  sigml-source
+                  :avatar avatar)
                  left-hand-id-gloss-row)
                 (pushend
                  (make-hamnosys-cell
@@ -240,7 +258,7 @@
   
 
 (defmethod make-html ((signed-form-predicates signed-form-predicates)
-                      &key &allow-other-keys)
+                      &key (avatar t) &allow-other-keys)
   "transforms a list of sign-predicates into a html object that can be added to the
    webinterface"
   (incf *avatar-counter*)
@@ -251,15 +269,55 @@
          (right-hand-rows
           (make-right-hand-rows
            (right-hand-cells sign-table)
-           number-of-columns))
+           number-of-columns
+           :avatar avatar))
          (left-hand-rows
           (make-left-hand-rows
            (left-hand-cells sign-table)
-           number-of-columns)))
-    `((div :style "margin-top: 20px; margin-bottom: 20px; margin-left: 10px; width: 95%;")
-      ((div :style "width:20%; height: 30%; margin-bottom: 10px; margin-top: 20px;")
-       ((div :style "background: #DEEFE7;" :class ,(format nil "CWASAAvatar av~a" *avatar-counter*) :align "center" :onclick "CWASA.init({ambIdle:false,useClientConfig:false});")))
-      ((table :class "sign-table" :style "margin-bottom:20px;")
+           number-of-columns
+           :avatar avatar))
+         (sigml
+          (hamnosys-list->sigml
+           (sign-table-to-hamnosys-string
+            sign-table)))
+         (utterance-tag (make-const "utterance"))
+         (filename (babel-pathname :directory '(".tmp" "sigml-files")
+                                   :name (format nil "~a" utterance-tag)
+                                   :type "sigml"))
+         (url (format nil "http://localhost:8000/~a.sigml" utterance-tag))
+         (uri (format nil "/~a.sigml" utterance-tag)))
+    (ensure-directories-exist filename)
+    (with-open-file
+        (out-stream
+         filename
+         :direction :output
+         :if-exists :supersede
+         :if-does-not-exist :create
+         :external-format :utf-8
+         :element-type 'cl:character)
+      (format out-stream "<?xml version=\"1.0\" encoding=\"utf-8\"?>")
+      (xmls:write-xml
+       sigml
+       out-stream
+       :indent t))
+    (setf web-interface::*dispatch-table*
+          (append web-interface::*dispatch-table*
+                  (list (web-interface::create-static-file-dispatcher-and-handler   
+                         uri filename))))
+    
+    `((div :style "margin-top: 20px; margin-bottom: 20px; margin-left: 10px; width: 100%;")
+      ,(if avatar
+         `((div :style "width:20%; height: 30%; margin-bottom: 10px; margin-top: 20px; display: inline-block;")
+           ((div :style "background: #DEEFE7;"
+                 :class ,(format nil "CWASAAvatar av~a" *avatar-counter*)
+                 :align "center"
+                 :onclick "CWASA.init({ambIdle:false,useClientConfig:false});"))
+           ((button :type "button"
+                    :onclick ,(format
+                               nil
+                               "CWASA.playSiGMLURL(`~a`, ~a)" url *avatar-counter*)) "animate utterance"))
+         `((p)""))
+      ((table :class "sign-table" :style "margin-bottom:20px; display: inline-block;")
        ((tbody)
         ((tr)
         ,(first right-hand-rows)
