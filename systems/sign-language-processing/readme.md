@@ -26,3 +26,6 @@ To be able to use the HamNoSys symbols in your files, be sure to set the file en
 * <a href="render-derender.lisp">render-derender.lisp</a>: contains the render and derender mode for sign language predicates in FCG.
 
 * <a href="visualization/">visualization module</a>: contains tools for visualising signed forms in the web-interface.
+
+## Web-demonstration
+An interactive web-demonstration for this package is available <a href="https://liesbet-devos.github.io/SL-processing-demo/"> here</a>. It guides the user through its basic components and how they allow representing and processing of multilinear signed expressions.
