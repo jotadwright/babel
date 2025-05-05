@@ -91,13 +91,13 @@
                                         (:update-th-links . t)
                                         (:hash-mode . :hash-string-meaning-lex-id)
                                         (:initial-categorial-link-weight . 0.1))
-                   :diagnostics (;diagnose-failed-interpretation
+                   :diagnostics (diagnose-failed-interpretation
                                  diagnose-partial-utterance
-                                 ;diagnose-unknown-utterance
-                                 ;diagnose-partial-meaning
+                                 diagnose-unknown-utterance
+                                 diagnose-partial-meaning
                                  )
-                   :repairs (;add-th-links-formulation
-                             ;add-th-links
+                   :repairs (add-th-links-formulation
+                             add-th-links
                              ;item-based->lexical
                              ;holophrase->item-based--substitution
                              ;holophrase->item-based--addition
