@@ -1,5 +1,8 @@
 (in-package :slp)
 
+(defparameter *requirements-folder*
+  (babel-pathname :directory '("systems" "sign-language-processing" "sign-language-processing-requirements")))
+
 ;; load inventory to make mapping from hamnosys characters to their
 ;; sigml names
 (defparameter *hamnosys->sigml-inventory*
@@ -7,10 +10,9 @@
       (stream
        (merge-pathnames
         (make-pathname
-         :directory '(:relative "GeoQuery-LSFB")
          :name "hamnosys-to-sigml-inventory"
          :type "txt")
-        *babel-corpora*)
+        *requirements-folder*)
        :external-format :utf-8 :element-type 'cl:character) 
     (loop for line =
             (read-line stream nil)

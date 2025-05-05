@@ -8,49 +8,49 @@
         (append web-interface::*dispatch-table*
                 (list (web-interface::create-static-file-dispatcher-and-handler 
                        "/HelveticaNeue-Hamnosys-Roman.ttf" (merge-pathnames
-                                        (make-pathname :directory '(:relative "GeoQuery-LSFB" "helveticaneue-hamnosys" "roman")
+                                        (make-pathname :directory '(:relative "helveticaneue-hamnosys" "roman")
                                         :name "HelveticaNeue-Hamnosys-Roman" :type "ttf")
-                                        *babel-corpora*))
+                                        *requirements-folder*))
                       (web-interface::create-static-file-dispatcher-and-handler 
                        "/HelveticaNeue-Hamnosys-Roman.woff" (merge-pathnames
-                                        (make-pathname :directory '(:relative "GeoQuery-LSFB" "helveticaneue-hamnosys" "roman")
+                                        (make-pathname :directory '(:relative "helveticaneue-hamnosys" "roman")
                                         :name "HelveticaNeue-Hamnosys-Roman" :type "woff")
-                                        *babel-corpora*))
+                                        *requirements-folder*))
                       (web-interface::create-static-file-dispatcher-and-handler 
                        "/HelveticaNeue-Hamnosys-Roman.woff2" (merge-pathnames
-                                        (make-pathname :directory '(:relative "GeoQuery-LSFB" "helveticaneue-hamnosys" "roman")
+                                        (make-pathname :directory '(:relative "helveticaneue-hamnosys" "roman")
                                         :name "HelveticaNeue-Hamnosys-Roman" :type "woff2")
-                                        *babel-corpora*))
+                                        *requirements-folder*))
                       (web-interface::create-static-file-dispatcher-and-handler 
                        "/HelveticaNeue-Hamnosys-Bold.ttf" (merge-pathnames
-                                        (make-pathname :directory '(:relative "GeoQuery-LSFB" "helveticaneue-hamnosys" "bold")
+                                        (make-pathname :directory '(:relative "helveticaneue-hamnosys" "bold")
                                         :name "HelveticaNeue-Hamnosys-Bold" :type "ttf")
-                                        *babel-corpora*))
+                                        *requirements-folder*))
                       (web-interface::create-static-file-dispatcher-and-handler 
                        "/HelveticaNeue-Hamnosys-Bold.woff" (merge-pathnames
-                                        (make-pathname :directory '(:relative "GeoQuery-LSFB" "helveticaneue-hamnosys" "bold")
+                                        (make-pathname :directory '(:relative "helveticaneue-hamnosys" "bold")
                                         :name "HelveticaNeue-Hamnosys-Bold" :type "woff")
-                                        *babel-corpora*))
+                                        *requirements-folder*))
                       (web-interface::create-static-file-dispatcher-and-handler 
                        "/HelveticaNeue-Hamnosys-Bold.woff2" (merge-pathnames
-                                        (make-pathname :directory '(:relative "GeoQuery-LSFB" "helveticaneue-hamnosys" "bold")
+                                        (make-pathname :directory '(:relative "helveticaneue-hamnosys" "bold")
                                         :name "HelveticaNeue-Hamnosys-Bold" :type "woff2")
-                                        *babel-corpora*))
+                                        *requirements-folder*))
                       (web-interface::create-static-file-dispatcher-and-handler 
                        "/courier-hamnosys.ttf" (merge-pathnames
-                                        (make-pathname :directory '(:relative "GeoQuery-LSFB" "courier-hamnosys")
+                                        (make-pathname :directory '(:relative "courier-hamnosys")
                                         :name "Courier-HamNoSys-Normal" :type "ttf")
-                                        *babel-corpora*))
+                                        *requirements-folder*))
                       (web-interface::create-static-file-dispatcher-and-handler 
                        "/courier-hamnosys.woff" (merge-pathnames
-                                        (make-pathname :directory '(:relative "GeoQuery-LSFB" "courier-hamnosys")
+                                        (make-pathname :directory '(:relative "courier-hamnosys")
                                         :name "Courier-HamNoSys-Normal" :type "woff")
-                                        *babel-corpora*))
+                                        *requirements-folder*))
                       (web-interface::create-static-file-dispatcher-and-handler 
                        "/courier-hamnosys.woff2" (merge-pathnames
-                                        (make-pathname :directory '(:relative "GeoQuery-LSFB" "courier-hamnosys")
+                                        (make-pathname :directory '(:relative "courier-hamnosys")
                                         :name "Courier-HamNoSys-Normal" :type "woff2")
-                                        *babel-corpora*)))))
+                                        *requirements-folder*)))))
 
  
 
