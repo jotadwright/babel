@@ -92,7 +92,7 @@
                                                         ;; Diagnostics and repairs
                                                         (:conceptualisation-diagnostics fcg::diagnose-cip-conceptualisation-success)
                                                         (:interpretation-diagnostics fcg::diagnose-cip-interpretation-success)
-                                                        (:repairs fcg::repair-through-concept-invention)
+                                                        (:repairs fcg::repair-through-concept-invention fcg::repair-through-form-similarity)
                                                         ;; for using heuristics
                                                         (:search-algorithm . :best-first)
                                                         (:heuristics :concept-similarity-and-score)
