@@ -71,30 +71,38 @@
   cxn)
 
 (defun dec-cxn-score (agent cxn
-                      &key (delta 0.1)
-                      (lower-bound 0.0)
-                      (remove-on-lower-bound t))
+                            &key (delta 0.1)
+                            (lower-bound 0.0)
+                            (remove-on-lower-bound t))
   "decrease the score of the cxn.
    remove it when it reaches 0"
-  (decf (attr-val cxn :score) delta)
-  (when (<= (attr-val cxn :score) lower-bound)
-    (if remove-on-lower-bound
-      (progn (notify lexicon-changed)
-        (with-disabled-monitor-notifications
-          (delete-cxn-and-th-node cxn agent)))
-      (setf (attr-val cxn :score) lower-bound)))
-  (grammar agent))
+  
+  (multiple-value-bind (lex-classes type-hierarchy) (get-lex-classes cxn agent)
+    (when (not lex-classes)
+      (decf (attr-val cxn :score) delta)
+      (when (<= (attr-val cxn :score) lower-bound)
+        (if remove-on-lower-bound
+          (progn (notify lexicon-changed)
+            (with-disabled-monitor-notifications
+              (delete-cxn-and-th-node cxn agent)))
+          (setf (attr-val cxn :score) lower-bound))))
+    (grammar agent)))
 
 (defun delete-cxn-and-th-node (cxn agent)
   "Delete the cxn from the cxn inventory
    and remove ALL associated categories
    from the categorial network."
-  (let ((lex-classes
-         (loop for unit in (contributing-part cxn)
-               for lex-class = (lex-class-item-based unit)
-               when lex-class collect lex-class))
+  (multiple-value-bind (lex-classes type-hierarchy) (get-lex-classes cxn agent)
+    (when (not lex-classes)
+      ;(remove-categories lex-classes type-hierarchy))
+      (delete-cxn cxn (grammar agent))
+      (notify lexicon-changed))))
+
+;; utilities
+
+(defun get-lex-classes (cxn agent)
+  (let ((lex-classes (loop for unit in (contributing-part cxn)
+                           for lex-class = (lex-class-item-based unit)
+                           when lex-class collect lex-class))
         (type-hierarchy (categorial-network (grammar agent))))
-    (when lex-classes
-      (remove-categories lex-classes type-hierarchy))
-    (delete-cxn cxn (grammar agent))    
-    (notify lexicon-changed)))
+    (values lex-classes type-hierarchy)))
