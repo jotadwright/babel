@@ -214,31 +214,6 @@
               for concept-concept-similarity = (concept-representations::concept-similarity concept-of-uttered-word concept-of-candidate-cxn)
               do (update-score-cxn cxn (* -0.02 concept-concept-similarity)))))))
 
-#|(defmethod punish-competitors ((agent concept-emergence-game-agent))
-  "Finds competitors in the cip in conceptualisation. Competitors are nodes that have a positive discriminative power (just the similarity - best-other-similarity, no entrenchment score). So get all solution-nodes (these are the ones that had a positive discriminative power > checked in goal-test). From these solution-nodes, get rest of solution-nodes (the first is the concept that was uttered, this list is sorted on discriminative-power * entrenchment. Then, from these solution-nodes, get discriminative power that is stored in the node: (cdr (find-data node :discriminative-power)) and check that is it positive (only sanity check because goal test should have done this). These are all the candidates. Then punish based on the concept-similarity and inhibition score. "
-  (let* ((solution-nodes (if (speakerp agent) (solution-nodes agent) (solution-nodes-conceptualisation agent))))
-    (when (> (length solution-nodes) 1) ; only do this when there are multiple solutions
-      (let* ((cxn-of-uttered-word (if (speakerp agent)
-                                    (car-applied-cxn (cipn-car (first solution-nodes)))
-                                    (first (loop for cxn in (constructions-list (grammar agent))
-                                                 for form = (attr-val cxn :form)
-                                                   
-                                                 if (equal form (first (utterance agent)))
-                                                   collect (processing-cxn cxn)))))
-             (concept-of-uttered-word (first (extract-concept cxn-of-uttered-word)))
-             (candidate-cxns (if (speakerp agent)
-                               (loop for node in (rest solution-nodes)
-                                     when (> (cdr (find-data node :discriminative-power)) 0) ;; sanity check
-                                       collect (car-applied-cxn (cipn-car node)))
-                               (loop for node in solution-nodes
-                                     when (not (equal (name (car-applied-cxn (cipn-car node)))
-                                                      (name cxn-of-uttered-word)))
-                                       collect (car-applied-cxn (cipn-car node))))))
-        (loop for cxn in candidate-cxns
-              for concept-of-candidate-cxn = (first (extract-concept cxn))
-              for original-score = (attr-val cxn :score)
-              for concept-concept-similarity = (concept-representations::concept-similarity concept-of-uttered-word concept-of-candidate-cxn)
-              do (update-score-cxn cxn (* -0.02 concept-concept-similarity)))))))|#
 
 (defun calculate-increased-score (learning-rate score)
   "Increase the score using the interpolation rule and the learning rate."
