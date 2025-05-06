@@ -42,10 +42,7 @@
         (if composer-solution
           (let* ((new-irl-program (append (bind-statements composer-solution)
                                           (irl-program (chunk composer-solution))))
-                 (sorted-lex-cxns (sort-cxns-by-form-string
-                                   applied-lex-cxns
-                                   (remove-spurious-spaces
-                                    (remove-punctuation utterance))))
+                 (sorted-lex-cxns (sort-cxns-by-form-string applied-lex-cxns (remove-spurious-spaces (remove-punctuation utterance))))
                  (var-form (form-constraints-with-variables  utterance (get-configuration cxn-inventory :de-render-mode)))
                  (subunit-names-and-non-overlapping-form (multiple-value-list (diff-non-overlapping-form var-form sorted-lex-cxns)))
                  (subunit-names (first subunit-names-and-non-overlapping-form))

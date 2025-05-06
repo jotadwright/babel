@@ -358,10 +358,9 @@
     (loop for lex-cxn in matching-lex-cxns
           for lex-cxn-form = (extract-form-predicates lex-cxn)
           do (let* ((prev-res-form (copy-object resulting-form))
-                    (elm-to-remove
-                     (loop for elm in resulting-form
-                           when (irl:unify-irl-programs lex-cxn-form (list elm))
-                           return elm)))
+                    (elm-to-remove (loop for elm in resulting-form
+                                         when (irl:unify-irl-programs lex-cxn-form (list elm))
+                                           return elm)))
                (setf resulting-form (remove elm-to-remove resulting-form :test #'equal))
                (let* ((unit-name-predicate (set-difference prev-res-form resulting-form :test #'equal))
                       (unit-name (second (find 'string unit-name-predicate :key #'first))))
