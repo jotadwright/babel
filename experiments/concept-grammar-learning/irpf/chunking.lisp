@@ -106,20 +106,20 @@
 
 ;; + chunk-node-tests +
 (defparameter *allowed-primitive-counts*
-  '((clevr-world:count! . 2)
+  '((clevr-world:count! . 1)
     (clevr-world:equal-integer . 1)
     (clevr-world:less-than . 1)
     (clevr-world:greater-than . 1)
     (clevr-world:equal? . 1)
     (clevr-world:exist . 1)
-    (clevr-world:filter . 50)
-    (clevr-world:get-context . 2)
+    (clevr-world:filter . 4) ;;
+    (clevr-world:get-context . 1) ;; TODO, for stage 2, needs to be 2
     (clevr-world:intersect . 1)
-    (clevr-world:query . 2)
+    (clevr-world:query . 1) ;; TODO, for stage 2, needs to be 2
     (clevr-world:relate . 3)
     (clevr-world:same . 1)
     (clevr-world:union! . 1)
-    (clevr-world:unique . 4)))
+    (clevr-world:unique . 1)))
 
 (defun collect-filter-groups (irl-program)
   "Collect groups of filter operations using traverse-meaning-network."

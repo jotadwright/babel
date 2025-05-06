@@ -58,6 +58,7 @@
                                                  (:chunk-node-tests ;; limit the length of the irl program
                                                   :restrict-irl-program-length
                                                   :check-duplicate ;; no duplicates
+                                                  :clevr-primitive-occurrence-count
                                                   )
                                                  ;; default expand mode
                                                  (:chunk-expansion-modes :combine-program)
