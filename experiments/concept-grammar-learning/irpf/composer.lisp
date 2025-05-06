@@ -34,8 +34,9 @@
          ;; when partial bindings available, add
          ;; :check-bindings to the check chunk
          ;; evaluation result modes
-         (check-chunk-evaluation-result-modes (when (get-configuration agent :composer-force-shape-category)
-                                                '(:at-least-one-shape-category)))
+         (check-chunk-evaluation-result-modes (append (when (get-configuration agent :composer-force-shape-category)
+                                                        '(:at-least-one-shape-category)
+                                                        (list :check-bindings))))
          (composer-primitive-inventory
           (let ((copy (copy-object (available-primitives agent))))
             ;; some extreme optimisations that are CLEVR specific
