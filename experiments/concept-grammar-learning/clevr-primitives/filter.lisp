@@ -19,32 +19,19 @@
                               (category category)
                               (ontology blackboard))
   "Filter the set by the given category."
-  ;(multiple-value-bind (candidates concepts) (get-attribute-candidates ontology category)
-  (let* ((concept (get-associated-concept ontology category))
-         (filtered-objects (filter-objects-by-concepts (list concept) (objects source-set) category)))
-    (if filtered-objects
-      (make-instance 'clevr-object-set
-                     :objects (first filtered-objects)
-                     :similarities (cons (list category (second filtered-objects)) (similarities source-set)))
-      (make-instance 'clevr-object-set
-                     :id (make-id 'empty-set)))))
-
-(defun get-associated-concept (ontology category)
-  (gethash (id category) (first (get-data ontology 'all-concepts))))
-
-
-#|(defmethod filter-by-concept ((source-set clevr-object-set)
-                              (category category)
-                              (ontology blackboard))
-  "Filter the set by the given category."
-  (multiple-value-bind (candidates concepts) (get-attribute-candidates ontology category)
+  (multiple-value-bind (candidates concepts) (get-competing-attributes ontology category)
     (let ((filtered-objects (filter-objects-by-concepts concepts (objects source-set) category)))
       (if filtered-objects
         (make-instance 'clevr-object-set
                        :objects (first filtered-objects)
                        :similarities (cons (list category (second filtered-objects)) (similarities source-set)))
         (make-instance 'clevr-object-set
-                       :id (make-id 'empty-set))))))|#
+                       :id (make-id 'empty-set))))))
+
+(defun get-associated-concept (ontology category)
+  (gethash (id category) (first (get-data ontology 'all-concepts))))
+
+
 
 (defmethod filter-objects-by-concepts (concepts entities category)
   (loop for entity in entities
@@ -66,3 +53,21 @@
           do (setf best-concept concept
                    best-similarity similarity)
         finally (return (cons best-concept best-similarity))))
+
+(defun get-competing-attributes (ontology category)
+  (cond ;; colors
+        ((member (id category) (list 'cw::blue 'cw::brown 'cw::cyan 'cw::gray 'cw::green 'cw::purple 'cw::red 'cw::yellow) :test #'eq)
+         (values (get-data ontology 'clevr-world::colors) (get-data ontology 'clg::color-concept))
+         )
+        ;; materials
+        ((member (id category) (list 'cw::metal 'cw::rubber) :test #'eq)
+         (values (get-data ontology 'clevr-world::materials) (get-data ontology 'clg::material-concept))
+         )
+        ;; size
+        ((member (id category) (list 'cw::small 'cw::large) :test #'eq)
+         (values (get-data ontology 'clevr-world::sizes) (get-data ontology 'clg::size-concept))
+         )
+        ;; shapes
+        ((member (id category) (list 'cw::cube 'cw::cylinder 'cw::sphere) :test #'eq)
+         (values (get-data ontology 'clevr-world::shapes) (get-data ontology 'clg::shape-concept))
+         )))
