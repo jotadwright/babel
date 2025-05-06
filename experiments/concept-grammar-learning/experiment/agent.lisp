@@ -106,11 +106,9 @@
     (loop with new-hash-table = (make-hash-table :test 'eq)
           for form being the hash-keys of concepts
             using (hash-value concept)
-          
-         ; do (setf (gethash (intern (upcase form) 'clevr-world) new-hash-table) concept)
           do (cond ;; spatials
-                   ((member form '("behind" "front" "left" "right") :test #'equalp)
-                    (add-cxn-and-ontology agent 'spatial-concept concept form 'spatial 'spatial-category new-hash-table))
+                   ;((member form '("behind" "front" "left" "right") :test #'equalp)
+                   ; (add-cxn-and-ontology agent 'spatial-concept concept form 'spatial 'spatial-category new-hash-table))
                    ;; colors
                    ((member form '("blue" "brown" "cyan" "gray" "green" "purple" "red" "yellow") :test #'equalp)
                     (add-cxn-and-ontology agent 'color-concept concept form 'color 'color-category new-hash-table))
