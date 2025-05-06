@@ -28,7 +28,7 @@
                                           (:alignment-strategy . :lateral-inhibition)
                                           (:hide-type-hierarchy . nil)
                                           (:remove-cxn-on-lower-bound . t)
-                                          (:composer-strategy . :store-past-scenes)
+                                          (:composer-strategy . :standard)
                                           (:th-link-repair-mode-comprehension . :no-path-required)
                                           (:th-link-repair-mode-formulation . :path-required))))
 

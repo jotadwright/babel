@@ -69,21 +69,14 @@
     composer))
 
 (defmethod compose-program ((agent clevr-learning-learner)
-                            target-category utterance
-                            (strategy (eql :store-past-scenes))
+                            target-category
+                            utterance
+                            (strategy (eql :standard))
                             &key partial-program)
-  (let* ((composer (make-default-composer agent
-                                          target-category
-                                          :partial-program partial-program))
-         (utterance-hash-key (sxhash utterance))
-         (past-scenes-with-same-utterance (gethash utterance-hash-key (memory agent)))
-         (composer-solution (if past-scenes-with-same-utterance
-                              (compose-until composer
-                                             (lambda (solution idx) (check-past-scenes solution 
-                                                                                       idx
-                                                                                       past-scenes-with-same-utterance
-                                                                                       agent)))
-                              (first (get-next-solutions composer)))))
+  (let* (;; make the composer
+         (composer (make-default-composer agent target-category :partial-program partial-program))
+         ;; let the composer go wild
+         (composer-solution (first (get-next-solutions composer))))
     (when composer-solution
       (notify composer-solution-found composer composer-solution))
     composer-solution))
@@ -110,36 +103,3 @@
 (define-event check-samples-started
   (list-of-samples list)
   (solution-index number))
-
-(defun check-past-scenes (solution solution-index list-of-samples agent)
-  "A sample is a triple of (context-id utterance answer). The irl-program
-  of the evaluation result has to return the correct answer for all samples
-  of the same utterance."
-  (let* ((current-clevr-context (find-data (ontology agent) 'clevr-context))
-         (irl-program (append (irl-program (chunk solution))
-                              (bind-statements solution)))
-         (success t))
-    (notify check-samples-started list-of-samples solution-index)
-    ;; check the list of samples
-    (setf success
-          (loop for (scene-index . stored-answer) in list-of-samples
-                always (check-past-scene scene-index stored-answer irl-program agent)))
-    ;; afterwards, restore the data for the current scene
-    (set-data (ontology agent) 'clevr-context current-clevr-context)
-    success))
-
-(defun check-past-scene (scene-index answer irl-program agent)
-  (let* ((world (world (experiment agent)))
-         (path (nth scene-index (scenes world)))
-         (scene (load-clevr-scene path)))
-    (set-data (ontology agent) 'clevr-context scene)
-    (let* ((all-solutions
-            (evaluate-irl-program irl-program (ontology agent) :silent t
-                                  :primitive-inventory (available-primitives agent)))
-           (solution
-            (when (length= all-solutions 1)
-              (first all-solutions)))
-           (found-answer
-            (when solution
-              (get-target-value irl-program solution))))
-      (equal-entity found-answer answer))))
