@@ -32,14 +32,23 @@
                                           (:th-link-repair-mode-comprehension . :no-path-required)
                                           (:th-link-repair-mode-formulation . :path-required))))
 
+
+
+(defparameter *experiment* (make-instance 'clevr-learning-experiment :configuration *configuration*))
+
 (progn
   (format t "~% Starting a new experiment.~%")
   ;; reset the web interface
   (wi::reset)
   ;; deactivate all monitors (as a sanity check)
   (monitors::notify reset-monitors)
-  ;; instantiate an experiment
-  (defparameter *experiment* (make-instance 'clevr-learning-experiment :configuration *configuration*)))
+
+  ;; reset population
+  (setf (population *experiment*) (list (make-clevr-learning-tutor *experiment*)
+                                        (make-clevr-learning-learner *experiment*)))
+  
+  )
+
 
 #|
   ;; Option 1: run experiment with real-time plotting (using gnuplot)
@@ -51,7 +60,7 @@
   (activate-monitor print-a-dot-for-each-interaction)
   (activate-monitor display-metrics)
 
-  (run-series *experiment* 2500))
+  (run-series *experiment* 5000))
 
 ;; Option 2: run experiment with real-time tracing in the web-interface
 (progn
@@ -79,8 +88,9 @@
 ;; partial analysis with those constructions
 ;; compose-program with partial program
 
-(add-element `((h4) "Inventory: " ,(make-html (grammar (second (agents *experiment*))))))
-
+(progn
+  (add-element `((h4) "Inventory: " ,(make-html (grammar (second (agents *experiment*))))))
+  (add-element (make-html (categorial-network (grammar (second (agents *experiment*)))) :weights? t)))
 ;(set-up-concepts (second (agents *experiment*)))
 
 (progn
