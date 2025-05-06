@@ -169,13 +169,13 @@
 
 ;;;;; ############################################################
 ;;;;; make-html
-;;;;; ############################################################
+;;;;; ###########################################################
 
 (defmethod make-html-for-entity-details ((object clevr-object) &key)
-  `(((div :class "entity-detail") ,(format nil "size: ~a" (downcase (mkstr (size object)))))
-    ((div :class "entity-detail") ,(format nil "color: ~a" (downcase (mkstr (color object)))))
-    ((div :class "entity-detail") ,(format nil "material: ~a" (downcase (mkstr (material object)))))
-    ((div :class "entity-detail") ,(format nil "shape: ~a" (downcase (mkstr (shape object)))))))
+  `(((div :class "entity-detail") ,(format nil "size: ~a" (downcase (mkstr (gethash :SIZE (description object))))))
+    ((div :class "entity-detail") ,(format nil "color: ~a" (downcase (mkstr (gethash :COLOR (description object))))))
+    ((div :class "entity-detail") ,(format nil "material: ~a" (downcase (mkstr (gethash :MATERIAL (description object))))))
+    ((div :class "entity-detail") ,(format nil "shape: ~a" (downcase (mkstr (gethash :SHAPE (description object))))))))
 
 (defmethod make-html-for-entity-details ((q clevr-question) &key)
   (let ((expand-program-id (make-id)))
