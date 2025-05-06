@@ -55,7 +55,7 @@
                  (notany #'null
                          (mapcar #'fully-expanded?
                                  (cons node (queue (cip node))))))
-             (loop for candidate in (sort-candidates (get-candidates node))
+             (loop for candidate in (sort-candidates (filter-candidates (get-candidates node)))
                    for (problems fixes)
                    = (multiple-value-list
                       (notify-learning candidate :trigger 'fcg::new-node))
@@ -85,6 +85,33 @@
   ;; get the candidate list from the
   ;; initial node
   (find-data (initial-node node) :candidates))
+
+(defun is-lexical-cxn-p (cxn)
+  (eq 'lexical (assqv :cxn-type (fcg::attributes cxn))))
+
+(defun filter-lexical-cxns (cxns)
+  (loop for cxn in cxns
+        when (is-lexical-cxn-p cxn)
+          collect cxn))
+
+(defun filter-candidates (candidates)
+  "Excludes any candidate nodes if they have less lexical constructions than the candidate with the most lexicals.
+
+   Ensures that the composer must work with the entire partial program."
+  (loop with max-count = 0
+        ;; first pass: find the maximum count
+        for candidate in candidates
+        for count = (length (filter-lexical-cxns (applied-constructions candidate)))
+        do (when (> count max-count)
+             (setf max-count count))
+        ;; second pass: collect candidates with max count
+        finally (return (loop with results = '()
+                              for candidate in candidates
+                              for count = (length (filter-lexical-cxns (applied-constructions candidate)))
+                              when (= count max-count)
+                                do (push candidate results)
+                              finally (return (nreverse results))))))
+
 
 (defun sort-candidates (candidates)
   ;; sort the candidates on number of applied cxns
