@@ -1,4 +1,4 @@
-(in-package :geoquery-lsfb)
+(in-package :slp)
 
 (defun elan->predicates (annotation-document-xmls)
   "transforms annotation-document-xmls to a set of predicates that represent signs using hamnosys-strings"
@@ -90,8 +90,11 @@
        non-dominant-intervals)))
 
     ;; return a list of all hamnosys and alignment predicates
-    (append
-     (make-hamnosys-predicates dominant-intervals)
-     (make-hamnosys-predicates non-dominant-intervals)
-     alignments)))
-
+    (make-instance
+     'signed-form-predicates
+     :predicates
+     (append
+      (make-hamnosys-predicates dominant-intervals)
+      (make-hamnosys-predicates non-dominant-intervals)
+      alignments))))
+  
