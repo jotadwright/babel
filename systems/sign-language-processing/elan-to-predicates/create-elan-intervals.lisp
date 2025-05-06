@@ -1,4 +1,4 @@
-(in-package :geoquery-lsfb)
+(in-package :slp)
 
 ;;---------------------------------------------;;
 ;; + A class for representing ELAN-intervals + ;;

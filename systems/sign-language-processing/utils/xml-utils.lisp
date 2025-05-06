@@ -1,8 +1,12 @@
-(in-package :geoquery-lsfb)
+(in-package :slp)
 
 (defun read-xml (pathname)
   "Reads in the xml file at pathname and parses it into an xmls-object"
-  (with-open-file (stream pathname :external-format :utf-8 :element-type 'cl:character) 
+  (with-open-file
+      (stream
+       pathname
+       :external-format :utf-8
+       :element-type 'cl:character) 
     (xmls::parse stream)))
 
 (defun find-elan-ref (xmls-node)
@@ -68,6 +72,7 @@
             (return xml-line)))
 
 (defun find-translation-in-xml-example (example &key (language "en"))
+  "finds and returns the translation in the provided language from the example"
   (loop for child in (xmls:node-children example)
         for node-name = (xmls:node-name child)
         for attribute =
@@ -82,6 +87,27 @@
            (string=
             attribute
             language))
+          do
+            (return
+             (first
+              (xmls:node-children child)))))
+
+(defun find-mrl-in-xml-example (example &key (mrl "geo-prolog"))
+  "finds and returns the meaning representation in the provided language from the example"
+  (loop for child in (xmls:node-children example)
+        for node-name = (xmls:node-name child)
+        for attribute =
+          (second
+           (first
+            (xmls:node-attrs child)))
+        when
+          (and
+           (string=
+            node-name
+            "mrl")
+           (string=
+            attribute
+            mrl))
           do
             (return
              (first
