@@ -54,28 +54,24 @@
 
 (defmethod load-questions-for-current-challenge-level ((experiment clevr-learning-experiment)
                                                        (mode (eql :first)) &optional all-files)
-  (let* ((number-of-questions
-          (get-configuration experiment :questions-per-challenge))
-         (scenes-per-questions
-          (get-configuration experiment :scenes-per-question))
-         (files
-          (subseq all-files 0 number-of-questions))
-         (data
-          (loop for file in files
-                for file-data = (with-open-file (stream file :direction :input)
-                                  (read stream))
-                for count-question-p = (find 'count! (second file-data) :key #'first)
-                for available-scenes-and-answers
-                = (if count-question-p
-                    (find-all-if-not #'(lambda (scene-answer-cons)
-                                         (= 0 (cdr scene-answer-cons)))
-                                     (third file-data))
-                    (third file-data))
-                for sampled-scenes-and-answers
-                = (if (> (length available-scenes-and-answers) scenes-per-questions)
-                    (random-elts available-scenes-and-answers scenes-per-questions)
-                    available-scenes-and-answers)
-                collect (cons (first file-data) sampled-scenes-and-answers))))
+  (let* ((number-of-questions (get-configuration experiment :questions-per-challenge))
+         (scenes-per-questions (get-configuration experiment :scenes-per-question))
+         (files (subseq all-files 0 number-of-questions))
+         (data (loop for file in files
+                     for file-data = (with-open-file (stream file :direction :input)
+                                       (read stream))
+                     for count-question-p = (find 'count! (second file-data) :key #'first)
+                     for available-scenes-and-answers
+                       = (if count-question-p
+                           (find-all-if-not #'(lambda (scene-answer-cons)
+                                                (= 0 (cdr scene-answer-cons)))
+                                            (third file-data))
+                           (third file-data))
+                     for sampled-scenes-and-answers
+                       = (if (> (length available-scenes-and-answers) scenes-per-questions)
+                           (random-elts available-scenes-and-answers scenes-per-questions)
+                           available-scenes-and-answers)
+                     collect (cons (first file-data) sampled-scenes-and-answers))))
     (setf (question-data experiment) data)))
 
 (defmethod load-questions-for-current-challenge-level ((experiment clevr-learning-experiment)
