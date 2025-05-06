@@ -137,12 +137,37 @@
     ;; add the morph
     ;(add-morph-cxn-for-concept grammar clg-concept form)
     ;; add the lex
+    (loop for synonym in (get-synonyms form)
+          do (add-lex-cxn-for-concept agent grammar clg-concept synonym sem-class category-type :add-plural add-plural))
     (add-lex-cxn-for-concept agent grammar clg-concept form sem-class category-type :add-plural add-plural)))
+
+
+(defun get-synonyms (form)
+  ;; This function will read synonyms.json and read all keys
+  ;; (e.g. thing, sphere, left of, ...). For each key, get the
+  ;; list of synonyms and generate morphological constructions that
+  ;; will map to the lexical construction of the key, created in
+  ;; previous function.
+  
+  ;; IMPORTANT! The file synonyms.json contains entries for "above"
+  ;; and "below", but these are not specified in the types in metadata.json
+  ;; (so they have no lexical cxns). For the moment, these are left out.
+  ;; One option would be to consider these as synonyms for "behind" and
+  ;; "in front of", but they are not specified in the dataset as such.
+
+  ;; Also, metadata.json contains 'cylinder' as a shape, but there are
+  ;; no synonyms specified in synonyms.json. So, we add the morph cxns
+  ;; for cylinder manually.
+  (let* ((synonyms-file (babel-pathname :directory '("grammars" "clevr-grammar" "data")
+                                        :name "synonyms" :type "json"))
+         (synonyms (decode-json-from-source synonyms-file)))
+    (rest (assqv (intern (upcase form) :keyword) synonyms))))
+
 
 (defmethod add-lex-cxn-for-concept (agent cxn-inventory concept word sem-class category-type &key (add-plural nil)) ; (type (eql :*shape)))
   (let* ((lex-id (upcase (id concept)))
-         (cxn-name (internal-symb (upcase (string-append (hyphenize lex-id) "-lex-cxn"))))
-         (cxn-pl-name (internal-symb (upcase (string-append (hyphenize lex-id) "s-lex-cxn"))))
+         (cxn-name (internal-symb (upcase (string-append (hyphenize word) "-lex-cxn"))))
+         (cxn-pl-name (internal-symb (upcase (string-append (hyphenize word) "s-lex-cxn"))))
          (unit-name (make-var (upcase (string-append (hyphenize lex-id) "-unit"))))
          (out-var (make-var sem-class))
          (initial-cxn-score (get-configuration agent :initial-cxn-score)))
