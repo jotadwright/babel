@@ -22,7 +22,7 @@
            (intention (compose-program agent (topic agent) (utterance agent)
                                        (get-configuration agent :composer-strategy))))
       ;; Within the diagnostic, the agent performs intention reading.
-      ;; The reconstructed intentioln is then used to check following
+      ;; The reconstructed intention is then used to check following
       ;; repairs: holophrase -> item-based (all variants) and
       ;; add-holophrase.
       (set-data problem :intention intention)
