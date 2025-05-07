@@ -21,30 +21,32 @@
                    &allow-other-keys)
   "Repair the unknown utterance problem by making an item-based construction."
   (when (initial-node-p node)
-    (let* ((reconstructed-intention (find-data problem :intention))
-           (constructions-and-th-links (create-item-based-cxn-substitution problem
-                                                                           node
-                                                                           reconstructed-intention)))
-      (when constructions-and-th-links
-        (make-instance 'fcg::cxn-fix
-                       :repair repair
-                       :problem problem
-                       :restart-data constructions-and-th-links)))))
+    (let* ((reconstructed-intention (find-data problem :intention)))
+      (if reconstructed-intention
+        (let ((constructions-and-th-links (create-item-based-cxn-substitution problem
+                                                                              node
+                                                                              reconstructed-intention)))
+          (when constructions-and-th-links
+            (make-instance 'fcg::cxn-fix
+                           :repair repair
+                           :problem problem
+                           :restart-data constructions-and-th-links)))))))
 
 (defmethod repair ((repair holophrase->item-based--substitution)
                    (problem failed-interpretation-problem)
                    (node cip-node) &key
                    &allow-other-keys)
   "Repair the failed utterance problem by making an item-based construction."
-  (let* ((reconstructed-intention (find-data problem :intention))
-         (constructions-and-th-links (create-item-based-cxn-substitution problem
-                                                                         node
-                                                                         reconstructed-intention)))
-    (when constructions-and-th-links
-      (make-instance 'fcg::cxn-fix
-                     :repair repair
-                     :problem problem
-                     :restart-data constructions-and-th-links))))
+  (let* ((reconstructed-intention (find-data problem :intention)))
+    (if reconstructed-intention
+      (let ((constructions-and-th-links (create-item-based-cxn-substitution problem
+                                                                            node
+                                                                            reconstructed-intention)))
+        (when constructions-and-th-links
+          (make-instance 'fcg::cxn-fix
+                         :repair repair
+                         :problem problem
+                         :restart-data constructions-and-th-links))))))
 
 (defun create-item-based-cxn-substitution (problem node composer-solution)
   "Create an item-based construction and two lexical constructions

@@ -19,32 +19,28 @@
                    (problem unknown-utterance-problem)
                    (node cip-node) &key &allow-other-keys)
   "Repair by making a new item-based construction and lexical cxn"
-  (when (initial-node-p node)
-    (let* ((reconstructed-intention
-            (find-data problem :intention))
-           (constructions-and-th-links
-            (create-item-based-cxn-addition
-             problem node reconstructed-intention)))
-      (when constructions-and-th-links
-        (make-instance 'fcg::cxn-fix
-                       :repair repair
-                       :problem problem
-                       :restart-data constructions-and-th-links)))))
+  (if (find-data problem :intention)
+    (when (initial-node-p node)
+      (let* ((reconstructed-intention (find-data problem :intention))
+             (constructions-and-th-links (create-item-based-cxn-addition problem node reconstructed-intention)))
+        (when constructions-and-th-links
+          (make-instance 'fcg::cxn-fix
+                         :repair repair
+                         :problem problem
+                         :restart-data constructions-and-th-links))))))
 
 (defmethod repair ((repair holophrase->item-based--addition)
                    (problem failed-interpretation-problem)
                    (node cip-node) &key &allow-other-keys)
   "Repair by making a new item-based construction and lexical cxn"
-  (let* ((reconstructed-intention
-          (find-data problem :intention))
-         (constructions-and-th-links
-          (create-item-based-cxn-addition
-           problem node reconstructed-intention)))
-    (when constructions-and-th-links
-      (make-instance 'fcg::cxn-fix
-                     :repair repair
-                     :problem problem
-                     :restart-data constructions-and-th-links))))
+  (if (find-data problem :intention)
+    (let* ((reconstructed-intention (find-data problem :intention))
+           (constructions-and-th-links (create-item-based-cxn-addition  problem node reconstructed-intention)))
+      (when constructions-and-th-links
+        (make-instance 'fcg::cxn-fix
+                       :repair repair
+                       :problem problem
+                       :restart-data constructions-and-th-links)))))
 
 (defun create-item-based-cxn-addition (problem node composer-solution)
   (let* ((agent (find-data problem :owner))

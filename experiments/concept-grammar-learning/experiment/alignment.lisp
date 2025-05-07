@@ -5,7 +5,8 @@
 ;; -------------
 
 (defmethod run-speaker-alignment ((agent clevr-learning-learner)
-                                  process-input (strategy (eql :lateral-inhibition)))
+                                  process-input
+                                  (strategy (eql :lateral-inhibition)))
   (let* ((success (find-data process-input 'success))
          (applied-cxns (find-data process-input 'applied-cxns))
          (cipn (find-data process-input 'cipn))
@@ -27,7 +28,8 @@
 
 
 (defmethod run-hearer-alignment ((agent clevr-learning-learner)
-                                 process-input (strategy (eql :lateral-inhibition)))
+                                 process-input
+                                 (strategy (eql :lateral-inhibition)))
   "Run alignment.
 
        If no repair applied, use standard lateral inhibition.
