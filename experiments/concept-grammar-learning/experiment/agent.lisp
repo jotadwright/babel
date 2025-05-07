@@ -168,14 +168,13 @@
          (cxn-pl-name (internal-symb (upcase (string-append (hyphenize word) "s-lex-cxn"))))
          (unit-name (make-var (upcase (string-append (hyphenize lex-id) "-unit"))))
          (out-var (make-var sem-class))
-         (initial-cxn-score (get-configuration agent :initial-cxn-score))
-         (lex-class (intern (symbol-name (make-const word)) :fcg)))
+         (initial-cxn-score (get-configuration agent :initial-cxn-score)))
 
     ;; singular
     (eval `(def-fcg-cxn ,cxn-name
                         ((,unit-name
                           (syn-cat (phrase-type lexical)
-                                   (fcg::lex-class ,lex-class))
+                                   (fcg::lex-class ,(intern (symbol-name (make-const word)) :fcg)))
                           (args (,out-var))
                           )
                          <-
@@ -199,7 +198,7 @@
       (eval `(def-fcg-cxn ,cxn-pl-name
                           ((,unit-name
                             (syn-cat (phrase-type lexical)
-                                     (fcg::lex-class ,lex-class))
+                                     (fcg::lex-class ,(intern (symbol-name (make-const word)) :fcg)))
                             (args (,out-var))
                             )
                            <-
