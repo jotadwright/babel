@@ -273,11 +273,21 @@
   ;; sentence id
   (setf (sentence-id sentence) (sentence-id (first (tokens sentence))))
   ;; sentence string
-  (setf (sentence-string sentence) (format nil "~{~a~^ ~}" (mapcar #'token-string (tokens sentence))))
+  (setf (sentence-string sentence) (loop with first-token = t
+                                         with sentence-string-list = nil
+                                         for token-string in (mapcar #'token-string (tokens sentence))
+                                         do (cond (first-token
+                                                   (setf first-token nil)
+                                                   (setf sentence-string-list (append sentence-string-list (list token-string))))
+                                                  ((member token-string '("'ve" "'d" "'ll" "'t" "'m" "'s" "'re") :test #'string=)
+                                                   (setf sentence-string-list (append sentence-string-list (list token-string))))
+                                                  (t
+                                                   (setf sentence-string-list (append sentence-string-list (list " " token-string)))))
+                                         finally (return (format nil "~{~a~}" sentence-string-list))))
+                                                    
   ;; syntactic anlysis
-  (setf (syntactic-analysis sentence) (nlp-tools:get-penelope-syntactic-analysis
-                                       (format nil "~{~a~^ ~}" (mapcar #'token-string (tokens sentence)))
-                                       :model (format nil "~a_benepar" (language sentence))))
+  (setf (syntactic-analysis sentence) (nlp-tools:get-penelope-syntactic-analysis (sentence-string sentence)
+                                                                                 :model (format nil "~a_benepar" (language sentence))))
   ;; initial transient structure
   (setf (initial-transient-structure sentence) (create-initial-transient-structure-based-on-benepar-analysis (syntactic-analysis sentence)))
   ;; propbank frames
