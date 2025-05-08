@@ -82,3 +82,17 @@
          (fcg::graph (categorial-network *cxn-inventory-google*))
          'propbank-grammar::disregard\(v\)-1 :return-ids? nil :edge-type 'lex-gram))
 
+
+(fcg::draw-categorial-network-node-and-neighbours *cxn-inventory-google*
+                                                  'propbank-grammar::rediscover\(v\)-5)
+
+
+
+#|(web-interface:create-static-html-page "test"
+
+  (progn
+    (comprehend-all "Jesus taught the people in the Temple area every day ."
+                    :cxn-inventory *cxn-inventory-teach* :timeout 60 :n 1)
+
+    
+    ))|#

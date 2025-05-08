@@ -66,11 +66,24 @@ direct neighbours of the categories present in the node."
          (gram-cat-neighbours (remove-duplicates (loop for gram-category in (gram-categories node)
                                                        append (neighbouring-categories gram-category
                                                                                        (original-cxn-set (construction-inventory node))))))
+         #|(argument-structure-constructions-per-level (loop for level in lex-categories-per-level
+                                                           collect (loop for (lex-cat . similarity) in level
+                                                                         when (> similarity (get-configuration (construction-inventory node) :graph-cosine-similarity-threshold))
+                                                                           
+                                                                         append (cons lex-cat (mapcar #'(lambda (gram-cat)
+                                                                                            (cons (first (gethash (graph-utils::lookup-node (graph (categorial-network cxn-inventory))
+                                                                                                                                            gram-cat)
+                                                                                                                  (constructions-hash-table cxn-inventory)))
+                                                                                                  similarity))
+                                                                                        (graph-utils::my-neighbours-by-node-type
+                                                                                         (graph (categorial-network cxn-inventory))
+                                                                                         (graph-utils:lookup-node (graph (categorial-network cxn-inventory)) lex-cat)
+                                                                                         :node-type 'propbank-grammar::gram-category))))))|#
          (argument-structure-constructions-per-level (loop for level in lex-categories-per-level
                                                            collect (loop for (lex-cat . similarity) in level
                                                                          when (> similarity (get-configuration (construction-inventory node) :graph-cosine-similarity-threshold))
                                                                            
-                                                                         append (mapcar #'(lambda (gram-cat)
+                                                                         append  (mapcar #'(lambda (gram-cat)
                                                                                             (cons (first (gethash (graph-utils::lookup-node (graph (categorial-network cxn-inventory))
                                                                                                                                             gram-cat)
                                                                                                                   (constructions-hash-table cxn-inventory)))
@@ -81,6 +94,8 @@ direct neighbours of the categories present in the node."
                                                                                          :node-type 'propbank-grammar::gram-category)))))
          (word-sense-cxns (loop for lemma in (hash node (get-configuration node :hash-mode))
                                 append (word-sense-cxns-for-lemma lemma cxn-inventory))))
+   ; (set-data (blackboard cxn-inventory) :lex-similarities argument-structure-constructions-per-level)
+   ; (setf argument-structure-constructions-per-level (list (mapcar #'second argument-structure-constructions-per-level)))
     ;; fallback: if there was a match through vector similarity, then there was no hash match through the lemma, so just take all
     ;; todo: give the n closest in similarity, see expansion operator for threshold
     (unless lexical-cxns
@@ -122,7 +137,8 @@ direct neighbours of the categories present in the node."
 
 (defun lex-categories-per-level (lex-categories cxn-inventory)
   (loop for top-level-lex-category in lex-categories
-        for similar-lex-categories = (when top-level-lex-category (get-similar-lex-categories top-level-lex-category (graph (categorial-network cxn-inventory))))
+        for similar-lex-categories = (when top-level-lex-category
+                                       (get-similar-lex-categories top-level-lex-category (graph (categorial-network cxn-inventory))))
         if similar-lex-categories
           collect similar-lex-categories
             into levels-per-category

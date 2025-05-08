@@ -13,6 +13,7 @@
 ;;;;               Load in ontonotes and ewt                  ;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+
 (setf *ontonotes-annotations-storage-file*
       (merge-pathnames (make-pathname :directory (cons :relative '("Frames\ and\ Propbank" "propbank-annotations"))
                                       :name "ontonotes-annotations"
@@ -87,6 +88,8 @@
 
 (preprocessing-and-configs *propbank-ewt-ontonotes-cxn-inventory-14-april* :step-3 :make-role-embeddings nil)
 
+
+
 (activate-monitor trace-fcg)
 
 (comprehend-all "Try googling it for more info :-RRB-" :cxn-inventory *propbank-ewt-ontonotes-cxn-inventory-14-april* :n 1 :timeout 200)
@@ -142,6 +145,7 @@
         for sentence-string = (sentence-string sentence)
         if (find sentence-string *options* :test #'string=)
           collect sentence))
+
 
 (activate-monitor trace-fcg)
 
