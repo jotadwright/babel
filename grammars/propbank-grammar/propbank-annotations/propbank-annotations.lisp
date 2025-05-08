@@ -17,8 +17,13 @@
   (warn "*babel-corpora* not bound.")
   (defparameter *babel-corpora* "no-corpus-path-provided"))
 
-(defparameter *ontonotes-annotations-directory* (merge-pathnames (make-pathname :directory (cons :relative '("Frames\ and\ Propbank" "propbank-release" "data")))                                                                    *babel-corpora*))
-(defparameter *ewt-annotations-directory* (merge-pathnames (make-pathname :directory (cons :relative '("Frames\ and\ Propbank" "propbank-release" "data" "google" "ewt")))                                                                    *babel-corpora*))
+(defparameter *ontonotes-annotations-directory* (merge-pathnames
+                                                 (make-pathname :directory (cons :relative '("Frames\ and\ Propbank" "propbank-release" "data")))
+                                                 *babel-corpora*))
+
+(defparameter *ewt-annotations-directory* (merge-pathnames
+                                           (make-pathname :directory (cons :relative '("Frames\ and\ Propbank" "propbank-release" "data" "google" "ewt")))
+                                           *babel-corpora*))
 
 ;; Global variables where propbank annotations will be loaded.
 (defparameter *ontonotes-annotations* "Ontonotes annotations will be stored here.")
@@ -34,39 +39,7 @@
                                                                                    :name "ewt-annotations"
                                                                                    :type #+lispworks "lw.store" #+ccl "ccl.store" #+sbcl "sbcl.store")
                                                                     *babel-corpora*))
-#|
-;; French data
-(defparameter *french-training-set* nil "Will contain the processed conll-sentences.")
-(defparameter *french-propbank-directory* nil "Directory where French data and models are stored.")
-(defparameter *french-training-data* nil "A conll-file.")
-(defparameter *french-training-storage* nil "For storing the training set.")
-(defparameter *french-problem-data* nil "Small corpus of problematic sentences.")
-(defparameter *french-problem-set* nil "Small corpus of problematic sentences.")
 
-(setf *french-propbank-directory* (babel-pathname :directory '("grammars/propbank-grammar/propbank-annotations/french"))
-      *french-training-data* (merge-pathnames "french-propbank-train.conll" *french-propbank-directory*)
-      *french-training-storage* (merge-pathnames (make-pathname :name "french-propbank-training"
-                                                                :type #+lispworks "lw.store" #+ccl "ccl.store" #+sbcl "sbcl.store")
-                                                 *french-propbank-directory*)
-      *french-problem-data* (merge-pathnames "french-problem-data.conll" *french-propbank-directory*))
-
-(defun load-french-problem-set ()
-  (setf *french-problem-set* (read-propbank-conll-file *french-problem-data* :language "fr")))
-;; (load-french-problem-set)
-
-(defun load-french-training-set (&key from-scratch save-after-loading)
-  "Temporary French-specific loading function. To be integrated."
-  (cond ((and (not from-scratch)
-              (probe-file *french-training-storage*))
-         (setf *french-training-set* (cl-store:restore *french-training-storage*)))
-        ((probe-file *french-training-data*)
-         (setf *french-training-set* (read-propbank-conll-file *french-training-data* :language "fr")))
-        (t
-         (error (format nil "No training data found in directory ~a" *french-propbank-directory*))))
-  (when save-after-loading
-    (cl-store:store *french-training-set* *french-training-storage*))
-  *french-training-set*)
-;; (load-french-training-set :from-scratch t :save-after-loading t)|#
   
 (defun load-propbank-annotations (corpus-name &key (store-data t) ignore-stored-data)
   "Loads ProbBank annotations and stores the result. It is loaded from a pb-annotations.store file if it
@@ -302,12 +275,9 @@
   ;; sentence string
   (setf (sentence-string sentence) (format nil "~{~a~^ ~}" (mapcar #'token-string (tokens sentence))))
   ;; syntactic anlysis
-  (setf (syntactic-analysis sentence) (let ((list-of-tokens (mapcar #'token-string (tokens sentence))))
-                                        (nlp-tools:get-penelope-syntactic-analysis
-                                         (if (string= (language sentence) "fr") list-of-tokens ;; If we are parsing in French keep list of tokens
-                                           ;; If not we provide a string (but perhaps this should also be changed)
-                                           (format nil "~{~a~^ ~}" (mapcar #'token-string (tokens sentence))))
-                                         :model (format nil "~a_benepar" (language sentence))))) ; "fr_benepar" or "en_benepar"
+  (setf (syntactic-analysis sentence) (nlp-tools:get-penelope-syntactic-analysis
+                                       (format nil "~{~a~^ ~}" (mapcar #'token-string (tokens sentence)))
+                                       :model (format nil "~a_benepar" (language sentence))))
   ;; initial transient structure
   (setf (initial-transient-structure sentence) (create-initial-transient-structure-based-on-benepar-analysis (syntactic-analysis sentence)))
   ;; propbank frames
