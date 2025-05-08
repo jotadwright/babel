@@ -71,11 +71,14 @@
   "Add noise to the utterance proportionate to the noise level."
   (let* ((strings '("a" "e" "i" "o" "u" "b" "c" "d" "f" "g" "h" "j" "k" "l" "m" "n" "p" "q" "r" "s" "t" "v" "w" "x" "y" "z"))
          (characters (loop for string in strings collect (coerce string 'character)))
-         (characters-to-replace (floor (* noise-level (length utterance)))))
+         (characters-to-replace (floor (* noise-level (length utterance))))
+         (index-list (loop for i from 0 to (- characters-to-replace 1) collect i)))
+    
     (loop for i from 1 to characters-to-replace
-          for index-to-replace = (random (length utterance))
+          for index-to-replace = (random-elt index-list)
           for char-to-replace = (elt utterance index-to-replace)
           for character-list = (remove char-to-replace characters)
+          do (setf index-list (remove index-to-replace index-list))
           do (setf (elt utterance index-to-replace) (random-elt character-list)))
     utterance))
 
