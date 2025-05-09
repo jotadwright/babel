@@ -17,13 +17,11 @@
 
 (defmethod initialize-instance :after ((experiment clevr-learning-experiment) &key)
   ;; set the world of the experiment
-  (setf (world experiment)
-        (make-instance 'clevr-world
-                       :data-sets (get-configuration experiment :clevr-world-data-sets)
-                       :load-questions nil))
+  (setf (world experiment) (make-instance 'clevr-world
+                                          :data-sets (get-configuration experiment :clevr-world-data-sets)
+                                          :load-questions nil))
   ;; set the questions of the experiment
-  (load-questions-for-current-challenge-level experiment
-                                              (get-configuration experiment :question-sample-mode))
+  (load-questions-for-current-challenge-level experiment (get-configuration experiment :question-sample-mode))
   ;; set the population of the experiment
   (setf (population experiment)
         (list (make-clevr-learning-tutor experiment)

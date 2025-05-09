@@ -60,8 +60,7 @@
 ;; ----------------------
 (defmethod interact :after ((experiment clevr-learning-experiment)
                             interaction &key)
-  (let ((successp (loop for agent in (population experiment)
-                        always (communicated-successfully agent))))
+  (let ((successp (loop for agent in (population experiment) always (communicated-successfully agent))))
 
     (unless successp
       (when (> (interaction-number interaction) 50000)
@@ -73,8 +72,7 @@
       (record-interaction-success-in-table (tutor interaction) successp))
     ;; add the success to the confidence buffer of the learner
     (setf (confidence-buffer experiment)
-          (cons (if successp 1 0)
-                (butlast (confidence-buffer experiment))))
+          (cons (if successp 1 0) (butlast (confidence-buffer experiment))))
     (notify agent-confidence-level (average (confidence-buffer experiment)))
     ;; add the current scene/program to memory of the learner, 
     ;; depending on the composer strategy and the success,
