@@ -72,11 +72,15 @@
          (th (make-instance 'type-hierarchy)))
     (loop for node in all-nodes
           for name = (intern (upcase (mkstr node)) :fcg)
-          do (add-category name th))
+          do (add-category name th :recompute-transitive-closure nil))
     (loop for (from to w) in all-weighted-edges
           for from-name = (intern (upcase (mkstr from)) :fcg)
           for to-name = (intern (upcase (mkstr to)) :fcg)
-          do (add-link from-name to-name th :weight w))
+          do (add-link from-name
+                       to-name
+                       th
+                       :weight w
+                       :recompute-transitive-closure nil))
     (set-categorial-network cxn-inventory th)))
          
    
