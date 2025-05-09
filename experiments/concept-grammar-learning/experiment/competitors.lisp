@@ -7,9 +7,11 @@
   "Get cxns with the same form as cxn"
   (loop for cxn in applied-cxns
         for cxn-type = (get-cxn-type cxn)
-        for competitors = (meaning-competitors-for-cxn-type
-                           cxn (grammar agent) cxn-type
-                           agent utterance)
+        for competitors = (meaning-competitors-for-cxn-type cxn
+                                                            (grammar agent)
+                                                            cxn-type
+                                                            agent
+                                                            utterance)
         append competitors))
 
 (defun get-form-competitors (agent applied-cxns irl-program)
@@ -20,11 +22,9 @@
     (when (> (length cipns) 1)
       (loop for cipn in cipns
             append (original-applied-constructions cipn)
-            into other-applied-cxns
-            finally
-            (return
-             (remove-duplicates
-              (set-difference other-applied-cxns applied-cxns)))))))
+              into other-applied-cxns
+            finally (return (remove-duplicates (set-difference other-applied-cxns
+                                                               applied-cxns)))))))
 
 ;; ----------------------
 ;; + Construction types +
@@ -36,15 +36,13 @@
                                              agent utterance)
   (declare (ignorable utterance))
   ;; holophrase competitors have exactly the same form
-  (let* ((all-cxns-of-type
-          (remove cxn
-                  (find-all cxn-type (constructions-list cxn-inventory)
-                            :key #'get-cxn-type)))
+  (let* ((all-cxns-of-type (remove cxn (find-all cxn-type
+                                                 (constructions-list cxn-inventory)
+                                                 :key #'get-cxn-type)))
          (cxn-form (extract-and-render cxn))
-         (competitors
-          (find-all cxn-form all-cxns-of-type
-                    :key #'extract-and-render
-                    :test #'string=)))
+         (competitors (find-all cxn-form all-cxns-of-type
+                                :key #'extract-and-render
+                                :test #'string=)))
     competitors))
 
 (defmethod meaning-competitors-for-cxn-type ((cxn construction)
@@ -53,15 +51,13 @@
                                              agent utterance)
   (declare (ignorable utterance))
   ;; lexical competitors have exactly the same form
-  (let* ((all-cxns-of-type
-          (remove cxn
-                  (find-all cxn-type (constructions-list cxn-inventory)
-                            :key #'get-cxn-type)))
+  (let* ((all-cxns-of-type (remove cxn (find-all cxn-type
+                                                 (constructions-list cxn-inventory)
+                                                 :key #'get-cxn-type)))
          (cxn-form (extract-and-render cxn))
-         (competitors
-          (find-all cxn-form all-cxns-of-type
-                    :key #'extract-and-render
-                    :test #'string=)))
+         (competitors (find-all cxn-form all-cxns-of-type
+                                :key #'extract-and-render
+                                :test #'string=)))
     competitors))
 
 (defmethod meaning-competitors-for-cxn-type ((cxn construction)
@@ -72,35 +68,27 @@
   ;; less or more general item-based cxns
   ;; that also work for the current utterance
   ;; and holophrase cxns
-  (let* ((cxn-name-with-placeholders
-          (make-cxn-placeholder-name
-           (extract-form-predicates cxn)
-           cxn-inventory))
-         (de-rendered-utterance
-          (fcg::tokenize utterance))
-         (possible-item-based-competitors
-          (find-all 'item-based
-                    (constructions-list cxn-inventory)
-                    :key #'get-cxn-type))
-         (item-based-competitors
-          (loop for comp in possible-item-based-competitors
-                for comp-name-with-placeholders =
-                (make-cxn-placeholder-name
-                 (extract-form-predicates comp)
-                 cxn-inventory)
-                when (and (length= cxn-name-with-placeholders
-                                   comp-name-with-placeholders)
-                          (competitorp cxn-name-with-placeholders
-                                       comp-name-with-placeholders
-                                       de-rendered-utterance))
-                collect comp))
-         (holophrase-competitors
-          (loop for other-cxn in (constructions-list cxn-inventory)
-                when (and (eql (get-cxn-type other-cxn) 'holophrase)
-                          (string= (extract-and-render other-cxn)
-                                   (list-of-strings->string
-                                    (fcg::tokenize utterance))))
-                collect other-cxn)))
+  (let* ((cxn-name-with-placeholders (make-cxn-placeholder-name (extract-form-predicates cxn) cxn-inventory))
+         (de-rendered-utterance (fcg::tokenize utterance))
+         (possible-item-based-competitors (find-all 'item-based
+                                                    (constructions-list cxn-inventory)
+                                                    :key #'get-cxn-type))
+         (item-based-competitors (loop for comp in possible-item-based-competitors
+                                       for comp-name-with-placeholders = (make-cxn-placeholder-name
+                                                                          (extract-form-predicates comp)
+                                                                          cxn-inventory)
+                                       when (and (length= cxn-name-with-placeholders
+                                                          comp-name-with-placeholders)
+                                                 (competitorp cxn-name-with-placeholders
+                                                              comp-name-with-placeholders
+                                                              de-rendered-utterance))
+                                         collect comp))
+         (holophrase-competitors (loop for other-cxn in (constructions-list cxn-inventory)
+                                       when (and (eql (get-cxn-type other-cxn) 'holophrase)
+                                                 (string= (extract-and-render other-cxn)
+                                                          (list-of-strings->string
+                                                           (fcg::tokenize utterance))))
+                                         collect other-cxn)))
     (remove cxn (append holophrase-competitors item-based-competitors))))
 
 ;; helper functions
