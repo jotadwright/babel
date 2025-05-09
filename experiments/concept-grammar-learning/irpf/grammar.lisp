@@ -88,6 +88,7 @@
                                         (:render-mode . :generate-and-test)
                                         (:de-render-mode . :de-render-string-meets-no-punct)
                                         (:th-connected-mode . :neighbours)
+                                        (:ignore-transitive-closure . t)
                                         (:update-th-links . t)
                                         (:hash-mode . :hash-string-meaning-lex-id)
                                         (:initial-categorial-link-weight . 0.1))

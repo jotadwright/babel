@@ -45,9 +45,10 @@
       (let* ((orig-type-hierarchy (categorial-network (construction-inventory node)))
              (temp-type-hierarchy (copy-object (categorial-network (construction-inventory node)))) 
              (th (loop for (from . to) in th-links ;; th is never used, maybe refactor get it out of the let
-                       do (add-categories (list from to) temp-type-hierarchy)
+                       do (add-categories (list from to) temp-type-hierarchy :recompute-transitive-closure nil)
                           (add-link from to temp-type-hierarchy
-                                    :weight (get-configuration node :initial-th-link-weight))
+                                    :weight (get-configuration node :initial-th-link-weight)
+                                    :recompute-transitive-closure nil)
                        finally (set-categorial-network (construction-inventory node) temp-type-hierarchy)))
              (new-nodes
               (apply-sequentially (initial-node node)
