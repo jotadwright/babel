@@ -156,7 +156,7 @@
   ;; Also, metadata.json contains 'cylinder' as a shape, but there are
   ;; no synonyms specified in synonyms.json. So, we add the morph cxns
   ;; for cylinder manually.
-  (let* ((synonyms-file (babel-pathname :directory '("grammars" "clevr-grammar" "data")
+  (let* ((synonyms-file (babel-pathname :directory '("experiments" "concept-grammar-learning" "clevr-grammar" "data")
                                         :name "synonyms" :type "json"))
          (synonyms (decode-json-from-source synonyms-file)))
     (rest (assqv (intern (upcase form) :keyword) synonyms))))
