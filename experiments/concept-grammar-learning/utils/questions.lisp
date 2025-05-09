@@ -95,11 +95,12 @@
 
 ;; Utility functions
 (defun load-clevr-scene-and-answer (agent question-scenes-answers-cons)
-  (let* ((question (car question-scenes-answers-cons))
-         (scenes-and-answers (cdr question-scenes-answers-cons))
+  (let* ((question (first question-scenes-answers-cons))
+         (program (second question-scenes-answers-cons))
+         (scenes-and-answers (third question-scenes-answers-cons))
          (random-scene-and-answer (random-elt scenes-and-answers))
          (answer-entity (find-clevr-entity (cdr random-scene-and-answer) *clevr-ontology*))
          (clevr-scene (find-scene-by-name (car random-scene-and-answer) (world (experiment agent)))))
     (if clevr-scene
-      (values question clevr-scene answer-entity)
+      (values question program clevr-scene answer-entity)
       (load-clevr-scene-and-answer agent question-scenes-answers-cons))))

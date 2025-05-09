@@ -21,7 +21,11 @@
    (available-primitives :initarg :available-primitives
                          :accessor available-primitives
                          :initform nil :type (or null primitive-inventory)
-                         :documentation "The primitives available for the agent"))
+                         :documentation "The primitives available for the agent")
+   (gold-standard-program :initarg :gold-standard-program
+                          :accessor gold-standard-program
+                          :initform nil
+                          :type list))
   (:documentation "Base class for both agents"))
 
 (defclass clevr-learning-tutor (clevr-learning-agent)

@@ -15,11 +15,11 @@
 (defmethod interact :before ((experiment clevr-learning-experiment)
                              interaction &key)
   ;; Choose a random scene and a random question and initialize the agents
-  (multiple-value-bind (question clevr-scene answer-entity)
+  (multiple-value-bind (question program clevr-scene answer-entity)
       ;; speaker can be tutor or learner
       (sample-question (speaker interaction) (get-configuration experiment :tutor-sample-mode))
     (loop for agent in (interacting-agents experiment)
-          do (initialize-agent agent question clevr-scene answer-entity))
+          do (initialize-agent agent program question clevr-scene answer-entity))
     (notify interaction-before-finished clevr-scene question answer-entity)))
 
 ;; ----------------------
@@ -88,19 +88,27 @@
 ;; --------------------
 
 (defmethod initialize-agent ((agent clevr-learning-tutor)
-                             question scene answer)
+                             program
+                             question
+                             scene
+                             answer)
   (setf (utterance agent) question
         (topic agent) answer
-        (communicated-successfully agent) t)
+        (communicated-successfully agent) t
+        (gold-standard-program agent) program)
   (set-data (ontology agent) 'clevr-context scene))
 
 (defmethod initialize-agent ((agent clevr-learning-learner)
-                             question scene answer)
+                             program
+                             question
+                             scene
+                             answer)
   (setf (utterance agent) question
         (topic agent) answer
         (communicated-successfully agent) t
         (task-result agent) nil
-        (tasks-and-processes::tasks agent) nil)
+        (tasks-and-processes::tasks agent) nil
+        (gold-standard-program agent) program)
   (set-data (ontology agent) 'clevr-context scene))
 
 
