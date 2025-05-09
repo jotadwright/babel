@@ -1044,6 +1044,14 @@ element for which the sought value satisfies the test"
                  (setf (gethash key table1) val)))
            table2))
 
+(defun hash-keys (table)
+  (loop for key being the hash-keys of table
+        collect key))
+
+(defun hash-values (table)
+  (loop for value being the hash-values of table
+        collect value))
+
 ;; ############################################################################
 
 
@@ -1143,5 +1151,4 @@ destroy the original lists"
    When the sequence is shorter than N, return the
    entire sequence."
   (butlast sequence (max (- (list-length sequence) n) 0)))
-
 

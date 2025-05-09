@@ -461,7 +461,7 @@
           find-scene-by-name))
 
 (defclass clevr-world (entity)
-  ((scenes        :type list :initarg :scenes        :accessor scenes)
+  ((scenes        :type hash-table :initarg :scenes  :accessor scenes)
    (question-sets :type list :initarg :question-sets :accessor question-sets :initform nil)
    (data-sets     :type list :initarg :data-sets     :accessor data-sets)
    (current-scene :type (or null clevr-scene) :initform nil :accessor current-scene)
@@ -496,21 +496,26 @@
   ;; initialize the instance
   (call-next-method)
   ;; load the scenes
-  (let ((clevr-scenes-path
-         (merge-pathnames (make-pathname :directory '(:relative "scenes"))
-                          *clevr-data-path*)))
+  (let ((clevr-scenes-path (merge-pathnames (make-pathname :directory '(:relative "scenes"))
+                                            *clevr-data-path*)))
     (unless (probe-file clevr-scenes-path)
       (error "Could not find a 'scenes' subdirectory in ~a~%" *clevr-data-path*))
-    (setf (slot-value world 'scenes)
-          (loop for data-set in data-sets
-                for set-directory = (merge-pathnames (make-pathname :directory `(:relative ,data-set))
-                                                     clevr-scenes-path)
-                unless (probe-file set-directory)
-                do (error "~a is not a subdirectory of ~%~a" data-set clevr-scenes-path)
-                append (sort (directory
-                              (make-pathname :directory (pathname-directory set-directory)
-                                             :name :wild :type "json"))
-                             #'string< :key #'namestring))))                
+    (let* ((fpaths (loop for data-set in data-sets
+                        for set-directory = (merge-pathnames (make-pathname :directory `(:relative ,data-set))
+                                                             clevr-scenes-path)
+                        unless (probe-file set-directory)
+                          do (error "~a is not a subdirectory of ~%~a" data-set clevr-scenes-path)
+
+                        append (sort (directory
+                                      (make-pathname :directory (pathname-directory set-directory)
+                                                     :name :wild :type "json"))
+                                     #'string< :key #'namestring)))
+           (scenes (make-hash-table :test #'equalp)))
+      
+      (loop for fpath in fpaths
+            for fname = (pathname-name fpath)
+            do (setf (gethash fname scenes) fpath))
+      (setf (slot-value world 'scenes) scenes)))
   ;; load the questions, if requested
   (when load-questions
     (let ((clevr-questions-path
@@ -537,7 +542,7 @@
   ;; set the current scene
   (if (scenes world)
     (setf (current-scene world)
-          (load-object 'scene (random-elt (scenes world))))
+          (load-object 'scene (random-elt (utils::hash-values (scenes world)))))
     (warn "No scenes were loaded."))
   ;; set the current question set
   (when load-questions
@@ -562,7 +567,7 @@
 
 
 (defmethod find-scene-by-name (name (world clevr-world))
-  (let ((filename (find name (scenes world) :key #'namestring :test #'search)))
+  (let ((filename (gethash name (scenes world))))
     (when filename
       (setf (current-scene world) (load-object 'scene filename))
       (when (question-sets world)
