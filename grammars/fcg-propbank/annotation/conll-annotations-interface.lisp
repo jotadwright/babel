@@ -337,12 +337,12 @@
   "Returns a corpus with all conll-sentences being annotated using spacy-benepar."
   (make-instance 'corpus
                  :name (name corpus)
-                 :train-split (dolist (sentence (train-split corpus))
-                                (conll-sentence-to-spacy-benepar-sentence sentence language))
-                 :dev-split (dolist (sentence (dev-split corpus))
-                              (conll-sentence-to-spacy-benepar-sentence sentence language))
-                 :test-split (dolist (sentence (test-split corpus))
-                               (conll-sentence-to-spacy-benepar-sentence sentence language))))
+                 :train-split (loop for sentence in (train-split corpus)
+                                    collect (conll-sentence-to-spacy-benepar-sentence sentence language))
+                 :dev-split (loop for sentence in (dev-split corpus)
+                                    collect (conll-sentence-to-spacy-benepar-sentence sentence language))
+                 :test-split (loop for sentence in (test-split corpus)
+                                     collect (conll-sentence-to-spacy-benepar-sentence sentence language))))
 
 
 
