@@ -97,26 +97,29 @@
   "decrease the score of the cxn.
    remove it when it reaches 0"
   
-  (multiple-value-bind (lex-classes type-hierarchy) (get-lex-classes cxn agent)
-    (when (not lex-classes)
+  ;(multiple-value-bind (lex-classes type-hierarchy) (get-lex-classes cxn agent)
+    ;(when (not lex-classes)
       (decf (attr-val cxn :score) delta)
       (when (<= (attr-val cxn :score) lower-bound)
         (if remove-on-lower-bound
           (progn (notify lexicon-changed)
             (with-disabled-monitor-notifications
               (delete-cxn-and-th-node cxn agent)))
-          (setf (attr-val cxn :score) lower-bound))))
-    (grammar agent)))
+          (setf (attr-val cxn :score) lower-bound)))
+      ;)
+    (grammar agent))
+;)
 
 (defun delete-cxn-and-th-node (cxn agent)
   "Delete the cxn from the cxn inventory
    and remove ALL associated categories
    from the categorial network."
-  (multiple-value-bind (lex-classes type-hierarchy) (get-lex-classes cxn agent)
-    (when (not lex-classes)
+  ;(multiple-value-bind (lex-classes type-hierarchy) (get-lex-classes cxn agent)
+    ;(when (not lex-classes)
       ;(remove-categories lex-classes type-hierarchy))
-      (delete-cxn cxn (grammar agent))
-      (notify lexicon-changed))))
+  (delete-cxn cxn (grammar agent))
+  (notify lexicon-changed))
+
 
 ;; utilities
 
