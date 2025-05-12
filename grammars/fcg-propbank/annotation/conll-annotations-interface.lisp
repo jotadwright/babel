@@ -351,40 +351,6 @@
 ;; From to spacy-benepar-annotated sentences to fcg-propbank-sentences    ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defclass fcg-propbank-sentence ()
-  ((source-file
-    :type string
-    :accessor source-file
-    :documentation "The path to the source file.")
-   (sentence-id 
-    :type number 
-    :accessor sentence-id
-    :documentation "The id of the sentence.")
-   (tokens 
-    :type list 
-    :accessor tokens
-    :initarg :tokens 
-    :documentation "The tokens as a list of strings.")
-   (propbank-frames 
-    :type list
-    :accessor propbank-frames
-    :documentation "The propbank frames annotated in the sentence.")
-   (sentence-string 
-    :type string
-    :accessor sentence-string
-    :documentation "The string that serves as input to syntactic analysis.")
-   (initial-transient-structure 
-    :type coupled-feature-structure
-    :accessor initial-transient-structure
-    :initarg :intial-transient-structure
-    :documentation "Initial transient structure")
-   (language 
-    :type string
-    :accessor language
-    :initarg :language
-    :documentation "Language code for the sentence."))
-  (:documentation "Representation of an fcg-propbank sentence."))
-
 
 (defun spacy-benepar-sentence-to-fcg-propbank-sentence (spacy-benepar-sentence)
   "Takes a conll-sentence and returns a spacy-benepar-sentence."
@@ -395,7 +361,7 @@
                  :sentence-string (sentence-string spacy-benepar-sentence)
                  :propbank-frames (propbank-frames spacy-benepar-sentence)
                  :language (language spacy-benepar-sentence)
-                 :initial-transient-structure (create-initial-transient-structure-based-on-benepar-analysis (syntactic-analysis spacy-benepar-sentence)))
+                 :initial-transient-structure (create-initial-transient-structure-based-on-benepar-analysis (syntactic-analysis spacy-benepar-sentence))))
 
 (defun add-initial-transient-structure (corpus)
   "Returns a corpus with all conll-sentences being annotated using spacy-benepar."
