@@ -352,8 +352,19 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
+(defun add-initial-transient-structures (corpus)
+  "Returns a corpus with all spacy benepar sentences being annotated with an initial transient structure."
+  (make-instance 'corpus
+                 :name (name corpus)
+                 :train-split (dolist (sentence (train-split corpus))
+                                (spacy-benepar-sentence-to-fcg-propbank-sentence sentence))
+                 :dev-split (dolist (sentence (dev-split corpus))
+                              (spacy-benepar-sentence-to-fcg-propbank-sentence sentence))
+                 :test-split (dolist (sentence (test-split corpus))
+                               (spacy-benepar-sentence-to-fcg-propbank-sentence sentence))))
+
 (defun spacy-benepar-sentence-to-fcg-propbank-sentence (spacy-benepar-sentence)
-  "Takes a conll-sentence and returns a spacy-benepar-sentence."
+  "Takes a spacy-benepar-sentence. and returns a fcg-propbank-sentence"
   (make-instance 'fcg-propbank-sentence
                  :source-file (source-file spacy-benepar-sentence)
                  :sentence-id (sentence-id spacy-benepar-sentence)
@@ -362,14 +373,3 @@
                  :propbank-frames (propbank-frames spacy-benepar-sentence)
                  :language (language spacy-benepar-sentence)
                  :initial-transient-structure (create-initial-transient-structure-based-on-benepar-analysis (syntactic-analysis spacy-benepar-sentence))))
-
-(defun add-initial-transient-structure (corpus)
-  "Returns a corpus with all conll-sentences being annotated using spacy-benepar."
-  (make-instance 'corpus
-                 :name (name corpus)
-                 :train-split (dolist (sentence (train-split corpus))
-                                (spacy-benepar-sentence-to-fcg-propbank-sentence sentence language))
-                 :dev-split (dolist (sentence (dev-split corpus))
-                              (spacy-benepar-sentence-to-fcg-propbank-sentence sentence language))
-                 :test-split (dolist (sentence (test-split corpus))
-                               (spacy-benepar-sentence-to-fcg-propbank-sentence sentence language))))

@@ -10,25 +10,62 @@
 
 
 #|
-;; From ConLL files to corpus object (without augmentations)
+;; 1. From ConLL files to corpus object (without augmentations)
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(load-propbank-annotations 'ewt :ignore-stored-data t)
-(load-propbank-annotations 'ontonotes :ignore-stored-data t)
+(load-propbank-annotations 'ewt :ignore-stored-data nil) ;; set to true to rebuilt corpora from scratch
+(load-propbank-annotations 'ontonotes :ignore-stored-data nil)
 
-;; From corpus without augmentations to corpus with syntactic analyses
-(defparameter *ontonotes-syntactically-annotated-corpus-file* (merge-pathnames (make-pathname :directory (cons :relative '("Frames\ and\ Propbank" "propbank-annotations"))
-                                                                                   :name "ontonotes-syntactically-annotated-corpus"
-                                                                                   :type #+lispworks "lw.store" #+ccl "ccl.store" #+sbcl "sbcl.store")
-                                                                    *babel-corpora*))
+;; 2. From corpus without augmentations to corpus with syntactic analyses
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defparameter *ewt-syntactically-annotated-corpus-file* (merge-pathnames (make-pathname :directory (cons :relative '("Frames\ and\ Propbank" "propbank-annotations"))
-                                                                                   :name "ewt-syntactically-annotated-corpus"
-                                                                                   :type #+lispworks "lw.store" #+ccl "ccl.store" #+sbcl "sbcl.store")
-                                                                    *babel-corpora*))
 (setf nlp-tools::*penelope-host* "http://127.0.0.1:5000")
-(cl-store:store (add-syntactic-analysis *ewt-propbank-annotated-corpus* "en") *ewt-syntactically-annotated-corpus-file*)
-(cl-store:store (add-syntactic-analysis *ontonotes-propbank-annotated-corpus* "en") *ontonotes-syntactically-annotated-corpus-file*)
 
+(defparameter *ewt-corpus-annotated-with-spacy-benepar* (add-syntactic-analysis *ewt-propbank-annotated-corpus* "en"))
+(defparameter *ontonotes-corpus-annotated-with-spacy-benepar* (add-syntactic-analysis *ontonotes-propbank-annotated-corpus* "en"))
+
+(defparameter *ontonotes-syntactically-annotated-corpus-file*
+  (merge-pathnames (make-pathname :directory (cons :relative '("Frames\ and\ Propbank" "propbank-annotations"))
+                                  :name "ontonotes-syntactically-annotated-corpus"
+                                  :type #+lispworks "lw.store" #+ccl "ccl.store" #+sbcl "sbcl.store")
+                   *babel-corpora*))
+
+(defparameter *ewt-syntactically-annotated-corpus-file*
+  (merge-pathnames (make-pathname :directory (cons :relative '("Frames\ and\ Propbank" "propbank-annotations"))
+                                  :name "ewt-syntactically-annotated-corpus"
+                                  :type #+lispworks "lw.store" #+ccl "ccl.store" #+sbcl "sbcl.store")
+                   *babel-corpora*))
+
+(cl-store:store *ewt-corpus-annotated-with-spacy-benepar* *ewt-syntactically-annotated-corpus-file*)
+(cl-store:store *ontonotes-corpus-annotated-with-spacy-benepar* *ontonotes-syntactically-annotated-corpus-file*)
+
+
+;; 3. From corpus with syntactic analysis for corpus with initial transient structures
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(unless (boundp '*ewt-corpus-annotated-with-spacy-benepar*)
+  (defparameter *ewt-corpus-annotated-with-spacy-benepar* (cl-store:restore *ewt-syntactically-annotated-corpus-file*)))
+
+(unless (boundp '*ontonotes-corpus-annotated-with-spacy-benepar*)
+  (defparameter *ontonotes-corpus-annotated-with-spacy-benepar* (cl-store:restore *ontonotes-syntactically-annotated-corpus-file*)))
+
+(defparameter *ewt-corpus-annotated-with-init-ts* (add-initial-transient-structure *ewt-corpus-annotated-with-spacy-benepar*))
+(defparameter *ontonotes-corpus-annotated-with-init-ts* (add-initial-transient-structure *ontonotes-corpus-annotated-with-spacy-benepar*))
+
+(defparameter *ewt-init-ts-annotated-corpus-file*
+  (merge-pathnames (make-pathname :directory (cons :relative '("Frames\ and\ Propbank" "propbank-annotations"))
+                                  :name "ewt-init-ts-annotated-corpus"
+                                  :type #+lispworks "lw.store" #+ccl "ccl.store" #+sbcl "sbcl.store")
+                   *babel-corpora*))
+
+(defparameter *ontonotes-init-ts-annotated-corpus-file*
+  (merge-pathnames (make-pathname :directory (cons :relative '("Frames\ and\ Propbank" "propbank-annotations"))
+                                  :name "ontonotes-init-ts-annotated-corpus"
+                                  :type #+lispworks "lw.store" #+ccl "ccl.store" #+sbcl "sbcl.store")
+                   *babel-corpora*))
+
+(cl-store:store *ewt-corpus-annotated-with-init-ts* *ewt-init-ts-annotated-corpus-file*)
+(cl-store:store *ontonotes-corpus-annotated-with-init-ts* *ontonotes-init-ts-annotated-corpus-file*)
 |#
 
 
