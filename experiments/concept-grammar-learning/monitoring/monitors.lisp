@@ -4,11 +4,11 @@
 
 ;;;; Printing dots
 (defparameter *repair-to-id-map*
-  '((add-holophrase . "0")
-    (holophrase->item-based . "1")
-    (lexical->item-based . "2")
-    (item-based->lexical . "3")
-    (add-th-links . "4")
+  '((add-holophrase . "h")
+    (holophrase->item-based . "^")
+    (lexical->item-based . "l")
+    (item-based->lexical . "i")
+    (add-th-links . "c")
     (add-th-links-formulation . "5")))
     
 (define-monitor print-a-dot-for-each-interaction
