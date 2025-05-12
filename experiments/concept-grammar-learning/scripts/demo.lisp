@@ -36,6 +36,7 @@
                                           (:th-link-repair-mode-formulation . :path-required)
                                           ;; new configuration
                                           (:update-concepts-p . t)
+                                          (:sort-questions-on-length . t)
                                           )))
 
 (defparameter *experiment* (make-instance 'clevr-learning-experiment :configuration *configuration*))
