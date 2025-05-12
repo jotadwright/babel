@@ -29,7 +29,7 @@
                        :id (make-id 'empty-set))))))
 
 (defun get-associated-concept (ontology category)
-  (gethash (id category) (first (get-data ontology 'all-concepts))))
+  (gethash category (first (get-data ontology 'all-concepts))))
 
 
 

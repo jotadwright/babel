@@ -18,21 +18,26 @@
   
   ;; 2. determine which features weights should get an increase
   ;;    and which should get a decrease.
-  (let* ((discriminating-features (find-discriminating-features concept entity context)))
 
-    ;; when no subset is found, use all weighted-distributions 
-    (when (null discriminating-features)
-      (setf discriminating-features (get-weighted-distributions concept)))
+  (let ((other-objects (remove entity context)))
+    ;; weight updating is based on the other objects
+    ;; if there are no other objects, don't update the weights
+    (when other-objects
+      (let* ((discriminating-features (find-discriminating-features concept entity context)))
 
-    ;; 3. actually update the weight scores
-    (loop for weighted-distribution in (get-weighted-distributions concept)
-          for feature-name = (feature-name weighted-distribution)
-          ;; if part of the contributing weighted-distributions -> reward
-          if (member feature-name discriminating-features)
-            do (update-weight weighted-distribution weight-incf)
-            ;; otherwise -> punish
-          else
-            do (update-weight weighted-distribution weight-decf))))
+        ;; when no subset is found, use all weighted-distributions 
+        (when (null discriminating-features)
+          (setf discriminating-features (get-weighted-distributions concept)))
+
+        ;; 3. actually update the weight scores
+        (loop for weighted-distribution in (get-weighted-distributions concept)
+              for feature-name = (feature-name weighted-distribution)
+              ;; if part of the contributing weighted-distributions -> reward
+              if (member feature-name discriminating-features)
+                do (update-weight weighted-distribution weight-incf)
+                ;; otherwise -> punish
+              else
+                do (update-weight weighted-distribution weight-decf))))))
 
 
 (defmethod find-discriminating-features ((concept weighted-multivariate-distribution-concept) (entity entity) (context list))

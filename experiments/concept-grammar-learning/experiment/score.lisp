@@ -29,16 +29,36 @@
 ;; -----------
 ;; + Hearer +
 ;; -----------
-(defun hearer-lateral-inhibition (agent cxns success)
+(defun hearer-lateral-inhibition (agent cipn cxns success)
   ;; Do the actual alignment. If success, reward
   ;; the applied cxns and punish competitors. If
   ;; no success, punish the applied cxns.
   (notify alignment-started)
   (if success
     (progn
+      ;; update concepts
+      (when (get-configuration (experiment agent) :update-concepts-p)
+        (loop with irl-program = (find-data (goal-test-data cipn) :irl-program)
+              with bindings = (find-data (goal-test-data cipn) :bindings)
+              for predicate in irl-program
+              for predicate-name = (first predicate)
+              for type = (second predicate)
+              for variable = (third predicate)
+              for category = (fourth predicate)
+
+              ;; if its a bind and its a not an attribute-category
+              ;;     it should be either a color-category, shape-category, size-category, material-category
+              when (and (eq predicate-name 'bind) (not (eq type 'cw::attribute-category)))
+                do (multiple-value-bind (target source) (find-associated-filter irl-program bindings variable)
+                     (let ((other-objects (set-difference target source))
+                           (concept (get-associated-concept (ontology agent) category))) 
+                       (loop for topic in target
+                             do (concept-representations::update-concept (meaning concept) topic other-objects))))))
+      ;; reward cxns you used
       (loop with cxn-incf = (get-configuration agent :cxn-incf-score)
             for cxn in cxns do (inc-cxn-score cxn :delta cxn-incf)
             finally (notify cxns-rewarded cxns))
+      ;; punish competitors
       (loop with delta = (get-configuration agent :cxn-inhibit-score) ;; separate inhibit delta!
             with remove-on-lower-bound = (get-configuration agent :remove-cxn-on-lower-bound)
             for competitor in (get-meaning-competitors agent cxns (utterance agent))
@@ -106,3 +126,16 @@
                            when lex-class collect lex-class))
         (type-hierarchy (categorial-network (grammar agent))))
     (values lex-classes type-hierarchy)))
+
+(defun find-associated-filter (irl-program bindings variable)
+  (loop with result = nil
+        for predicate in irl-program
+        when (and (eq (first predicate) 'filter)
+                  (eq (fourth predicate) variable))
+          do (setf result (list
+                           (value (find (second predicate) bindings
+                                        :key #'var))
+                           (value (find (third predicate) bindings
+                                        :key #'var))))
+        finally (return (values (objects (first result))
+                                (objects (second result))))))

@@ -56,7 +56,7 @@
              (let ((failed-repair-cxns (collect-failed-repair-cxns cipn applied-cxns)))
                (when failed-repair-cxns
                  (punish-cxns agent failed-repair-cxns)))))
-      (hearer-lateral-inhibition agent applied-cxns success))))
+      (hearer-lateral-inhibition agent cipn applied-cxns success))))
 
 ;; ----------------------------------------
 ;; + Utils to find specific constructions +

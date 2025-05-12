@@ -20,7 +20,7 @@
                                           ;(:questions-per-challenge . 1000)
                                           (:scenes-per-question . 50)
                                           (:confidence-threshold . 1.1)
-                                          (:tutor-sample-mode . :deterministic) ;; or :random
+                                          (:tutor-sample-mode . :random) ;; or :random
                                           (:cxn-decf-score . 0.4)
                                           (:cxn-inhibit-score . 0.1)
                                           (:primitives . :symbolic)
@@ -30,9 +30,10 @@
                                           (:remove-cxn-on-lower-bound . t)
                                           (:composer-strategy . :standard)
                                           (:th-link-repair-mode-comprehension . :no-path-required)
-                                          (:th-link-repair-mode-formulation . :path-required))))
-
-
+                                          (:th-link-repair-mode-formulation . :path-required)
+                                          ;; new configuration
+                                          (:update-concepts-p . t)
+                                          )))
 
 (defparameter *experiment* (make-instance 'clevr-learning-experiment :configuration *configuration*))
 
@@ -45,10 +46,7 @@
 
   ;; reset population
   (setf (population *experiment*) (list (make-clevr-learning-tutor *experiment*)
-                                        (make-clevr-learning-learner *experiment*)))
-  
-  )
-
+                                        (make-clevr-learning-learner *experiment*))))
 
 #|
   ;; Option 1: run experiment with real-time plotting (using gnuplot)
@@ -91,6 +89,14 @@
 (progn
   (add-element `((h4) "Inventory: " ,(make-html (grammar (second (agents *experiment*))))))
   (add-element (make-html (categorial-network (grammar (second (agents *experiment*)))) :weights? t)))
+
+
+(loop for id being the hash-keys of (first (get-data (ontology (second (agents *experiment*))) 'all-concepts))
+        using (hash-value concept) and idx from 0
+      do (add-element `((h2) ,(format nil "~a: ~a" idx (mkstr id))))
+      do (concept-representations::add-concept-to-interface (meaning concept) :weight-threshold 0.5))
+        
+
 ;(set-up-concepts (second (agents *experiment*)))
 
 (progn

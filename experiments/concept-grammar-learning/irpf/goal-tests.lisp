@@ -19,6 +19,9 @@
     (when (length= all-irl-solutions 1)
       (setf computed-topic (get-target-value irl-program (first all-irl-solutions)))
       (setf success (equal-entity computed-topic ground-truth-topic)))
+
+    (set-data (goal-test-data node) :bindings (first all-irl-solutions))
+    (set-data (goal-test-data node) :irl-program irl-program)
     (set-data (goal-test-data node) :computed-topic computed-topic)
     (set-data (goal-test-data node) :interpretation-success success)
     ;; when not successful, enqueue the node again so it can be diagnosed

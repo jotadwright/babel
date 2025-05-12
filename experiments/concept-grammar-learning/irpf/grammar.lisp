@@ -99,11 +99,11 @@
                                  )
                    :repairs (add-th-links-formulation
                              add-th-links
-                             item-based->lexical
-                             holophrase->item-based--substitution
-                             holophrase->item-based--addition ;; lara hunch: never triggere
-                             holophrase->item-based--deletion
                              lexical->item-based
+                             ;item-based->lexical
+                             ;holophrase->item-based--substitution
+                             ;holophrase->item-based--addition ;; lara hunch: never triggere
+                             ;holophrase->item-based--deletion
                              add-holophrase
                              )
                    :visualization-configurations ((:show-constructional-dependencies . nil)
