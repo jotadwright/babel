@@ -67,12 +67,11 @@
                  :available-primitives (copy-object *clevr-primitives*)))
 
 (defun make-clevr-learning-learner (experiment)
-  (let ((learner
-         (make-instance 'clevr-learning-learner
-                        :role 'learner :experiment experiment
-                        :grammar (empty-cxn-set (get-configuration experiment :hide-type-hierarchy)
-                                                (get-configuration experiment :learner-cxn-supplier))
-                        :ontology (copy-object *clevr-ontology*))))
+  (let ((learner (make-instance 'clevr-learning-learner
+                                :role 'learner :experiment experiment
+                                :grammar (empty-cxn-set (get-configuration experiment :hide-type-hierarchy)
+                                                        (get-configuration experiment :learner-cxn-supplier))
+                                :ontology (copy-object *clevr-ontology*))))
     ;; restore concepts
     (set-up-concepts learner)
     ;; set the agent as the owner of the grammar

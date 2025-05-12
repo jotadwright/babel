@@ -47,25 +47,24 @@
                                          :remove-clevr-filter-permutations)))
             copy))
          ;; make the chunk composer
-         (composer
-          (make-chunk-composer :topic target-category
-                               :meaning partial-program
-                               :initial-chunk initial-chunk
-                               :chunks (composer-chunks agent)
-                               :ontology (ontology agent)
-                               :primitive-inventory composer-primitive-inventory
-                               :configurations `((:max-irl-program-length . ,max-irl-program-length)
-                                                 (:chunk-node-tests ;; limit the length of the irl program
-                                                  :restrict-irl-program-length
-                                                  :check-duplicate ;; no duplicates
-                                                  :clevr-primitive-occurrence-count
-                                                  )
-                                                 ;; default expand mode
-                                                 (:chunk-expansion-modes :combine-program)
-                                                 ;; default node cost
-                                                 (:node-cost-mode . :short-programs-with-few-primitives-and-open-vars)
-                                                 ;; remove unwanted chunk eval results
-                                                 (:chunk-evaluation-goal-tests ,@check-chunk-evaluation-result-modes)))))
+         (composer (make-chunk-composer :topic target-category
+                                        :meaning partial-program
+                                        :initial-chunk initial-chunk
+                                        :chunks (composer-chunks agent)
+                                        :ontology (ontology agent)
+                                        :primitive-inventory composer-primitive-inventory
+                                        :configurations `((:max-irl-program-length . ,max-irl-program-length)
+                                                          (:chunk-node-tests ;; limit the length of the irl program
+                                                           :restrict-irl-program-length
+                                                           :check-duplicate ;; no duplicates
+                                                           :clevr-primitive-occurrence-count
+                                                           )
+                                                          ;; default expand mode
+                                                          (:chunk-expansion-modes :combine-program)
+                                                          ;; default node cost
+                                                          (:node-cost-mode . :short-programs-with-few-primitives-and-open-vars)
+                                                          ;; remove unwanted chunk eval results
+                                                          (:chunk-evaluation-goal-tests ,@check-chunk-evaluation-result-modes)))))
     composer))
 
 (defmethod compose-program ((agent clevr-learning-learner)

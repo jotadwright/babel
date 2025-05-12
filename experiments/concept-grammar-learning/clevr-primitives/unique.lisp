@@ -1,12 +1,8 @@
-;;;; unique.lisp
-
 (in-package :clg)
 
-;; ------------------
-;; UNIQUE primitive ;;
-;; ------------------
-
-;(export '(unique))
+;; --------------------
+;; + UNIQUE primitive +
+;; --------------------
 
 (defprimitive unique ((target-object clevr-object)
                       (source-set clevr-object-set))

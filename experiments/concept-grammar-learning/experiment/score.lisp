@@ -26,9 +26,9 @@
           finally (notify cxns-rewarded cxns))
     (when cxns (punish-cxns agent cxns))))
 
-;; -----------
-;; + Hearer +
-;; -----------
+;; ----------
+;; + Hearer + 
+;; ----------
 (defun hearer-lateral-inhibition (agent cipn cxns success)
   ;; Do the actual alignment. If success, reward
   ;; the applied cxns and punish competitors. If
