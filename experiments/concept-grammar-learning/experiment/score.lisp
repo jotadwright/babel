@@ -50,7 +50,7 @@
               ;;     it should be either a color-category, shape-category, size-category, material-category
               when (and (eq predicate-name 'bind) (not (eq type 'cw::attribute-category)))
                 do (multiple-value-bind (target source) (find-associated-filter irl-program bindings variable)
-                     (let ((other-objects (set-difference target source))
+                     (let ((other-objects (set-difference source target))
                            (concept (get-associated-concept (ontology agent) category))) 
                        (loop for topic in target
                              do (concept-representations::update-concept (meaning concept) topic other-objects))))))
