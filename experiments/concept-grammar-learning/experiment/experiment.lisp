@@ -113,12 +113,6 @@
   (define-configuration-default-value :initial-chunk-score 0.5)
   (define-configuration-default-value :initial-th-link-weight 0.1)
 
-  (define-configuration-default-value :cxn-incf-score 0.1)
-  (define-configuration-default-value :cxn-decf-score 0.4)
-  (define-configuration-default-value :cxn-inhibit-score 0.1)
-  (define-configuration-default-value :chunk-incf-score 0.1)
-  (define-configuration-default-value :chunk-decf-score 0.1)
-
   (define-configuration-default-value :alignment-strategy :lateral-inhibition)
   (define-configuration-default-value :determine-interacting-agents-mode :default)
   (define-configuration-default-value :tutor-sample-mode :deterministic) ; :random or :debug or :smart

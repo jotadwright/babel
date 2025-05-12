@@ -21,8 +21,11 @@
                                           (:scenes-per-question . 50)
                                           (:confidence-threshold . 1.1)
                                           (:tutor-sample-mode . :random) ;; or :random
-                                          (:cxn-decf-score . 0.4)
-                                          (:cxn-inhibit-score . 0.1)
+                                          (:cxn-incf-score . 0.3)
+                                          (:cxn-decf-score . 0.01)
+                                          (:cxn-inhibit-score . 0.01)
+                                          (:chunk-incf-score . 0.1)
+                                          (:chunk-decf-score . 0.1)
                                           (:primitives . :symbolic)
                                           (:learner-cxn-supplier . :hashed-and-scored)
                                           (:alignment-strategy . :lateral-inhibition)
