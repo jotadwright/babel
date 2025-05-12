@@ -11,6 +11,12 @@
   ((source-set category => target-set)
    (let ((computed-set (filter-by-concept source-set category ontology)))
      (bind (target-set 1.0 computed-set))))
+  ((source-set => category target-set)
+   (loop for category2 in (loop for top-cat in (list 'cw::materials 'cw::sizes 'cw::shapes 'cw::colors)
+                                append (get-data ontology top-cat))
+         for computed-set = (filter-by-concept source-set category2 ontology)
+         do (bind (category 1.0 category2)
+                  (target-set 1.0 computed-set))))
   :primitive-inventory *clevr-primitives*)
 
   
