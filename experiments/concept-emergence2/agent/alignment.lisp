@@ -65,8 +65,8 @@
        (adopt agent topic (utterance agent)))
       ;; CASE B: hearer did recognize the word
       (otherwise 
-       (cond ((communicated-successfully agent)
-              ;; CASE A: recognized + communication was successful!
+       (cond (;; CASE A: recognized and success!
+              (communicated-successfully agent)
               (progn
                 ;; 1. entrench applied-cxn
                 (update-score-cxn agent applied-cxn (get-configuration (experiment agent) :entrenchment-incf))
@@ -80,6 +80,8 @@
                       do (update-score-cxn agent other-cxn delta))
                 ;; notify
                 (notify event-align-cxn "Entrench and shift" applied-cxn previous-copy)))
+
+             ;; CASE B: recognized but did not point to correct word
              ((or (get-data agent 'interpreted-topic)
                   (eq (get-data agent 'interpreted-topic-reason) 'more-candidates))
               ;; CASE B: recognized but did not point to correct word
@@ -88,9 +90,8 @@
                 (update-score-cxn agent applied-cxn (get-configuration (experiment agent) :entrenchment-decf))
                 ;; 2. shift concept of applied-cxn to topic
                 (shift-concept agent topic (meaning applied-cxn))
-                (notify event-align-cxn "Punish (due to failure) and shift" applied-cxn previous-copy)))
+             ;; CASE C: recognized but used concept is useless due to defects
              ((eq (get-data agent 'interpreted-topic-reason) 'no-match)
-              ;; CASE C: recognized but used concept is useless due to defects
               (progn
                 (reset-adopt agent applied-cxn topic)
                 (notify event-align-cxn "Concept is useless, shifting" applied-cxn previous-copy))))))))
