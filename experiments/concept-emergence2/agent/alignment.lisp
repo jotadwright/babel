@@ -84,7 +84,6 @@
              ;; CASE B: recognized but did not point to correct word
              ((or (get-data agent 'interpreted-topic)
                   (eq (get-data agent 'interpreted-topic-reason) 'more-candidates))
-              ;; CASE B: recognized but did not point to correct word
               (progn
                 ;; 1. entrench applied-cxn negatively
                 (update-score-cxn agent applied-cxn (get-configuration (experiment agent) :entrenchment-decf))
