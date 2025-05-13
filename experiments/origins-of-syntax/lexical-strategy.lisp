@@ -18,6 +18,7 @@
          (cxn-inventory
           (eval `(def-fcg-constructions ,grammar-name
                    :cxn-inventory ,grammar-name
+                   :hashed ,t
                    :feature-types ((args sequence)
                                    (form set-of-predicates)
                                    (meaning set-of-predicates)
@@ -26,7 +27,11 @@
                    :fcg-configurations ((:production-goal-tests :no-meaning-in-root)
                                         (:parse-goal-tests :no-strings-in-root :single-interpretation-in-world-comprehension)
                                         (:cxn-supplier-mode . :ordered-by-label-nr-of-categories-and-score)
+                                       ;; (:construction-inventory-processor-mode . )
+                                        (:node-expansion-mode . :default)
                                         (:create-initial-structure-mode . :root-with-redundant-meaning)
+                                        (:render-mode . :render-string-meets)
+                                        (:de-render-mode . :de-render-string-meets)
                                         (:production-order lex morph)
                                         (:max-nr-of-nodes . 2500)
                                         )

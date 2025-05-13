@@ -1,4 +1,4 @@
-(in-package :propbank-grammar)
+(in-package :fcg-propbank)
 
 ;;;;;;;;;;;;;;;;;;
 ;;              ;;
@@ -6,25 +6,21 @@
 ;;              ;;
 ;;;;;;;;;;;;;;;;;;
 
-(defmethod de-render ((utterance conll-sentence) (mode (eql :de-render-constituents-dependents))
+(defmethod de-render ((utterance fcg-propbank-sentence) (mode (eql :de-render-constituents-dependents))
                       &key &allow-other-keys)
-  "De-renders a conll-sentence,using its stored initial transient structure."
+  "De-renders an fcg-propbank-sentence, using its stored initial transient structure."
   (initial-transient-structure utterance))
 
 
 (defmethod de-render ((utterance string) (mode (eql :de-render-constituents-dependents))
-                      &key (syntactic-analysis nil) (tokenize? t) (model "en_benepar") &allow-other-keys)
+                      &key (syntactic-analysis nil) (model "en_benepar") &allow-other-keys)
   "De-renders an utterance as a combination of Spacy dependency structure and benepar constituency structure."
   (let* (;; NLP tools relies on cl-json's conversion between lisp dashes and JSON camel casing
          (json:*json-identifier-name-to-lisp* 'json:camel-case-to-lisp)
          (json:*lisp-identifier-name-to-json* 'json:lisp-to-camel-case)
          ;; Retrieve syntactic analysis
-         (syntactic-analysis (cond (syntactic-analysis)
-                                   (tokenize? ;; let the model tokenize
-                                              (nlp-tools:get-penelope-syntactic-analysis utterance :model model))
-                                   ((not tokenize?) ;; tokenize by splitting on whitespace
-                                    (nlp-tools:get-penelope-syntactic-analysis
-                                     (split-sequence:split-sequence #\Space utterance :remove-empty-subseqs t) :model model)))))
+         (syntactic-analysis (or syntactic-analysis
+                                 (nlp-tools:get-penelope-syntactic-analysis utterance :model model))))
     (create-initial-transient-structure-based-on-benepar-analysis syntactic-analysis)))
 
 
@@ -193,7 +189,7 @@
   (let ((phrasal-lemma (intern (upcase (format nil "~a-~a"
                                                (unit-feature-value verb-unit 'lemma)
                                                (unit-feature-value particle-unit 'lemma)))
-                               :propbank-grammar)))
+                               :fcg-propbank)))
   `(,(make-const "PHRASAL-VP")
     (constituents (,(unit-name verb-unit) ,(unit-name particle-unit)))
     (node-type phrase)
@@ -257,7 +253,7 @@
 
 (defun node-type (spacy-benepar-analysis-node)
   "Returns the type of the node, i.e. 'phrase or 'leaf."
-  (intern (upcase (cdr (assoc :node--type spacy-benepar-analysis-node))) :propbank-grammar))
+  (intern (upcase (cdr (assoc :node--type spacy-benepar-analysis-node))) :fcg-propbank))
 
 (defun node-string (spacy-benepar-analysis-node)
   "Returns the string of the node."
@@ -266,7 +262,7 @@
 (defun node-phrase-types (spacy-benepar-analysis-node)
   "Returns the phrase types of the node"
   (mapcar #'(lambda (phrase-type-string)
-              (intern (upcase phrase-type-string) :propbank-grammar))
+              (intern (upcase phrase-type-string) :fcg-propbank))
           (cdr (assoc :phrase--types spacy-benepar-analysis-node))))
 
 (defun node-id (spacy-benepar-analysis-node)
@@ -287,15 +283,15 @@
 
 (defun node-lemma (spacy-benepar-analysis-leaf-node)
   "Returns the lemma of the leaf node"
-  (intern (upcase (cdr (assoc :lemma spacy-benepar-analysis-leaf-node))) :propbank-grammar))
+  (intern (upcase (cdr (assoc :lemma spacy-benepar-analysis-leaf-node))) :fcg-propbank))
 
 (defun node-lex-class (spacy-benepar-analysis-leaf-node)
   "Returns the lex-class of the leaf node"
-  (intern (upcase (cdr (assoc :lex--class spacy-benepar-analysis-leaf-node))) :propbank-grammar))
+  (intern (upcase (cdr (assoc :lex--class spacy-benepar-analysis-leaf-node))) :fcg-propbank))
 
 (defun node-dependency-label (spacy-benepar-analysis-leaf-node)
   "Returns the dependency-label of the leaf node"
-  (intern (upcase (cdr (assoc :dependency--label spacy-benepar-analysis-leaf-node))) :propbank-grammar))
+  (intern (upcase (cdr (assoc :dependency--label spacy-benepar-analysis-leaf-node))) :fcg-propbank))
 
 (defun node-dependency-head (spacy-benepar-analysis-leaf-node)
   "Returns the id of the head of the leaf-node"
