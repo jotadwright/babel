@@ -92,12 +92,14 @@
                                         (:update-th-links . t)
                                         (:hash-mode . :hash-string-meaning-lex-id)
                                         (:initial-categorial-link-weight . 0.1))
-                   :diagnostics (diagnose-failed-interpretation
+                   :diagnostics (;; order important
+                                 diagnose-failed-interpretation
                                  diagnose-partial-utterance
                                  diagnose-unknown-utterance
                                  diagnose-partial-meaning
                                  )
-                   :repairs (add-th-links-formulation
+                   :repairs (;add-th-links-formulation
+                             update-concept
                              add-th-links
                              lexical->item-based
                              item-based->lexical

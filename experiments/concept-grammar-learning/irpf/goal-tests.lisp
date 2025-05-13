@@ -29,5 +29,6 @@
     ;; for more efficient diagnostics
     (unless success
       (push 'fcg::goal-test-failed (statuses node))
-      (set-data (initial-node node) :some-interpretation-failed t))
+      (set-data (initial-node node) :some-interpretation-failed t)
+      (push-data (initial-node node) :potential-update-concept-nodes node))
     success))
