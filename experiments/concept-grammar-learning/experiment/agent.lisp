@@ -193,10 +193,7 @@
                                      :cxn-type lexical
                                      :repair concept-learning ;; TODO
                                      :string ,word
-                                     :meaning ,(internal-symb (hyphenize lex-id))
-                                     ;:lex-id ,(internal-symb (hyphenize lex-id)) 
-                                     ;:clevr-datatype ,(symbol-name type)
-                                     )))
+                                     :meaning ,(internal-symb (hyphenize lex-id)))))
     ;; plural
     (when add-plural
       (eval `(def-fcg-cxn ,cxn-pl-name
@@ -217,8 +214,7 @@
                                        :cxn-type lexical
                                        :repair concept-learning ;; TODO
                                        :string ,(concatenate 'string word "s")
-                                       :meaning ,(internal-symb (hyphenize lex-id))
-                                       ))))
+                                       :meaning ,(internal-symb (hyphenize lex-id))))))))
 
     ;; plural
     #|(when add-plural   
