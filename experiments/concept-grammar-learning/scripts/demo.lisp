@@ -22,8 +22,8 @@
                                           (:confidence-threshold . 1.1)
                                           (:tutor-sample-mode . :random) ;; or :random
                                           (:cxn-incf-score . 0.3)
-                                          (:cxn-decf-score . 0.01)
-                                          (:cxn-inhibit-score . 0.01)
+                                          (:cxn-decf-score . 0.0001)
+                                          (:cxn-inhibit-score . 0.0001)
                                           (:chunk-incf-score . 0.1)
                                           (:chunk-decf-score . 0.1)
                                           (:primitives . :symbolic)
@@ -37,6 +37,7 @@
                                           ;; new configuration
                                           (:update-concepts-p . t)
                                           (:sort-questions-on-length . t)
+                                          (:concept-initialisation . :random-initialised-concepts)
                                           )))
 
 (defparameter *experiment* (make-instance 'clevr-learning-experiment :configuration *configuration*))
