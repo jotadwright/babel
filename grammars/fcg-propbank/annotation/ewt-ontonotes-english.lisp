@@ -13,7 +13,7 @@
 ;; 1. From ConLL files to corpus object (without augmentations)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(load-propbank-annotations 'ewt :ignore-stored-data nil) ;; set to true to rebuilt corpora from scratch
+(load-propbank-annotations 'ewt :ignore-stored-data nil) ;; => Set to true to rebuilt corpora from scratch
 (load-propbank-annotations 'ontonotes :ignore-stored-data nil)
 
 ;; 2. From corpus without augmentations to corpus with syntactic analyses
@@ -50,7 +50,7 @@
   (defparameter *ontonotes-corpus-annotated-with-spacy-benepar* (cl-store:restore *ontonotes-syntactically-annotated-corpus-file*)))
 
 (defparameter *ewt-corpus-annotated-with-init-ts* (add-initial-transient-structures *ewt-corpus-annotated-with-spacy-benepar*))
-(defparameter *ontonotes-corpus-annotated-with-init-ts* (add-initial-transient-structure *ontonotes-corpus-annotated-with-spacy-benepar*))
+(defparameter *ontonotes-corpus-annotated-with-init-ts* (add-initial-transient-structures *ontonotes-corpus-annotated-with-spacy-benepar*))
 
 (defparameter *ewt-init-ts-annotated-corpus-file*
   (merge-pathnames (make-pathname :directory (cons :relative '("Frames\ and\ Propbank" "propbank-annotations"))

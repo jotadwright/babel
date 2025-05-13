@@ -359,12 +359,12 @@
   "Returns a corpus with all spacy benepar sentences being annotated with an initial transient structure."
   (make-instance 'corpus
                  :name (name corpus)
-                 :train-split (dolist (sentence (train-split corpus))
-                                (spacy-benepar-sentence-to-fcg-propbank-sentence sentence))
-                 :dev-split (dolist (sentence (dev-split corpus))
-                              (spacy-benepar-sentence-to-fcg-propbank-sentence sentence))
-                 :test-split (dolist (sentence (test-split corpus))
-                               (spacy-benepar-sentence-to-fcg-propbank-sentence sentence))))
+                 :train-split (loop for sentence in (train-split corpus)
+                                    collect (spacy-benepar-sentence-to-fcg-propbank-sentence sentence))
+                 :dev-split (loop for sentence in (dev-split corpus)
+                                  collect (spacy-benepar-sentence-to-fcg-propbank-sentence sentence))
+                 :test-split (loop for sentence in (test-split corpus)
+                                   collect (spacy-benepar-sentence-to-fcg-propbank-sentence sentence))))
 
 (defun spacy-benepar-sentence-to-fcg-propbank-sentence (spacy-benepar-sentence)
   "Takes a spacy-benepar-sentence. and returns a fcg-propbank-sentence"
