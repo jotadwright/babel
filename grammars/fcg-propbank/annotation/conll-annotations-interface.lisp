@@ -275,10 +275,12 @@
   ((source-file
     :type string
     :accessor source-file
+    :initarg :source-file
     :documentation "The path to the source file.")
    (sentence-id 
     :type number 
     :accessor sentence-id
+    :initarg :sentence-id
     :documentation "The id of the sentence.")
    (tokens 
     :type list 
@@ -288,6 +290,7 @@
    (propbank-frames 
     :type list
     :accessor propbank-frames
+    :initarg :propbank-frames
     :documentation "The propbank frames annotated in the sentence.")
    (sentence-string 
     :type string
@@ -372,4 +375,7 @@
                  :sentence-string (sentence-string spacy-benepar-sentence)
                  :propbank-frames (propbank-frames spacy-benepar-sentence)
                  :language (language spacy-benepar-sentence)
-                 :initial-transient-structure (create-initial-transient-structure-based-on-benepar-analysis (syntactic-analysis spacy-benepar-sentence))))
+                 :initial-transient-structure (create-initial-transient-structure-based-on-benepar-analysis
+                                               (syntactic-analysis spacy-benepar-sentence))))
+
+

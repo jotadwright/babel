@@ -49,7 +49,7 @@
 (unless (boundp '*ontonotes-corpus-annotated-with-spacy-benepar*)
   (defparameter *ontonotes-corpus-annotated-with-spacy-benepar* (cl-store:restore *ontonotes-syntactically-annotated-corpus-file*)))
 
-(defparameter *ewt-corpus-annotated-with-init-ts* (add-initial-transient-structure *ewt-corpus-annotated-with-spacy-benepar*))
+(defparameter *ewt-corpus-annotated-with-init-ts* (add-initial-transient-structures *ewt-corpus-annotated-with-spacy-benepar*))
 (defparameter *ontonotes-corpus-annotated-with-init-ts* (add-initial-transient-structure *ontonotes-corpus-annotated-with-spacy-benepar*))
 
 (defparameter *ewt-init-ts-annotated-corpus-file*

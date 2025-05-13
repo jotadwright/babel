@@ -49,10 +49,12 @@
   ((source-file
     :type string
     :accessor source-file
+    :initarg :source-file
     :documentation "The path to the source file.")
    (sentence-id 
     :type number 
     :accessor sentence-id
+    :initarg :sentence-id
     :documentation "The id of the sentence.")
    (tokens 
     :type list 
@@ -62,15 +64,17 @@
    (propbank-frames 
     :type list
     :accessor propbank-frames
+    :initarg :propbank-frames
     :documentation "The propbank frames annotated in the sentence.")
    (sentence-string 
     :type string
     :accessor sentence-string
+    :initarg :sentence-string
     :documentation "The string that serves as input to syntactic analysis.")
    (initial-transient-structure 
     :type coupled-feature-structure
     :accessor initial-transient-structure
-    :initarg :intial-transient-structure
+    :initarg :initial-transient-structure
     :documentation "Initial transient structure")
    (language 
     :type string
