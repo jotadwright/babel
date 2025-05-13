@@ -44,24 +44,20 @@
         (when (find 'fcg::succeeded (fcg::statuses cipn))
           (let* ((applied-cxns (original-applied-constructions cipn))
                  (lex-cxns (find-all 'lexical applied-cxns :key #'get-cxn-type))
-                 (sorted-lex-cxns
-                  (sort-cxns-by-form-string
-                   lex-cxns (remove-punctuation utterance)))
-                 (lex-classes-lex-cxns
-                  (when sorted-lex-cxns (mapcar #'lex-class-cxn sorted-lex-cxns)))
+                 (sorted-lex-cxns (sort-cxns-by-form-string lex-cxns (remove-punctuation utterance)))
+                 (lex-classes-lex-cxns (when sorted-lex-cxns
+                                         (mapcar #'lex-class-cxn sorted-lex-cxns)))
                  (item-based-cxn (find 'item-based applied-cxns :key #'get-cxn-type))
-                 (lex-classes-item-based-units
-                  (when item-based-cxn (get-all-unit-lex-classes item-based-cxn)))
-                 (th-links
-                  (when (and lex-classes-lex-cxns lex-classes-item-based-units
-                             (length= lex-classes-lex-cxns lex-classes-item-based-units))
-                    (create-new-th-links
-                     lex-classes-lex-cxns
-                     lex-classes-item-based-units
-                     type-hierarchy))))
+                 (lex-classes-item-based-units (when item-based-cxn
+                                                 (get-all-unit-lex-classes item-based-cxn)))
+                 (th-links (when (and lex-classes-lex-cxns lex-classes-item-based-units
+                                      (length= lex-classes-lex-cxns lex-classes-item-based-units))
+                             (create-new-th-links
+                              lex-classes-lex-cxns
+                              lex-classes-item-based-units
+                              type-hierarchy))))
             (when th-links
-              (set-data (current-interaction (experiment agent))
-                        :applied-repair 'add-th-links)
+              (set-data (current-interaction (experiment agent)) :applied-repair 'add-th-links)
               (list applied-cxns nil nil th-links))))))))
 
 
