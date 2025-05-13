@@ -1022,7 +1022,7 @@ element for which the sought value satisfies the test"
 ;; hash-table utilities:
 ;; ----------------------------------------------------------------------------
 
-(export '(copy-hash-table add-hash-table))
+(export '(copy-hash-table add-hash-table hash-keys hash-values))
 
 (defun copy-hash-table (source)
   (declare (type hash-table source))

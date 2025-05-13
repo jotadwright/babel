@@ -95,14 +95,6 @@
         do (setf (gethash (funcall key el) tbl) el)
         finally (return tbl)))
 
-(defun hash-keys (ht)
-  (loop for key being the hash-keys of ht
-        collect key))
-
-(defun hash-values (ht)
-  (loop for value being the hash-values of ht
-        collect value))
-
 (defun load-experiment (store-dir name)
   "Loads and returns the store object in the given directory." 
   (let* ((store-path (merge-pathnames (make-pathname :name name :type "store")
