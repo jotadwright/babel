@@ -37,6 +37,24 @@
     ;; create the concept
     (make-instance 'weighted-multivariate-distribution-concept :representation representation)))
 
+(defmethod create-concept-representation ((feature-names list) (mode (eql :weighted-multivariate-distribution)))
+  "Create a concept with a multivariate distribution representation given a list of feature names.
+
+   The mean values of the concepts are randomly initialised."
+  (let ((representation (loop with weighted-distributions = (make-hash-table :test #'eq)    
+                              for feature-name in feature-names
+                              ;; create a distribution for each feature
+                              for distribution = (make-distribution (random-float))
+                              ;; create a weighted-distribution for each feature
+                              for weighted-distribution = (make-instance 'weighted-distribution
+                                                                         :feature-name feature-name
+                                                                         :distribution distribution)
+                              do (setf (gethash feature-name weighted-distributions) weighted-distribution)
+                              finally (return weighted-distributions))))
+    ;; create the concept
+    (make-instance 'weighted-multivariate-distribution-concept :representation representation)))
+
+
 (defmethod get-weighted-distribution ((weighted-multivariate-distribution-concept weighted-multivariate-distribution-concept)
                                       (feature-name symbol))
   "Getter for a specific weighted distribution given a feature-name"
