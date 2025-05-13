@@ -1,12 +1,8 @@
-;;;; get-context.lisp
-
 (in-package :clg)
 
-;; -----------------------
-;; GET-CONTEXT primitive ;;
-;; -----------------------
-
-;(export '(get-context))
+;; -------------------------
+;; + GET-CONTEXT primitive +
+;; -------------------------
 
 (defprimitive get-context ((context clevr-object-set))
   ;; first case; consistency check
