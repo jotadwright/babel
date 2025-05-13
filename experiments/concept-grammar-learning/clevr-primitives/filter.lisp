@@ -62,18 +62,18 @@
 
 (defun get-competing-attributes (ontology category)
   (cond ;; colors
-        ((member (id category) (list 'cw::blue 'cw::brown 'cw::cyan 'cw::gray 'cw::green 'cw::purple 'cw::red 'cw::yellow) :test #'eq)
+        ((member (id category) (get-data ontology 'clg::color-concept) :test #'eq :key #'id)
          (values (get-data ontology 'clevr-world::colors) (get-data ontology 'clg::color-concept))
          )
         ;; materials
-        ((member (id category) (list 'cw::metal 'cw::rubber) :test #'eq)
+        ((member (id category) (get-data ontology 'clg::material-concept) :test #'eq :key #'id)
          (values (get-data ontology 'clevr-world::materials) (get-data ontology 'clg::material-concept))
          )
         ;; size
-        ((member (id category) (list 'cw::small 'cw::large) :test #'eq)
+        ((member (id category) (get-data ontology 'clg::size-concept) :test #'eq :key #'id)
          (values (get-data ontology 'clevr-world::sizes) (get-data ontology 'clg::size-concept))
          )
         ;; shapes
-        ((member (id category) (list 'cw::cube 'cw::cylinder 'cw::sphere) :test #'eq)
+        ((member (id category) (get-data ontology 'clg::shape-concept) :test #'eq :key #'id)
          (values (get-data ontology 'clevr-world::shapes) (get-data ontology 'clg::shape-concept))
          )))
