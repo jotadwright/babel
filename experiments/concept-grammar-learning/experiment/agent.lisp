@@ -242,5 +242,4 @@
                                        :meaning ,(internal-symb (hyphenize lex-id))
                                      ;:lex-id ,(internal-symb (hyphenize lex-id)) 
                                      ;:clevr-datatype ,(symbol-name type)
-                                       ))))|#))
-
+                                       ))))
