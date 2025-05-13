@@ -18,14 +18,11 @@
   (when (and (eql (direction (cip node)) '<-)
              (failed-interpretation-p node))
     (let* ((agent (find-data (blackboard (construction-inventory node)) :owner))
-           (problem (make-instance 'failed-interpretation-problem))
-           (intention (compose-program agent (topic agent) (utterance agent)
-                                       (get-configuration agent :composer-strategy))))
+           (problem (make-instance 'failed-interpretation-problem)))
       ;; Within the diagnostic, the agent performs intention reading.
       ;; The reconstructed intention is then used to check following
       ;; repairs: holophrase -> item-based (all variants) and
       ;; add-holophrase.
-      (set-data problem :intention intention)
       (set-data problem :owner agent)
       problem)))
 

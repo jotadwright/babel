@@ -22,7 +22,7 @@
   "Repair the unknown utterance problem by making an item-based construction."
   (when (initial-node-p node)
     (let* ((reconstructed-intention (find-data problem :intention)))
-      (if reconstructed-intention
+      (when reconstructed-intention
         (let ((constructions-and-th-links (create-item-based-cxn-substitution problem
                                                                               node
                                                                               reconstructed-intention)))
@@ -37,7 +37,9 @@
                    (node cip-node) &key
                    &allow-other-keys)
   "Repair the failed utterance problem by making an item-based construction."
-  (let* ((reconstructed-intention (find-data problem :intention)))
+  (let* ((agent (find-data (blackboard (construction-inventory node)) :owner))
+         (reconstructed-intention (compose-program agent (topic agent) (utterance agent)
+                                                   (get-configuration agent :composer-strategy))))
     (if reconstructed-intention
       (let ((constructions-and-th-links (create-item-based-cxn-substitution problem
                                                                             node

@@ -21,7 +21,9 @@
   "Repair by making a new item-based construction and lexical cxn"
   (if (find-data problem :intention)
     (when (initial-node-p node)
-      (let* ((reconstructed-intention (find-data problem :intention))
+      (let* ((agent (find-data (blackboard (construction-inventory node)) :owner))
+             (reconstructed-intention (compose-program agent (topic agent) (utterance agent)
+                                                       (get-configuration agent :composer-strategy)))
              (constructions-and-th-links (create-item-based-cxn-deletion problem node reconstructed-intention)))
         (when constructions-and-th-links
           (make-instance 'fcg::cxn-fix

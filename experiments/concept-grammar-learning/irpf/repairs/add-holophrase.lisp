@@ -33,7 +33,10 @@
                    &allow-other-keys)
   "Repair by making a new holophrase, when the utterance
    is partially unknown and all other repairs have failed."
-  (let ((restart-data (create-holophrase-cxn problem node (find-data problem :intention))))
+  (let* ((agent (find-data (blackboard (construction-inventory node)) :owner))
+         (intention (compose-program agent (topic agent) (utterance agent)
+                                     (get-configuration agent :composer-strategy)))
+         (restart-data (create-holophrase-cxn problem node intention)))
     (when restart-data
       (make-instance 'fcg::cxn-fix
                      :repair repair
