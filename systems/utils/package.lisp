@@ -3,5 +3,5 @@
 (in-package :cl-user)
 
 (defpackage :utils
-  (:use :cl-user :common-lisp :test-framework)
+  (:use :cl-user :common-lisp :test-framework :cl-json)
   (:documentation "general utilities package"))

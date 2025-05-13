@@ -1,4 +1,4 @@
-(in-package :geoquery-lsfb)
+(in-package :slp)
 
 (defun dominant-hand-tier? (tier-name)
   "returns t if tier-name refers to a tier

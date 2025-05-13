@@ -11,6 +11,12 @@
 ;;;;;;;;;;;;;;;;
 
 ;; Pointer to propbank annotated corpora
+
+;; Bind *babel-corpora* if not yet bound.
+(unless (boundp '*babel-corpora*)
+  (warn "*babel-corpora* not bound.")
+  (defparameter *babel-corpora* "no-corpus-path-provided"))
+
 (defparameter *ontonotes-annotations-directory* (merge-pathnames "English/propbank-release/data/" *babel-corpora*))
 (defparameter *ewt-annotations-directory* (merge-pathnames "English/propbank-release/data/google/ewt/" *babel-corpora*))
 
@@ -19,12 +25,12 @@
 (defparameter *ewt-annotations* "Ewt annotations will be stored here.")
 
 ;; File where propbank annotations will be stored in binary format
-(defparameter *ontonotes-annotations-storage-file* (merge-pathnames (make-pathname :directory (cons :relative '("propbank-annotations"))
+(defparameter *ontonotes-annotations-storage-file* (merge-pathnames (make-pathname :directory (cons :relative '("Frames\ and\ Propbank" "propbank-annotations"))
                                                                                    :name "ontonotes-annotations"
                                                                                    :type #+lispworks "lw.store" #+ccl "ccl.store" #+sbcl "sbcl.store")
                                                                     *babel-corpora*))
 
-(defparameter *ewt-annotations-storage-file* (merge-pathnames (make-pathname :directory (cons :relative '("propbank-annotations"))
+(defparameter *ewt-annotations-storage-file* (merge-pathnames (make-pathname :directory (cons :relative '("Frames\ and\ Propbank" "propbank-annotations"))
                                                                                    :name "ewt-annotations"
                                                                                    :type #+lispworks "lw.store" #+ccl "ccl.store" #+sbcl "sbcl.store")
                                                                     *babel-corpora*))

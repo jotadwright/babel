@@ -1,4 +1,4 @@
-(in-package :geoquery-lsfb)
+(in-package :slp)
 
 ;;-------------------;;
 ;; Create sign-table ;;

@@ -1,4 +1,4 @@
-(in-package :geoquery-lsfb)
+(in-package :slp)
 
 (defun escape-colons (string)
   "escapes any colons in string by placing \\ in front of them"
