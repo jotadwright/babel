@@ -139,9 +139,12 @@
     ;; add the morph
     ;(add-morph-cxn-for-concept grammar clg-concept form)
     ;; add the lex
-    (loop for synonym in (get-synonyms form)
-          do (add-lex-cxn-for-concept agent grammar clg-concept synonym sem-class category-type :add-plural add-plural))
-    (add-lex-cxn-for-concept agent grammar clg-concept form sem-class category-type :add-plural add-plural)))
+
+    ;; create lexical constructions for the concepts
+    ;(loop for synonym in (get-synonyms form)
+    ;      do (add-lex-cxn-for-concept agent grammar clg-concept synonym sem-class category-type :add-plural add-plural))
+    ;(add-lex-cxn-for-concept agent grammar clg-concept form sem-class category-type :add-plural add-plural)
+    ))
 
 
 (defun get-synonyms (form)
