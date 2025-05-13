@@ -4,7 +4,7 @@
 ;; Method for anti-unifying FCG constructions ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(defmethod anti-unify-origins-of-syntax (pattern source cxn-inventory (mode (eql :fcg-with-type-hierarchy))
+(defmethod anti-unify-origins-of-syntax (pattern source cxn-inventory (mode (eql :fcg-with-categorial-network))
                                &optional (pattern-bindings +no-bindings+)
                                (source-bindings +no-bindings+)
                                &key (cost-params nil))
@@ -47,18 +47,16 @@
             th-links
             '() ;; discarded features
             (get-anti-unification-cost 'equality cost-params pattern source)))
-   ;; Pattern and source connected through type-hierarchy
+   ;; Pattern and source connected through categorial-network
    ((and (symbolp pattern) (symbolp source)
-         (type-hierarchies::node-p (intern (symbol-name pattern) :type-hierarchies)
-                                   (type-hierarchies:get-type-hierarchy cxn-inventory))
-         (type-hierarchies::node-p (intern (symbol-name source) :type-hierarchies)
-                                   (type-hierarchies:get-type-hierarchy cxn-inventory))
-         (type-hierarchies::directed-path-p (intern (symbol-name source) :type-hierarchies)
-                                            (intern (symbol-name pattern) :type-hierarchies)
-                                            (type-hierarchies:get-type-hierarchy cxn-inventory))
-        ; (< (type-hierarchies:link-weight (intern (symbol-name source) :type-hierarchies)
-        ;                                    (intern (symbol-name pattern) :type-hierarchies)
-        ;                                    (type-hierarchies:get-type-hierarchy cxn-inventory)) 1.0)
+         (category-exists-p (intern (symbol-name pattern) :fcg) (categorial-network cxn-inventory))
+         (category-exists-p (intern (symbol-name source) :fcg) (fcg:categorial-network cxn-inventory))
+         (link-exists-p (intern (symbol-name source) :fcg)
+                        (intern (symbol-name pattern) :fcg)
+                        (fcg:categorial-network cxn-inventory))
+        ; (< (fcg:link-weight (intern (symbol-name source) :fcg)
+        ;                                    (intern (symbol-name pattern) :fcg)
+        ;                                    (fcg:categorial-network cxn-inventory)) 1.0)
          )
     (values pattern
             pattern-bindings
@@ -276,7 +274,7 @@
      ;; first of pattern is an atom that is findable in source: return it
      ((and
        (atom (first pattern))
-       (find (first pattern) source :test 'equalp)) ;; TODO find through-type-hierarchy 
+       (find (first pattern) source :test 'equalp)) ;; TODO find through-categorial-network 
       (anti-unify-fcg-set-th (rest pattern) (remove pattern source :test 'equalp)
                           (pushend (first pattern) accumulator)
                           pattern-bindings
@@ -467,6 +465,7 @@
 
 
 (defun pair-units-all-combinations (pattern-units source-units cxn-inventory)
+  (declare (ignore cxn-inventory))
   (let ((pattern-unit-numbers (loop for n from 1 upto (length pattern-units)
                                     collect n))
         (source-length (length source-units)))

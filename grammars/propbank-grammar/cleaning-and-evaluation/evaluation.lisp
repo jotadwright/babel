@@ -6,6 +6,27 @@
 ;;                                                              ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+(defun learn-and-evaluate-sentence (conll-sentence training-configuration)
+  (format t "~%~%~a~%" (sentence-string conll-sentence))
+  (multiple-value-bind (compatible-rolesets incompatible-rolesets)
+      (loop for roleset in (mapcar #'frame-name (propbank-frames conll-sentence))
+            if (spacy-benepar-compatible-annotation conll-sentence roleset)
+              collect roleset into compatible-rolesets
+            else collect roleset into incompatible-rolesets
+              finally (return (values compatible-rolesets incompatible-rolesets)))
+    (format t "Compatible rolesets: ~a ~%" compatible-rolesets)
+    (format t "Incompatible rolesets: ~a ~%" incompatible-rolesets)
+
+    (learn-propbank-grammar (list conll-sentence) :cxn-inventory '*temp* :fcg-configuration training-configuration)
+
+    (loop with all-succeeded = t
+          for (frame-name . result) in (comprehend-and-evaluate (list conll-sentence) *temp* :silent t :timeout nil
+                                                                 :core-roles-only nil :per-frame-evaluation t)
+          if (< (cdr (assoc :f1-score result)) 1.0)
+            do (setf all-succeeded nil)
+               (format t "Evaluation FAILED for roleset ~a!!!~%" frame-name)
+          finally (return all-succeeded))))
+
 (defun comprehend-and-evaluate (list-of-propbank-sentences cxn-inventory &key (timeout 60) (core-roles-only t)
                                                            (selected-rolesets nil) (excluded-rolesets nil)
                                                            (include-word-sense t) (include-timed-out-sentences t)
@@ -28,13 +49,13 @@
                                         :include-word-sense include-word-sense 
                                         :include-timed-out-sentences include-timed-out-sentences
                                         :include-sentences-with-incomplete-role-constituent-mapping include-sentences-with-incomplete-role-constituent-mapping)
-    
         (evaluate-predictions predictions
                               :core-roles-only core-roles-only
                               :selected-rolesets selected-rolesets
                               :excluded-rolesets excluded-rolesets
                               :include-word-sense include-word-sense 
                               :include-timed-out-sentences include-timed-out-sentences
+                              :silent silent
                               :include-sentences-with-incomplete-role-constituent-mapping include-sentences-with-incomplete-role-constituent-mapping)))))
  
 
@@ -49,19 +70,19 @@
                                          :type "store"))))
     (loop for sentence in list-of-propbank-sentences
           for sentence-number from 1
-          do (format t "~%Sentence ~a: ~a" sentence-number (sentence-string sentence))
+          do (unless silent (format t "~%Sentence ~a: ~a" sentence-number (sentence-string sentence)))
           collect (let* ((cipn (second (multiple-value-list (comprehend-and-extract-frames sentence :cxn-inventory cxn-inventory :silent silent :timeout timeout))))
                          (annotation (propbank-frames sentence)))
                     (if (eql cipn 'time-out)
-                      (progn (format t " --> timed out .~%")
+                      (progn (unless silent (format t " --> timed out .~%"))
                         (list sentence annotation 'time-out))
                       (let ((solution (remove-if-not #'frame-with-name (frames (extract-frames (car-resulting-cfs (cipn-car cipn)))))))
-                        (format t " --> done .~%")
+                        (unless silent (format t " --> done .~%"))
                         (list sentence annotation solution))))
           into evaluation
           finally (cl-store:store evaluation output-file))))
 
-(defun evaluate-predictions (predictions &key (core-roles-only t) (selected-rolesets nil) (include-word-sense t) (include-timed-out-sentences t) (excluded-rolesets nil) (include-sentences-with-incomplete-role-constituent-mapping t))
+(defun evaluate-predictions (predictions &key (core-roles-only t) (selected-rolesets nil) (include-word-sense t) (include-timed-out-sentences t) (excluded-rolesets nil) (include-sentences-with-incomplete-role-constituent-mapping t) (silent nil))
   "Computes precision, recall and F1 score for a given list of predictions."
   (loop for (sentence annotation solution) in predictions
         when (and (or include-timed-out-sentences
@@ -150,8 +171,9 @@
                                            (:nr-of-correct-predictions . ,number-of-correct-predictions)
                                            (:nr-of-predictions . ,number-of-grammar-predictions)
                                            (:nr-of-gold-standard-predictions . ,number-of-gold-standard-predictions))))
-                  (format t "~%~%~%############## EVALUATION RESULTS ##############~%")
-                  (format t "~a" evaluation-result)
+                  (unless silent
+                    (format t "~%~%~%############## EVALUATION RESULTS ##############~%")
+                    (format t "~a" evaluation-result))
                   (return evaluation-result))))
 
 
@@ -240,23 +262,32 @@
                                     (length (indices (frame-evoking-element predicted-frame)))
                                     0)))))
 
-    (with-open-file (s "./evaluations-per-frame.csv"
+    #|(with-open-file (s "./evaluations-per-frame.csv"
                        :if-does-not-exist :create
                        :if-exists :supersede
-                       :direction :output)
+                       :direction :output)|#
       (loop for frame-name being the hash-keys of number-of-gold-standard-predictions-per-frame
-            for number-of-correct-predictions = (or (gethash frame-name number-of-correct-predictions-per-frame) 0)
-            for number-of-grammar-predictions = (or (gethash frame-name number-of-grammar-predictions-per-frame) 0)
-            for number-of-gold-standard-predictions = (or (gethash frame-name number-of-gold-standard-predictions-per-frame) 0)
-            do
-              (write-line (format nil "~a,~a,~a,~a,~a,~a,~a %"
+            for number-of-correct-predictions = (or (gethash (upcase frame-name) number-of-correct-predictions-per-frame) 0)
+            for number-of-grammar-predictions = (or (gethash (upcase frame-name) number-of-grammar-predictions-per-frame) 0)
+            for number-of-gold-standard-predictions = (or (gethash (upcase frame-name) number-of-gold-standard-predictions-per-frame) 0)
+            for precision = (compute-precision number-of-correct-predictions number-of-grammar-predictions)
+            for recall = (compute-recall number-of-correct-predictions number-of-gold-standard-predictions)
+            for f1-score = (compute-f1-score number-of-correct-predictions number-of-grammar-predictions number-of-gold-standard-predictions)
+           ;; do
+              #|(write-line (format nil "~a,~a,~a,~a,~a,~a,~a %"
                                   frame-name
-                                  (compute-precision number-of-correct-predictions number-of-grammar-predictions)
-                                  (compute-recall number-of-correct-predictions number-of-gold-standard-predictions)
-                                  (compute-f1-score number-of-correct-predictions number-of-grammar-predictions number-of-gold-standard-predictions)
+                                  precision
+                                  recall
+                                  f1-score
                                   number-of-correct-predictions
                                   number-of-grammar-predictions
-                                  number-of-gold-standard-predictions) s)))))
+                                  number-of-gold-standard-predictions) s)|#
+            collect (cons frame-name `((:precision . ,precision)
+                                       (:recall . ,recall)
+                                       (:f1-score . ,f1-score)
+                                       (:nr-of-correct-predictions . ,number-of-correct-predictions)
+                                       (:nr-of-predictions . ,number-of-grammar-predictions)
+                                       (:nr-of-gold-standard-predictions . ,number-of-gold-standard-predictions))))))
       
   
 (defun correctly-predicted-index-p (index predicted-frame-element predicted-frame gold-frames include-word-sense)

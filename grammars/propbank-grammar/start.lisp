@@ -30,17 +30,30 @@
 
 (defparameter *grammar-storage-path*
   (merge-pathnames (make-pathname :directory (cons :relative '("Frames\ and\ Propbank" "stored-propbank-grammars"))
-                                  :name "ewt-ontonotes-core-roles"
+                                 ;; :name "ewt-ontonotes-core-roles-without-hapaxes"
+                                 :name "ewt-ontonotes-core-roles-new-annotations-without-hapaxes"
                                   :type #+lispworks "lw.store" #+ccl "ccl.store" #+sbcl "sbcl.store")
                    *babel-corpora*))
 
 ;;(defparameter *restored-grammar* (cl-store:restore *grammar-storage-path*))
 
+(loop for cxn in (constructions-list *propbank-ewt-ontonotes-core-roles*)
+      when (< (attr-val cxn :score) 2)
+        do (delete-cxn cxn *propbank-ewt-ontonotes-core-roles*))
 
+(with-open-file (s (merge-pathnames (make-pathname :directory (cons :relative '("Frames\ and\ Propbank" "stored-propbank-grammars"))
+                                  :name "arg-structure-cxns-freqs"
+                                  :type "csv")
+                   *babel-corpora*)
+                   :if-does-not-exist :create
+                   :if-exists :supersede
+                   :direction :output)
+  (loop for arg-structure-cxn in (gethash nil (constructions-hash-table *restored-grammar*))
+        do (format s "~a,~a ~%" (name arg-structure-cxn) (attr-val arg-structure-cxn :score))))
+      
 
 ;; Learning grammars from the annotated data
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 
 (defparameter *training-configuration*
   `((:de-render-mode .  :de-render-constituents-dependents)
@@ -51,7 +64,7 @@
     (:construction-inventory-processor-mode . :heuristic-search)
     (:search-algorithm . :best-first)
     (:heuristic-value-mode . :sum-heuristics-and-parent)
-    (:heuristics :nr-of-applied-cxns :edge-weight :frequency)   ;; Additional heuristics: :prefer-local-bindings :nr-of-units-matched
+    (:heuristics :minimize-path-length)   ;; Additional heuristics: :prefer-local-bindings :nr-of-units-matched
     (:cxn-supplier-mode . :hashed-categorial-network)
     
     (:sort-cxns-before-application . nil)
@@ -62,10 +75,11 @@
     (:replace-when-equivalent . nil)
     (:learning-modes
      :core-roles
-     :argm-leaf
-     :argm-pp
-     :argm-sbar
-     :argm-phrase-with-string)))
+     ;:argm-leaf
+     ;:argm-pp
+     ;:argm-sbar
+     ;:argm-phrase-with-string
+     )))
 
 (defparameter *full-corpus* (append (train-split *ontonotes-annotations*)
                                     (test-split *ontonotes-annotations*)
@@ -74,18 +88,21 @@
                                     (test-split *ewt-annotations*)
                                     (dev-split *ewt-annotations*)))
 
-(defparameter *training-set* (shuffle (append (train-split *ontonotes-annotations*)
-                                              (train-split *ewt-annotations*))))
+(defparameter *training-set* (shuffle (append (dev-split *ewt-annotations*)
+                                              (train-split *ewt-annotations*)
+                                              (test-split *ewt-annotations*))))
 
-(learn-propbank-grammar *training-set*
+(learn-propbank-grammar *full-corpus*
                         :excluded-rolesets '("be.01" "be.02" "be.03"
                                              "do.01" "do.02" "do.04" "do.11" "do.12"
                                              "have.01" "have.02" "have.03" "have.04" "have.05" "have.06" "have.07" "have.08" "have.09" "have.10" "have.11"
                                              "get.03" "get.06" "get.24")
-                        :cxn-inventory '*propbank-ontonotes-ewt-train-corpus-all-roles*
+                        :cxn-inventory '*test*
                         :model "en_benepar"
                         :fcg-configuration *training-configuration*)
 
+(set-configuration *test* :heuristics '(:minimize-path-length))
+(comprehend-and-extract-frames "The child fed the cat" :cxn-inventory *test* :timeout nil)
 
 
 ;; Testing learned grammars
@@ -93,8 +110,10 @@
 
 ;(add-element (make-html *propbank-ontonotes-ewt-train-corpus-all-roles*))
 ;(activate-monitor trace-fcg)
+(comprehend-and-extract-frames "and even the aid workers who 've been through the tsunami struggle to cope here ." :cxn-inventory *propbank-ewt-ontonotes-core-roles*)
 
-(comprehend-and-extract-frames "The child fed the cat for her mother" :cxn-inventory *propbank-ontonotes-ewt-train-corpus-all-roles*)
+(comprehend-and-extract-frames "`` The biggest problem we have is that investors realize , after the fact , that they did n't understand what they were investing in . ''" :cxn-inventory *propbank-ewt-ontonotes-core-roles*)
+(comprehend-and-extract-frames "The child fed the cat for her mother" :cxn-inventory *propbank-ewt-core-roles*)
 
 (comprehend-and-extract-frames "The walls crumbled to the ground." :cxn-inventory *propbank-ontonotes-ewt-train-corpus-all-roles*)
 
@@ -127,7 +146,7 @@
 ;; (delete-have-and-be-cxns *propbank-ontonotes-ewt-train-corpus-all-roles*)
 
 ;; Store the cleaned grammar
-;;(cl-store:store *propbank-ontonotes-ewt-train-corpus-all-roles* *grammar-storage-path*)
+;;(cl-store:store *propbank-ewt-ontonotes-core-roles* *grammar-storage-path*)
 
 
 ;; (Optionally store the ranked cxns for future cleaning)
