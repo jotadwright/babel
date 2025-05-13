@@ -218,28 +218,3 @@
                                        :repair concept-learning ;; TODO
                                        :string ,(concatenate 'string word "s")
                                        :meaning ,(internal-symb (hyphenize lex-id))))))))
-
-    ;; plural
-    #|(when add-plural   
-      (eval `(def-fcg-cxn ,cxn-pl-name
-                          ((,unit-name
-                            (syn-cat (phrase-type lexical)
-                                     (fcg::lex-class ,(intern (symbol-name (make-const word)) :fcg)))
-                            (args (,out-var))
-                            )
-                           <-
-                           (,unit-name
-                            (HASH meaning ((bind shape-category ,out-var ,(internal-symb (hyphenize lex-id)))))
-                            --
-                            (HASH form ((string ,unit-name ,(concatenate 'string word "s"))))
-                            ))
-                          :cxn-inventory ,cxn-inventory
-                          :cxn-set (hashed hashed-lex)
-                          :attributes (:score ,initial-cxn-score
-                                       :cxn-type lexical
-                                       :repair concept-learning ;; TODO
-                                       :string ,word
-                                       :meaning ,(internal-symb (hyphenize lex-id))
-                                     ;:lex-id ,(internal-symb (hyphenize lex-id)) 
-                                     ;:clevr-datatype ,(symbol-name type)
-                                       ))))
