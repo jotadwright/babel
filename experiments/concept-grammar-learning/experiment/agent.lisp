@@ -73,7 +73,7 @@
                                                         (get-configuration experiment :learner-cxn-supplier))
                                 :ontology (copy-object *clevr-ontology*))))
     ;; restore concepts
-    (set-up-concepts learner)
+    (set-up-concepts learner (get-configuration experiment :concept-initialisation))
     ;; set the agent as the owner of the grammar
     (set-data (blackboard (grammar learner)) :owner learner)
     ;; initialise the primitives
@@ -94,46 +94,83 @@
 (defmethod copy-object ((learner clevr-learning-learner))
   (make-instance 'clevr-learning-learner))
 
-(defun random-float (&key (base 10000))
-  (float (/ (random base) base)))
+;;;;;;;;;;;;;;;;;;;;;;
+;; loading concepts
 
-(defun set-up-concepts (agent)
+(defun load-pretrained-concepts ()
+  (cl-store::restore (babel-pathname
+                      :directory `("experiments" 
+                                   "concept-emergence2" 
+                                   "storage"
+                                   "cle4-grammar")
+                      :name (format nil "inventory")
+                      :type "store")))
+
+(defmethod set-up-concepts (agent (mode (eql :pretrained-concepts)))
   (let* ((grammar (grammar agent))
          (ontology (ontology agent))
-         (concepts (cl-store::restore (babel-pathname
-                                       :directory `("experiments" 
-                                                    "concept-emergence2" 
-                                                    "storage"
-                                                    "cle4-grammar")
-                                       :name (format nil "inventory")
-                                       :type "store"))))
-    (loop with new-hash-table = (make-hash-table :test 'eq)
+         (concepts (load-pretrained-concepts)))
+    (loop with table = (make-hash-table :test 'eq)
           for form being the hash-keys of concepts
-            using (hash-value concept)
+            using (hash-value concept) and idx from 0
           do (cond ;; spatials
                    ;((member form '("behind" "front" "left" "right") :test #'equalp)
-                   ; (add-cxn-and-ontology agent 'spatial-concept concept form 'spatial 'spatial-category new-hash-table))
+                   ; (add-cxn-and-ontology agent 'spatial-concept concept form 'spatial 'spatial-category table))
                    ;; colors
                    ((member form '("blue" "brown" "cyan" "gray" "green" "purple" "red" "yellow") :test #'equalp)
-                    (add-cxn-and-ontology agent 'color-concept concept form 'color 'color-category new-hash-table))
+                    (add-cxn-and-ontology agent 'color-concept concept form 'color 'color-category table))
                    ;; materials
                    ((member form '("metal" "rubber") :test #'equalp)
-                    (add-cxn-and-ontology agent 'material-concept concept form 'material 'material-category new-hash-table))
+                    (add-cxn-and-ontology agent 'material-concept concept form 'material 'material-category table))
                    ;; size
                    ((member form '("small" "large") :test #'equalp)
-                    (add-cxn-and-ontology agent 'size-concept concept form 'size 'size-category new-hash-table))
+                    (add-cxn-and-ontology agent 'size-concept concept form 'size 'size-category table))
                    ;; shapes
                    ((member form '("cube" "cylinder" "sphere") :test #'equalp)
-                    (add-cxn-and-ontology agent 'shape-concept concept form 'shape 'shape-category new-hash-table :add-plural t)))
-          finally (push-data ontology 'all-concepts new-hash-table))))
+                    (add-cxn-and-ontology agent 'shape-concept concept form 'shape 'shape-category table :add-plural t)))
+          finally (push-data ontology 'all-concepts table))))
 
-(defun add-cxn-and-ontology (agent attribute-class concept form sem-class category-type new-hash-table &key (add-plural nil))
+(defmethod set-up-concepts (agent (mode (eql :random-initialised-concepts)))
+  (loop with ontology = (ontology agent)
+        with feature-names = (get-feature-names (experiment agent))
+        with table = (make-hash-table :test 'equalp)
+        for idx from 1 to 15 ;; TODO: make configurable
+        for form = (format nil "concept-~a" idx)
+        for concept = (concept-representations::create-concept-representation feature-names :weighted-multivariate-distribution)
+        do (cond ((< idx 8) ;; todo
+                  (add-cxn-and-ontology agent 'color-concept concept form 'color 'color-category table))
+                 ((< idx 10) ;; todo
+                  (add-cxn-and-ontology agent 'material-concept concept form 'material 'material-category table))
+                 ((< idx 12) ;; todo 
+                  (add-cxn-and-ontology agent 'size-concept concept form 'size 'size-category table))
+                 ;; shapes
+                 ((< idx 15) ;; todo
+                  (add-cxn-and-ontology agent 'shape-concept concept form 'shape 'shape-category table :add-plural t)))
+        finally (progn
+                  (push-data ontology 'all-concepts table)
+                  (overwrite-ontology-category-ids ontology))))
+
+;(ontology (second (agents *experiment*)))
+
+(defun overwrite-ontology-category-ids (ontology)
+
+  (loop for getter-categories in (list 'cw::colors 'cw::sizes 'cw::materials 'cw::shapes)
+        for getter-concepts in (list 'color-concept 'size-concept 'material-concept 'shape-concept)
+        for slot-name in (list 'cw::color 'cw::size 'cw::material 'cw::shape)
+        for categories = (get-data ontology getter-categories)
+        for concepts = (get-data ontology getter-concepts)
+        do (loop for category in categories
+                 for concept in concepts
+                 do (setf (id category) (id concept))
+                 do (setf (slot-value category slot-name) (id concept)))))
+
+(defun add-cxn-and-ontology (agent attribute-class concept form sem-class category-type table &key (add-plural nil))
   (let ((grammar (grammar agent))
         (ontology (ontology agent))
         (clg-concept (make-instance attribute-class
                                     :id (intern (upcase form) :clevr-world)
                                     :meaning concept)))
-    (setf (gethash (intern (upcase form) 'clevr-world) new-hash-table) clg-concept)
+    (setf (gethash (intern (upcase form) 'clevr-world) table) clg-concept)
     ;; add it to the ontology of the agent
     (push-data ontology attribute-class clg-concept)
     ;; add the morph
@@ -218,3 +255,13 @@
                                        :repair concept-learning ;; TODO
                                        :string ,(concatenate 'string word "s")
                                        :meaning ,(internal-symb (hyphenize lex-id))))))))
+
+;; utility function
+(defun get-feature-names (experiment)
+  (let* ((world (world experiment))
+         (scene-name (first (utils::hash-keys (scenes world))))
+         (loaded-scene (find-scene-by-name scene-name world))
+         ;; take a random object to get the feature names
+         (object (first (objects loaded-scene)))
+         (feature-names (utils::hash-keys (features object))))
+    feature-names))
