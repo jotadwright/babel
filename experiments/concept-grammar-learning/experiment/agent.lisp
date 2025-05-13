@@ -94,7 +94,8 @@
 (defmethod copy-object ((learner clevr-learning-learner))
   (make-instance 'clevr-learning-learner))
 
-;;;
+(defun random-float (&key (base 10000))
+  (float (/ (random base) base)))
 
 (defun set-up-concepts (agent)
   (let* ((grammar (grammar agent))
