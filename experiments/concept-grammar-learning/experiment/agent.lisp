@@ -76,6 +76,8 @@
     ;(set-up-concepts learner (get-configuration experiment :concept-initialisation))
 
     (set-data (ontology learner) 'concepts (make-hash-table :test #'eq))
+    (set-data (ontology learner) 'max-concept-update-iterations (get-configuration experiment :max-concept-update-iterations))
+    (set-data (ontology learner) 'filter-similarity-threshold (get-configuration experiment :filter-similarity-threshold))
     ;; set the agent as the owner of the grammar
     (set-data (blackboard (grammar learner)) :owner learner)
     ;; initialise the primitives
