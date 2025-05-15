@@ -79,7 +79,7 @@
        ;; notify
        (unless silent (notify chunk-composer-finished solutions composer))
        ;; return the solutions
-       (return solutions)))))
+       (return (solutions composer))))))
 
 
 (defun get-all-solutions (composer &key silent)
