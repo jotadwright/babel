@@ -20,6 +20,27 @@
       (setf computed-topic (get-target-value irl-program (first all-irl-solutions)))
       (setf success (equal-entity computed-topic ground-truth-topic)))
 
+    ;; todo: move to more sensible spot (i.e. in a repair
+    (when success
+      (loop for predicate in irl-program
+            when (equal (first predicate) 'bind)
+              do (let* ((concept-id (fourth predicate))
+                        (candidate-concept (find concept-id
+                                                 (find-data ontology 'candidate-concepts)
+                                                 :test #'eq
+                                                 :key #'id)))
+                   (when candidate-concept
+                     (let ((concept-table (get-data ontology 'concepts)))
+                       (setf (gethash (id candidate-concept) concept-table) candidate-concept))
+                     (remove-data ontology 'candidate-concepts)))))
+              
+    #|(let ((candidate-concept (find (id category) (find-data ontology 'candidate-concepts) :test #'eq :key #'id)))
+        (if candidate-concept
+          ;; case 1: associated concept is candidate, so filter based on that
+          (filter-by-concept-with-threshold source-set candidate-concept ontology)
+          (filter-by-concept-no-threshold source-set category ontology)
+          ))|#
+
     (set-data (goal-test-data node) :bindings (first all-irl-solutions))
     (set-data (goal-test-data node) :irl-program irl-program)
     (set-data (goal-test-data node) :computed-topic computed-topic)

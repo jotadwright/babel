@@ -17,8 +17,13 @@
    (bind (target-num 1.0 (length (objects source-set)))))
 
   ((target-num => source-set)
-   (let ((context (objects (get-data ontology 'clevr-context)))
-         (all-combinations (combinations-of-length target-num)))
+   (let* ((context (objects (get-data ontology 'clevr-context)))
+          (all-combinations (combinations-of-length context target-num)))
+     
+     ;; check copy-object 
+     ;(set-data ontology 'original-concepts (copy-object (get-data ontology 'all-concepts)))
+     ;(set-data ontology 'original-ontology (copy-object ontology))
+
      (loop for objects in all-combinations
            for clevr-set = (make-instance 'clevr-object-set
                                           :objects objects

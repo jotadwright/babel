@@ -114,7 +114,7 @@
 ;; Constructor
 (defmethod make-distribution ((feature-value number))
   "Create a gaussian distribution that will be updated using Welford's online algorithm."
-  (let* ((M2 0.0001) ;; TODO pass as argument with allow-other-keys
+  (let* ((M2 0.5) ;; TODO pass as argument with allow-other-keys
          (nr-of-samples 1)
          (st-dev (sqrt (/ M2 nr-of-samples)))
          (mean feature-value))

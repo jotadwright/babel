@@ -51,7 +51,7 @@
               when (and (eq predicate-name 'bind) (not (eq type 'cw::attribute-category)))
                 do (multiple-value-bind (target source) (find-associated-filter irl-program bindings variable)
                      (let ((other-objects (set-difference source target))
-                           (concept (get-associated-concept (ontology agent) category))) 
+                           (concept (gethash category (get-data (ontology agent) 'concepts))))
                        (loop for topic in target
                              do (concept-representations::update-concept (meaning concept) topic other-objects))))))
       ;; reward cxns you used

@@ -139,7 +139,15 @@
 (defun alist->ht (alist)
   (loop with hash-table = (make-hash-table :test #'eq)
         for (key . value) in alist
-        do (setf (gethash key hash-table) value)
+        when (not (find key
+                        (list :rgb-mean-r
+                              :rgb-mean-g
+                              :rgb-mean-b
+                              :rgb-std-r
+                              :rgb-std-g
+                              :rgb-std-b)))
+                      
+          do (setf (gethash key hash-table) value)
         finally (return hash-table)))
 
 

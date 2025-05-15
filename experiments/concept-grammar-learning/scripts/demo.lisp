@@ -37,8 +37,8 @@
                                           ;; new configuration
                                           (:update-concepts-p . t)
                                           (:sort-questions-on-length . t)
-                                          (:concept-initialisation . :random-initialised-concepts)
-                                          )))
+                                          (:concept-initialisation . :random-initialised-concepts))))
+
 
 (defparameter *experiment* (make-instance 'clevr-learning-experiment :configuration *configuration*))
 
@@ -53,8 +53,7 @@
   (setf (population *experiment*) (list (make-clevr-learning-tutor *experiment*)
                                         (make-clevr-learning-learner *experiment*))))
 
-#|
-  ;; Option 1: run experiment with real-time plotting (using gnuplot)
+;; Option 1: run experiment with real-time plotting (using gnuplot)
 (progn
   ;; reset monitors
   (deactivate-all-monitors)
@@ -63,7 +62,68 @@
   (activate-monitor print-a-dot-for-each-interaction)
   (activate-monitor display-metrics)
 
-  (run-series *experiment* 5000))
+  (run-series *experiment* 100))
+
+(progn
+  (wi::reset)
+  ;; reset monitors
+  (deactivate-all-monitors)
+
+  ;; activate monitors
+  (activate-monitor trace-fcg)
+  (activate-monitor trace-irl)
+  (activate-monitor print-a-dot-for-each-interaction)
+  (activate-monitor trace-interactions-in-wi)
+  ;(activate-monitor trace-tasks-and-processes)
+
+  (run-interaction *experiment*)
+  )
+
+
+;; debugging
+(progn
+  (add-element `((h4) "Inventory: " ,(make-html (grammar (second (agents *experiment*))))))
+  (add-element (make-html (categorial-network (grammar (second (agents *experiment*)))) :weights? t)))
+
+
+(loop for id being the hash-keys of (get-data (ontology (second (agents *experiment*))) 'concepts)
+        using (hash-value concept) and idx from 0
+      do (add-element `((h2) ,(format nil "~a: ~a" idx (mkstr id))))
+      do (concept-representations::add-concept-to-interface (meaning concept) :weight-threshold 0.5))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+;; overwrite ontology
+(set-data (ontology (second (agents *experiment*))) 'all-concepts
+          (copy-object (get-data (ontology (second (agents *experiment*))) 'all-concepts)))
+
+
+
+(gethash (first (hash-keys (first (get-data (ontology (second (agents *experiment*))) 'all-concepts))))
+          (first (get-data (ontology (second (agents *experiment*))) 'all-concepts)))
+ 
+
+#|
 
 ;; Option 2: run experiment with real-time tracing in the web-interface
 (progn
@@ -91,15 +151,7 @@
 ;; partial analysis with those constructions
 ;; compose-program with partial program
 
-(progn
-  (add-element `((h4) "Inventory: " ,(make-html (grammar (second (agents *experiment*))))))
-  (add-element (make-html (categorial-network (grammar (second (agents *experiment*)))) :weights? t)))
 
-
-(loop for id being the hash-keys of (first (get-data (ontology (second (agents *experiment*))) 'all-concepts))
-        using (hash-value concept) and idx from 0
-      do (add-element `((h2) ,(format nil "~a: ~a" idx (mkstr id))))
-      do (concept-representations::add-concept-to-interface (meaning concept) :weight-threshold 0.5))
         
 
 ;(set-up-concepts (second (agents *experiment*)))
@@ -138,3 +190,21 @@
         using (hash-value concept)
       do (add-element `((h2) "Form: " ,form))
       do (concept-representations::add-concept-to-interface concept :weight-threshold 0.1))
+
+
+;; test copy-object
+(setf *scene* (objects (get-data (ontology (second (agents *experiment*))) 'clevr-context)))
+
+(setf *original-concepts-ht* (first (get-data (ontology (second (agents *experiment*))) 'all-concepts)))
+
+(setf *id* (first (hash-keys *concepts*)))
+
+(gethash *id* *original-concepts-ht*)
+
+(setf *copy-concepts-ht* (copy-object (first (get-data (ontology (second (agents *experiment*))) 'all-concepts))))
+
+(concept-representations::add-concept-to-interface (meaning (gethash *id* *original-concepts-ht*)) :weight-threshold 0.5)
+
+(concept-representations::update-concept (meaning (gethash *id* *original-concepts-ht*)) (first *scene*) (rest *scene*))
+
+(concept-representations::add-concept-to-interface (meaning (gethash *id* *copy-concepts-ht*)) :weight-threshold 0.5)

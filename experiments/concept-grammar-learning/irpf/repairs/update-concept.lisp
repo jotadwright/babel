@@ -14,9 +14,11 @@
   ((trigger :initform 'fcg::new-node)))
 
 
-(defun update-concept-and-evaluate-irl-program (irl-program primitive-inventory ontology concepts)
-  (loop for concept in concepts
-        do (concept-representations::update-concept concept entity context))      
+(defun update-concept-and-evaluate-irl-program (irl-program primitive-inventory ontology ground-truth-topic)
+  ;; only works for count primitive
+  (let* ((target-var (irl::get-target-var irl-program))
+         (predicate-with-target-var (find target-var irl-program :key #'second)))
+    (setf (second predicate-with-target-var) ground-truth-topic))
   (evaluate-irl-program irl-program ontology :primitive-inventory primitive-inventory))
 
 (defmethod repair ((repair update-concept)
@@ -36,7 +38,8 @@
                                collect (fourth predicate))
         ;; todo
         for copy-concepts = (copy-object (get-data ontology 'all-concepts))
-        for solution-p = (loop with max-iterations = 100
+        for solution-p = (update-concept-and-evaluate-irl-program irl-program primitive-inventory ontology ground-truth-topic)
+#|      for solution-p = (loop with max-iterations = 100
                                with current-iteration = 0
                                while (< current-iteration max-iterations)
                                for computed-topic = (update-concept-and-evaluate-irl-program irl-program
@@ -47,11 +50,13 @@
                                do (incf current-iteration)
                                if success-p
                                  do (loop-finish)
-                               finally (return t))
+                               finally (return t))|#
         if solution-p
-          do (loop-finish)
+          do (print "we happy")
         else
-          do (setf (get-data ontology 'all-concepts) copy-concepts)))
+          do (print "sad")
+          
+          ))
 
 
         ;; todo

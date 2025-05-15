@@ -78,8 +78,8 @@
     ;; depending on the composer strategy and the success,
     ;; but only when being the hearer (when learner is speaker,
     ;; we dont have access to the utterance)
-    (when (eq (hearer interaction) (learner interaction))
-      (add-past-scene (learner experiment))))
+    #|(when (eq (hearer interaction) (learner interaction))
+      (add-past-scene (learner experiment)))|#)
   ;; check the confidence level and (maybe) transition to the next challenge
   (maybe-increase-level experiment))
 

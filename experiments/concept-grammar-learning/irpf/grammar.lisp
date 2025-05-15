@@ -99,7 +99,7 @@
                                  diagnose-partial-meaning
                                  )
                    :repairs (;add-th-links-formulation
-                             update-concept
+                             ;update-concept
                              add-th-links
                              lexical->item-based
                              item-based->lexical
