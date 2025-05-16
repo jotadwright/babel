@@ -24,10 +24,7 @@
       ;; repairs: holophrase -> item-based (all variants) and
       ;; add-holophrase.
       (let* ((agent (find-data (blackboard (construction-inventory node)) :owner))
-             (problem (make-instance 'unknown-utterance-problem))
-             (intention (compose-program agent (topic agent) (utterance agent)
-                                         (get-configuration agent :composer-strategy))))
-        (set-data problem :intention intention)
+             (problem (make-instance 'unknown-utterance-problem)))
         (set-data problem :owner agent)
         problem))))
 

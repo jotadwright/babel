@@ -220,7 +220,10 @@ div.clevr-scene-table {
   ;; table of objects
   `(((div :class "entity-detail") 
      ,@(loop for object in (objects set)
-             collect (make-html object :expand-initially t)))))
+             collect (make-html object :expand-initially t)))
+    ((div :class "entity-detail") 
+     ,@(loop for sim in (similarities set)
+             collect (make-html sim)))))
 
 (defmethod make-html-for-entity-details ((scene clevr-scene)
                                          &key (width 500)
@@ -268,6 +271,7 @@ div.clevr-scene-table {
              collect (make-html q :expand-initially t)))))
 
 (defmethod make-html-for-entity-details ((category category) &key)
+  (print "hier")
   `(((div :class "entity-details")
      ,(format nil "~a" (category-value category)))))
 

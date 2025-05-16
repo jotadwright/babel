@@ -19,7 +19,11 @@
    (let ((computed-set (filter-by-concept source-set category ontology)))
      (bind (target-set 1.0 computed-set))))
   ;; second case: given source set, compute category and target-set
+  ;; invention case: make all possible combinations of objects in the source-set,
+  ;; for each of those combinations find a concept that filters those successfully (using threshold) + max-iterations
+  ;; if concept is found, make target-set with as score a combination of the iterations that were needed + similarity scores
   ((source-set => category target-set)
+   
    ;; todo: target-set of length 0 case must still be solved
    (loop for combination-length from 1 to (length (objects source-set))
          ;do (format t "~% next iteration: ~a out of ~a" combination-length (length (objects source-set)))
@@ -29,22 +33,26 @@
                                                             :objects target-objects
                                                             :similarities nil)
                     
-                  for candidate-concept = (create-initial-concept-hypothesis ontology source-set candidate-target-set)
+                  for candidate-concept-and-iteration = (multiple-value-list (create-initial-concept-hypothesis ontology source-set candidate-target-set))
+                  for candidate-concept = (first candidate-concept-and-iteration)
+                  for iteration = (second candidate-concept-and-iteration)
+                  for similarity = (sum (second (find candidate-concept (third candidate-concept-and-iteration) :key #'first)))
                   when candidate-concept
                     ;; todo: for target-set -> use similarity score as binding-score + as little as possible updates
                     do (progn
                          (let ((cat (make-instance 'attribute :id (id candidate-concept))))
+                          ; (add-element `((h) ,(format nil "iterations needed for concept: ~a" iteration)))
+                          ; (concept-representations::add-concept-to-interface (meaning candidate-concept) :weight-threshold 0.5)
                            (push-data ontology 'categories cat)
                            (push-data ontology 'candidate-concepts candidate-concept)
                            (bind (category 1.0 cat)
-                                 (target-set 1.0 candidate-target-set)))))))
+                                 (target-set similarity candidate-target-set)))))))
   ;; third case: consistency check
   ((target-set source-set category => )
    (filter-by-concept-updates ontology target-set source-set category)
    )
   
   :primitive-inventory *clevr-primitives*)
-
 
 ;; Utility functions
 
@@ -133,7 +141,7 @@
 (defun create-initial-concept-hypothesis (ontology source-set target-set)
   (loop with clg-concept = (make-instance 'clg-concept :meaning (concept-representations::create-concept-representation (objects target-set) :weighted-multivariate-distribution))
         ;; todo return iterations required as heuristic for target-set binding score
-        with max-iterations = 100
+        with max-iterations = (get-data ontology 'clg::max-concept-update-iterations)
         with current-iteration = 0
         with excluded-objects = (set-difference (objects source-set) (objects target-set))
         with solution = nil
@@ -145,30 +153,30 @@
                                                                          object
                                                                          excluded-objects))
         ;for category = (make-instance 'attribute :id (id concept))
-        for computed-set = (objects (filter-by-concept-with-threshold source-set clg-concept ontology))
-
+        for computed-set = (filter-by-concept-with-threshold source-set clg-concept ontology)
         
         #|when (eq (mod current-iteration 10) 0)
             do (format t "~% [~a] ~a" current-iteration (id concept))|#
         ;; todo: check correctness
-        when (and (equal (length computed-set) (length (objects target-set)))
-                  (length= (set-difference computed-set (objects target-set)) 0))
+        when (and (equal (length (objects computed-set)) (length (objects target-set)))
+                  (length= (set-difference (objects computed-set) (objects target-set)) 0))
           do (progn
                (setf solution clg-concept)
                (loop-finish))
         do (incf current-iteration)
-        finally (return solution)))
+        finally (return (values solution current-iteration (similarities computed-set)))))
       
 (defmethod filter-by-concept-with-threshold ((source-set clevr-object-set)
                                              concept
                                              (ontology blackboard)
                                              &key (threshold 0.5))
   "Filter the set by the given category."
-  (let ((filtered-objects (filter-objects-by-concept ontology concept (objects source-set) threshold)))
+  (let* ((threshold (if (find-data ontology 'filter-similarity-threshold) (find-data ontology 'filter-similarity-threshold) threshold))
+         (filtered-objects (filter-objects-by-concept ontology concept (objects source-set) threshold)))
     (if filtered-objects
       (make-instance 'clevr-object-set
-                     :objects filtered-objects
-                     :similarities nil)
+                     :objects (first filtered-objects)
+                     :similarities (cons (list concept (second filtered-objects)) (similarities source-set)))
       (make-instance 'clevr-object-set
                      :id (make-id 'empty-set)))))
 
@@ -179,7 +187,8 @@
         for similarity = (concept-representations::concept-entity-similarity (meaning concept) entity)
         when (> similarity threshold)
           collect entity into entities
-        finally (return entities)))
+         and  collect similarity into similarities
+        finally (return (list entities similarities))))
           
 
 
