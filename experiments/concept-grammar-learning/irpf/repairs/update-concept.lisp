@@ -37,7 +37,7 @@
                                        (not (equal (second predicate) 'attribute-category)))
                                collect (fourth predicate))
         ;; todo
-        for copy-concepts = (copy-object (get-data ontology 'all-concepts))
+        for copy-concepts = (copy-object (get-data ontology 'concepts))
         for solution-p = (update-concept-and-evaluate-irl-program irl-program primitive-inventory ontology ground-truth-topic)
 #|      for solution-p = (loop with max-iterations = 100
                                with current-iteration = 0
