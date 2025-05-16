@@ -23,56 +23,64 @@
   ;; for each of those combinations find a concept that filters those successfully (using threshold) + max-iterations
   ;; if concept is found, make target-set with as score a combination of the iterations that were needed + similarity scores
   ((source-set => category target-set)
-   
-   ;; todo: target-set of length 0 case must still be solved
-   (loop for combination-length from 1 to (length (objects source-set))
-         ;do (format t "~% next iteration: ~a out of ~a" combination-length (length (objects source-set)))
-         do (loop with all-combinations = (combinations-of-length (objects source-set) combination-length)
-                  for target-objects in all-combinations
-                  for candidate-target-set = (make-instance 'clevr-object-set
-                                                            :objects target-objects
-                                                            :similarities nil)
+
+   (if (get-configuration-from-ontology ontology :pretrained-concepts)
+     ;; CASE 1: using pretrained-concepts
+     (loop for category2 in (loop for top-cat in (list 'cw::materials 'cw::sizes 'cw::shapes 'cw::colors)
+                                  append (get-data ontology top-cat))
+           for computed-set = (filter-by-concept source-set category2 ontology)
+           do (bind (category 1.0 category2)
+                    (target-set 1.0 computed-set)))
+     ;; CASE 2: not using pretrained-concepts, thus inventing
+     (loop for combination-length from 1 to (length (objects source-set))
+           ;; TODO target-set of length 0 case must still be solved
+           do (loop with all-combinations = (combinations-of-length (objects source-set) combination-length)
+                    for target-objects in all-combinations
+                    for candidate-target-set = (make-instance 'clevr-object-set
+                                                              :objects target-objects
+                                                              :similarities nil)
                     
-                  for candidate-concept-and-iteration = (multiple-value-list (create-initial-concept-hypothesis ontology source-set candidate-target-set))
-                  for candidate-concept = (first candidate-concept-and-iteration)
-                  for iteration = (second candidate-concept-and-iteration)
-                  for similarity = (sum (second (find candidate-concept (third candidate-concept-and-iteration) :key #'first)))
-                  when candidate-concept
-                    ;; todo: for target-set -> use similarity score as binding-score + as little as possible updates
-                    do (progn
-                         (let ((cat (make-instance 'attribute :id (id candidate-concept))))
-                          ; (add-element `((h) ,(format nil "iterations needed for concept: ~a" iteration)))
-                          ; (concept-representations::add-concept-to-interface (meaning candidate-concept) :weight-threshold 0.5)
+                    for candidate-concept-and-iteration = (multiple-value-list (create-initial-concept-hypothesis ontology source-set candidate-target-set))
+                    for candidate-concept = (first candidate-concept-and-iteration)
+                    for iteration = (second candidate-concept-and-iteration)
+                    for similarity = (sum (second (find candidate-concept (third candidate-concept-and-iteration) :key #'first)))
+                    when candidate-concept
+                      ;; todo: for target-set -> use similarity score as binding-score + as little as possible updates
+                      do (let ((cat (make-instance 'attribute :id (id candidate-concept))))
                            (push-data ontology 'categories cat)
                            (push-data ontology 'candidate-concepts candidate-concept)
                            (bind (category 1.0 cat)
                                  (target-set similarity candidate-target-set)))))))
   ;; third case: consistency check
   ((target-set source-set category => )
-   (filter-by-concept-updates ontology target-set source-set category)
-   )
+   (when (get-configuration-from-ontology ontology :update-concepts-p)
+     (filter-by-concept-updates ontology target-set source-set category)))
   
   :primitive-inventory *clevr-primitives*)
 
-;; Utility functions
-
-;; -------------------------------------
-;; + case 1: filter (source, category) +
-;; -------------------------------------
+;; -------------------
+;; + GENERAL UTILITY +
+;; -------------------
 (defmethod filter-by-concept ((source-set clevr-object-set)
                               (category category)
                               (ontology blackboard))
   "Filter the set by the given category."
-  (let ((candidate-concept (find (id category) (find-data ontology 'candidate-concepts) :test #'eq :key #'id)))
-    (if candidate-concept
-      ;; case 1: associated concept is candidate, so filter based on that
-      (filter-by-concept-with-threshold source-set candidate-concept ontology)
-      (filter-by-concept-with-threshold source-set
-                                        (gethash (id category) (find-data ontology 'concepts))
-                                        ontology)
-      ;(filter-by-concept-no-threshold source-set category ontology)
-      )))
+  
+  (if (get-configuration-from-ontology ontology :pretrained-concepts)
+    ;; CASE 1: using pretrained-concepts
+    (filter-by-concept-no-threshold source-set category ontology)
+    ;; CASE 2: not using pretrained-concepts, thus inventing
+    (let ((candidate-concept (find (id category) (find-data ontology 'candidate-concepts) :test #'eq :key #'id)))
+      (if candidate-concept
+        ;; case 1: associated concept is candidate, so filter based on that
+        (filter-by-concept-with-threshold source-set candidate-concept ontology)
+        (filter-by-concept-with-threshold source-set
+                                          (gethash (id category) (find-data ontology 'concepts))
+                                          ontology)))))
 
+;; -------------------------------------
+;; + case 1: filter (source, category) +
+;; -------------------------------------
 
 (defmethod filter-by-concept-no-threshold ((source-set clevr-object-set)
                                            category
@@ -100,26 +108,6 @@
         collect (cons (id entity) similarity) into similarities
         finally (return (list entities similarities))))
 
-
-
-(defun get-competing-concepts (ontology category)
-  "Given a category, find the associated concept and its competing concepts.
-
-   For example, given <small>, the function returns (<concept-small> <concept-large>)."
-  (cond ;; colors
-        #|((member (id category) (get-data ontology 'clg::color-concept) :test #'eq :key #'id)
-         (get-data ontology 'clg::color-concept))
-        ;; materials
-        ((member (id category) (get-data ontology 'clg::material-concept) :test #'eq :key #'id)
-         (get-data ontology 'clg::material-concept))
-        ;; size
-        ((member (id category) (get-data ontology 'clg::size-concept) :test #'eq :key #'id)
-         (get-data ontology 'clg::size-concept))|#
-        ;; shapes
-
-        ((gethash (id category) (get-data ontology 'concepts))
-         (hash-values (get-data ontology 'concepts)))))
-
 (defun find-best-concept (concepts entity)
   (loop with best-concept = nil
         with best-similarity = nil
@@ -130,10 +118,6 @@
           do (setf best-concept concept
                    best-similarity similarity)
         finally (return (cons best-concept best-similarity))))
-
-(defun get-associated-concept (ontology category)
-  (gethash category (get-data ontology 'all-concepts)))
-
 
 ;; ---------------------------------------
 ;; + case 2: filter (source) - invention +
@@ -190,47 +174,23 @@
          and  collect similarity into similarities
         finally (return (list entities similarities))))
           
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-;; --------------
-;; + UNUSED!!!! +
-;; --------------
+;; --------------------------------------
+;; + case 3: filter - consistency check +
+;; --------------------------------------
 
 (defun filter-by-concept-updates (ontology target-set source-set category)
-  ;; (add-element `((h2) ,(format nil "-----start filter-----")))
-  ;; (concept-representations::add-concept-to-interface (meaning (get-associated-concept ontology (id category))) :weight-threshold 0.5)
 
-  (format t "~%Going to update a concept to make it filter a particular target set from a source")
+  #|(format t "~%Going to update a concept to make it filter a particular target set from a source")
   (format t "~% Initial concept: ~a" (id category))
   (format t "~% Initial source-set: ~a" (objects source-set))
-  (format t "~% Initial target-set: ~a" (objects target-set))
+  (format t "~% Initial target-set: ~a" (objects target-set))|#
 
   (let* ((concept (get-associated-concept ontology (id category)))
          (target-objects (objects target-set))
          (other-objects (set-difference (objects source-set) (objects target-set))))
-    (format t "~% Initial similarities")
+    #|(format t "~% Initial similarities")|#
     (debug-concept-updates concept target-objects other-objects))
     
-  
   (let* ((original-concepts (copy-object (get-data ontology 'original-concepts)))
          ;;(original-ontology (copy-object  (get-data ontology 'original-ontology)))
          ;; loop and update-concept, until this leads to the correct solution or max-iterations is reached.
@@ -249,12 +209,12 @@
                              do (incf current-iteration)
 
                              ;; debug mode
-                             do (progn
+                             #|do (progn
                                   (format t "~% === Iteration: ~a ===" current-iteration)
                                   (format t "~%  - Resulting target-set: ~a" computed-set)
                                   (format t "~%  - New similarities")
                                   (debug-concept-updates concept target-objects other-objects)
-                                  )
+                                  )|#
 
                              ;; todo equal klopt niet
                              when (and (equal (length computed-set) (length target-objects))
@@ -288,3 +248,6 @@
                                                                        obj))))
 
 
+
+(defun get-configuration-from-ontology (ontology key)
+  (get-configuration (get-data ontology 'owner) key))

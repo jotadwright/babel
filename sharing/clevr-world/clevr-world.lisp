@@ -120,7 +120,7 @@
                                             (loop for id in list-of-ids
                                                   collect (rest (assoc id id-dict))))))
          (description (alist->ht (rest (assoc :description s-expr))))
-         (features (alist->ht (rest (assoc :attributes s-expr)))))
+         (features (alist->ht (rest (assoc :features s-expr)))))
     (make-instance 'clevr-object
                    :id (cdr id-dict-entry)
                    ;:shape (key->symbol s-expr :shape)

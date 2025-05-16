@@ -50,7 +50,7 @@
                         :replace t)
     clevr-grammar))
 
-(defun empty-cxn-set (hide-type-hierarchy cxn-supplier)
+(defun empty-cxn-set (hide-type-hierarchy cxn-supplier diagnostics repairs)
   (let* ((grammar-name (make-const "clevr-learning-grammar"))
          (hashingp (member cxn-supplier
                            '(:hashed-and-scored
@@ -92,22 +92,8 @@
                                         (:update-th-links . t)
                                         (:hash-mode . :hash-string-meaning-lex-id)
                                         (:initial-categorial-link-weight . 0.1))
-                   :diagnostics (;; order important
-                                 diagnose-failed-interpretation
-                                 diagnose-partial-utterance
-                                 diagnose-unknown-utterance
-                                 diagnose-partial-meaning
-                                 )
-                   :repairs (;add-th-links-formulation
-                             ;update-concept
-                             add-th-links
-                             lexical->item-based
-                             item-based->lexical
-                             holophrase->item-based--substitution
-                             holophrase->item-based--addition ;; lara hunch: never triggere
-                             holophrase->item-based--deletion
-                             add-holophrase
-                             )
+                   :diagnostics ,diagnostics
+                   :repairs ,repairs
                    :visualization-configurations ((:show-constructional-dependencies . nil)
                                                   (:show-categorial-network . ,(not hide-type-hierarchy))
                                                   (:hide-attributes . t))))))

@@ -13,9 +13,8 @@
 
 ;; Finding the data
 
-
-(defparameter *configuration* (make-configuration
-                               :entries '((:determine-interacting-agents-mode . :tutor-learner)
+(defparameter *configuration* (utils::make-configuration
+                               :entries `((:determine-interacting-agents-mode . :tutor-learner)
                                           (:question-sample-mode . :all)
                                           ;(:questions-per-challenge . 1000)
                                           (:scenes-per-question . 50)
@@ -35,10 +34,31 @@
                                           (:th-link-repair-mode-comprehension . :no-path-required)
                                           (:th-link-repair-mode-formulation . :path-required)
                                           ;; new configuration
-                                          (:update-concepts-p . t)
+                                          
                                           (:sort-questions-on-length . t)
-                                          (:concept-initialisation . :random-initialised-concepts))))
+                                          (:update-concepts-p . nil)
+                                          
+                                          (:pretrained-concepts . t)
+                                          (:pretrained-concepts-fname . "inventory-simulated")
+                                          (:diagnostics ;; order important
+                                                        diagnose-failed-interpretation
+                                                        diagnose-partial-utterance
+                                                        diagnose-unknown-utterance
+                                                        diagnose-partial-meaning
+                                                        )
+                                          (:repairs 
+                                                    ;add-th-links-formulation
+                                                    ;update-concept
+                                                    add-th-links
+                                                    lexical->item-based
+                                                    item-based->lexical
+                                                    holophrase->item-based--substitution
+                                                    holophrase->item-based--addition
+                                                    holophrase->item-based--deletion
+                                                    add-holophrase
+                                                    ))))
 
+;; (ontology (second (agents *experiment*)))
 
 (defparameter *experiment* (make-instance 'clevr-learning-experiment :configuration *configuration*))
 
@@ -62,7 +82,7 @@
   (activate-monitor print-a-dot-for-each-interaction)
   (activate-monitor display-metrics)
 
-  (run-series *experiment* 100))
+  (run-series *experiment* 5000))
 
 (progn
   (wi::reset)

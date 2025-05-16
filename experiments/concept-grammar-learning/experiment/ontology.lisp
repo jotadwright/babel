@@ -31,7 +31,7 @@
 ;; old stuff
 
 (defparameter *challenge-level-primitive-dict*
-  '((1 count! exist filter get-context unique) ;; TODO???
+  '((1 count! exist filter get-context query unique)
     (2 count! exist filter get-context query unique relate same)
     (3 count! exist filter get-context query unique relate same
        equal? intersect union! equal-integer less-than greater-than)))
