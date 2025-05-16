@@ -37,7 +37,7 @@
           ;;  1. entrench applied-cxn
           (update-score-cxn agent applied-cxn (get-configuration (experiment agent) :entrenchment-incf))
           ;;  2. shift concept of applied-cxn to topic
-          (shift-concept agent topic (meaning applied-cxn))
+          (shift-concept agent topic (meaning applied-cxn) (get-configuration (experiment agent) :shift-weights-strategy))
           ;;  3. punish competing similar cxns TODO: punishment is based on shifted concept
           (loop for other-cxn in (find-data agent 'meaning-competitors)
                 for similarity = (similar-concepts agent (meaning applied-cxn) (meaning other-cxn))
@@ -71,13 +71,23 @@
                 ;; 1. entrench applied-cxn
                 (update-score-cxn agent applied-cxn (get-configuration (experiment agent) :entrenchment-incf))
                 ;; 2. shift concept of applied-cxn to topic
-                (shift-concept agent topic (meaning applied-cxn))
+                (shift-concept agent topic (meaning applied-cxn) (get-configuration (experiment agent) :shift-weights-strategy))
                 ;; 3. find and punish meaning competitors TODO: punishment is based on shifted concept
                 (conceptualise agent)
                 (loop for other-cxn in (find-data agent 'meaning-competitors)
                       for similarity = (similar-concepts agent (meaning applied-cxn) (meaning other-cxn))
                       for delta = (* similarity (get-configuration (experiment agent) :entrenchment-li))
                       do (update-score-cxn agent other-cxn delta))
+                ;; update counts
+                (let* ((counts (gethash (form applied-cxn) *success-per-concept*)))
+                  (if counts
+                    (progn
+                      (incf (car counts))
+                      (incf (cdr counts)))
+                    (progn
+                      (setf counts (cons 1 1)))
+                    )
+                  (setf (gethash (form applied-cxn) *success-per-concept*) counts))
                 ;; notify
                 (notify event-align-cxn "Entrench and shift" applied-cxn previous-copy)))
 
@@ -88,7 +98,18 @@
                 ;; 1. entrench applied-cxn negatively
                 (update-score-cxn agent applied-cxn (get-configuration (experiment agent) :entrenchment-decf))
                 ;; 2. shift concept of applied-cxn to topic
-                (shift-concept agent topic (meaning applied-cxn))
+                (shift-concept agent topic (meaning applied-cxn) (get-configuration (experiment agent) :shift-weights-strategy))
+                ;; notify
+                (notify event-align-cxn "Punish (due to failure) and shift" applied-cxn previous-copy)
+                ;; update counts
+                (let* ((counts (gethash (form applied-cxn) *success-per-concept*)))
+                  (if counts
+                    (progn
+                      (incf (cdr counts)))
+                    (progn
+                      (setf counts (cons 0 1))))
+                  (setf (gethash (form applied-cxn) *success-per-concept*) counts))))
+             
              ;; CASE C: recognized but used concept is useless due to defects
              ((eq (get-data agent 'interpreted-topic-reason) 'no-match)
               (progn

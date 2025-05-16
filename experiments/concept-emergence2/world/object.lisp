@@ -57,7 +57,7 @@
 (defmethod data->cle-object (data feature-set categorical-features)
   "Create an instance of cle-object from an hash-table."
   (let* ((description (gethash :description data))
-         (features (gethash :attributes data)) ;; TODO, attributes or features depending on dataset
+         (features (gethash :features data)) ;; TODO, attributes or features depending on dataset
          ;; convert categorical data (strings) to symbols for efficient comparisons
          (data (convert-object-strings-to-symbols features categorical-features))
          ;; filter the data on only the available feature-set
@@ -103,12 +103,12 @@
 
 (defmethod print-object ((cle-object cle-object) stream)
   (pprint-logical-block (stream nil)
-    (format stream "<~a:~
+    #|(format stream "<~a:~
                         ~:_ attributes: ~{~,2f~^, ~}"
             (id cle-object)
             (sort (loop for channel being the hash-keys of (attributes cle-object)
                           using (hash-value value)
                         collect (cons channel value))
                   (lambda (x y) (string< (symbol-name x) (symbol-name y)))
-                  :key #'car))
+                  :key #'car))|#
     (format stream ">")))

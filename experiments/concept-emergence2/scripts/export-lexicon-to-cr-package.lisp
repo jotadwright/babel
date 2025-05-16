@@ -66,6 +66,7 @@
                 (:M2 . 0.001) ;; float, default initialisation for gaussian distributions
                 ;; prototype weight inits
                 (:weight-update-strategy . :j-interpolation) ;; :standard or :j-interpolation
+                (:shift-weights-strategy . :shift-weights-by-single-dimension)
                 (:initial-weight . 0) ;; default weight
                 (:weight-incf . 1)    ;; :standard uses floats, j-interpolation uses int
                 (:weight-decf . -1)   ;; :standard uses floats, j-interpolation uses int
@@ -178,7 +179,7 @@
                              "concept-emergence2" 
                              "storage"
                              "cle4-grammar")
-                :name (format nil "inventory")
+                :name (format nil "inventory-simulated")
                 :type "store"))
 
 
