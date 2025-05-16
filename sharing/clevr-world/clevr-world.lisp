@@ -11,14 +11,14 @@
 
 (export '(*clevr-data-path* reset-clevr-data-path))
 
-(defparameter *clevr-data-path*
-  (merge-pathnames (make-pathname :directory '(:relative "CLEVR-v1.0"))
-                   cl-user:*babel-corpora*)
+(defparameter *clevr-data-path* nil
+  #|(merge-pathnames (make-pathname :directory '(:relative "concept-emergence2" "split-by-scenes"))
+                   cl-user:*babel-corpora*)|#
   "The root directory of the clevr data.")
 
-(defun reset-clevr-data-path ()
+(defun reset-clevr-data-path (clevr-variant)
   (setf *clevr-data-path*
-        (merge-pathnames (make-pathname :directory '(:relative "CLEVR-v1.0"))
+        (merge-pathnames (make-pathname :directory `(:relative "concept-emergence2" "split-by-scenes" ,(format nil "clevr-~a" clevr-variant)))
                          cl-user:*babel-corpora*)))
 
 ;; ################################

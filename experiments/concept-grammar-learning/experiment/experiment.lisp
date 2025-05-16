@@ -16,6 +16,8 @@
   (:documentation "The CLEVR learning experiment"))
 
 (defmethod initialize-instance :after ((experiment clevr-learning-experiment) &key)
+  ;; set data path
+  (reset-clevr-data-path (get-configuration experiment :data-source))
   ;; set the world of the experiment
   (setf (world experiment) (make-instance 'clevr-world
                                           :data-sets (get-configuration experiment :clevr-world-data-sets)

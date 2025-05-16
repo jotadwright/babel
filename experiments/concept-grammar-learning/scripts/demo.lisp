@@ -34,13 +34,14 @@
                                           (:th-link-repair-mode-comprehension . :no-path-required)
                                           (:th-link-repair-mode-formulation . :path-required)
                                           ;; new configuration
-                                          
                                           (:sort-questions-on-length . t)
-                                          (:update-concepts-p . nil)
                                           
+                                          (:update-concepts-p . nil)
                                           (:pretrained-concepts . t)
-                                          (:pretrained-concepts-fname . "inventory-simulated")
-                                          (:diagnostics ;; order important
+                                          (:data-source . "simulated") ;; "simulated" or "extracted"
+
+                                          ;; diagnostics and repairs (order is important!)
+                                          (:diagnostics 
                                                         diagnose-failed-interpretation
                                                         diagnose-partial-utterance
                                                         diagnose-unknown-utterance

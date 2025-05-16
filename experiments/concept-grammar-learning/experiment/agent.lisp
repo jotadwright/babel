@@ -119,7 +119,7 @@
                                    "concept-emergence2" 
                                    "storage"
                                    "cle4-grammar")
-                      :name (format nil (get-configuration agent :pretrained-concepts-fname))
+                      :name (format nil "inventory-~a" (get-configuration agent :data-source))
                       :type "store")))
 
 (defmethod set-up-concepts (agent)
@@ -160,7 +160,6 @@
       (set-data ontology attribute-class (make-hash-table :test #'eq)))
     ;; add the concept to its attribute class table
     (setf (gethash (id clg-concept) (get-data ontology attribute-class)) clg-concept)
-
     ;; create lexical constructions for the concepts
     (loop for synonym in (get-synonyms form)
           do (add-lex-cxn-for-concept agent grammar clg-concept synonym sem-class category-type :add-plural add-plural))
