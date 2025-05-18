@@ -4,20 +4,22 @@
 ;; binding definition:
 ;; ----------------------------------------------------------------------------
 
-(export '(binding var score value available-at))
+(export '(binding var score value available-at unbound))
 
 (defclass binding ()
   ((variable :accessor var :initarg :var)
    (score :accessor score :initarg :score :initform nil)
-   (value :accessor value :initarg :value :initform nil)
+   (value :accessor value :initarg :value)
    (available-at :accessor available-at :initarg :available-at :initform nil)))
 
 
 (defmethod print-object ((binding binding) stream)
   (format stream "<binding: ~a ~a (~a)~a>"
           (var binding)
+          (if (slot-boundp binding 'value)
+            (value binding)
+            'unbound)
           (score binding)
-          (value binding)
           (if (available-at binding)
             (format nil " [~a]" (available-at binding))
             "")))
@@ -35,30 +37,25 @@
                  :score 1.0 :value value
                  :available-at available-at))
 
-(defmethod evaluate-bind-statement (class var value available-at
-                                    ontology &key (assert-exists t))
+(defmethod evaluate-bind-statement (class var value available-at ontology
+                                          &key &allow-other-keys)
   "Evaluates a bind statement by searching for values in the
    ontology or by binding the value in the bind statement."
   (declare (ignore class))
-  (let ((entity (find-entity-by-id ontology value :type class)))
-    (cond (entity (progn (assert (typep entity class))
-                    (make-instance 'binding :var var
-                                   :score 1.0 :value entity
-                                   :available-at available-at)))
-          (assert-exists (error "Could not find ~a in ontology." 
-                                value))
-          (t nil))))
+  (let ((entity (if (and (subtypep class 'entity) (symbolp value))
+                  (find-entity-by-id ontology value :type class)
+                  value)))
+    (assert (typep entity class))  ;; this is already checked by check-irl-program
+    (make-instance 'binding :var var
+                   :score 1.0 :value entity
+                   :available-at available-at)))
 
 
 (defun evaluate-bind-statements (bind-statements ontology)
   "Evaluates a set of bind statements by searching for values in the
    ontology or by binding the value in the bind statement."
-  (loop for bind-statement in bind-statements
-        collect (evaluate-bind-statement (second bind-statement)
-                                         (third bind-statement)
-                                         (fourth bind-statement)
-                                         (fifth bind-statement)
-                                         ontology)))
+  (loop for (bind class var value . available-at) in bind-statements
+        collect (evaluate-bind-statement class var value (first available-at) ontology)))
 
 
 ;; #############################################
@@ -96,6 +93,8 @@
    ((and (variable-p (first b)) (length= 2 b))
     (make-instance 'binding :var (first b)
                    :score 1.0 :value (second b)))
+   ((and (variable-p (first b)) (length= 1 b))
+    (make-instance 'binding :var (first b)))
    (t (error "could not turn ~a into binding(s)" b))))
 
 
@@ -125,4 +124,6 @@
   "returns value and score for the variable"
   (assert (variable-p var))
   (let ((b (find var bindings :key #'var)))
-    (when b (values (value b) (score b)))))
+    (when b
+      (values (if (slot-boundp b 'value) (value b) 'unbound)
+              (score b)))))

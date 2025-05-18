@@ -37,13 +37,13 @@
           (thing-baked-available-at (+ (max (kitchen-time kitchen-state-in)
                                             (available-at (find (id thing-to-bake) binding-objects
                                                                   :key #'(lambda (binding-object)
-                                                                           (and (value binding-object)
+                                                                           (and (slot-boundp binding-object 'value)
                                                                                 (id (value binding-object)))))))
                                        (* (value time-to-bake-quantity) 60)))
           (kitchen-state-available-at (+ (max (kitchen-time kitchen-state-in)
                                             (available-at (find (id thing-to-bake) binding-objects
                                                                   :key #'(lambda (binding-object)
-                                                                           (and (value binding-object)
+                                                                           (and (slot-boundp binding-object 'value)
                                                                                 (id (value binding-object)))))))
                                          30)))
 
@@ -78,17 +78,17 @@
           (thing-baked-available-at (+ (max (kitchen-time kitchen-state-in)
                                             (available-at (find (id thing-to-bake) binding-objects
                                                                   :key #'(lambda (binding-object)
-                                                                           (and (value binding-object)
+                                                                           (and (slot-boundp binding-object 'value)
                                                                                 (id (value binding-object))))))
                                             (available-at (find (id oven-to-bake-in) binding-objects
                                                                   :key #'(lambda (binding-object)
-                                                                           (and (value binding-object)
+                                                                           (and (slot-boundp binding-object 'value)
                                                                                 (id (value binding-object)))))))
                                        (* (value time-to-bake-quantity) 60)))
           (kitchen-state-available-at (+ (max (kitchen-time kitchen-state-in)
                                               (available-at (find (id thing-to-bake) binding-objects
                                                                   :key #'(lambda (binding-object)
-                                                                           (and (value binding-object)
+                                                                           (and (slot-boundp binding-object 'value)
                                                                                 (id (value binding-object)))))))
                                          30)))
 
@@ -122,17 +122,17 @@
           (thing-baked-available-at (+ (max (kitchen-time kitchen-state-in)
                                             (available-at (find (id thing-to-bake) binding-objects
                                                                 :key #'(lambda (binding-object)
-                                                                         (and (value binding-object)
+                                                                         (and (slot-boundp binding-object 'value)
                                                                               (id (value binding-object))))))
                                             (available-at (find (id oven-to-bake-in) binding-objects
                                                                 :key #'(lambda (binding-object)
-                                                                         (and (value binding-object)
+                                                                         (and (slot-boundp binding-object 'value)
                                                                               (id (value binding-object)))))))
                                        (* (value time-to-bake-quantity) 60)))
           (kitchen-state-available-at (+ (max (kitchen-time kitchen-state-in)
                                             (available-at (find (id thing-to-bake) binding-objects
                                                                   :key #'(lambda (binding-object)
-                                                                           (and (value binding-object)
+                                                                           (and (slot-boundp binding-object 'value)
                                                                                 (id (value binding-object)))))))
                                          30)))
 
@@ -166,7 +166,7 @@
           (kitchen-state-available-at (+ 60 (max (kitchen-time kitchen-state-in)
                                                 (available-at (find (id container-with-ingredients) binding-objects
                                                                      :key #'(lambda (binding-object)
-                                                                              (and (value binding-object)
+                                                                              (and (slot-boundp binding-object 'value)
                                                                                    (id (value binding-object)))))))))
           (container-available-at kitchen-state-available-at))
 
@@ -200,7 +200,7 @@
           (kitchen-state-available-at (+ 60 (max (kitchen-time kitchen-state-in)
                                                 (available-at (find (id container-with-ingredients) binding-objects
                                                                      :key #'(lambda (binding-object)
-                                                                              (and (value binding-object)
+                                                                              (and (slot-boundp binding-object 'value)
                                                                                    (id (value binding-object)))))))))
           (container-available-at kitchen-state-available-at))
 
@@ -237,7 +237,7 @@
           (thing-boiled-available-at (+ (max (kitchen-time kitchen-state-in)
                                              (available-at (find (id thing-to-boil) binding-objects
                                                                  :key #'(lambda (binding-object)
-                                                                          (and (value binding-object)
+                                                                          (and (slot-boundp binding-object 'value)
                                                                                (id (value binding-object)))))))
                                        (* (value time-to-boil-quantity)
                                           (if (eq time-to-boil-unit 'hour)
@@ -246,7 +246,7 @@
           (kitchen-state-available-at (+ (max (kitchen-time kitchen-state-in)
                                             (available-at (find (id thing-to-boil) binding-objects
                                                                   :key #'(lambda (binding-object)
-                                                                           (and (value binding-object)
+                                                                           (and (slot-boundp binding-object 'value)
                                                                                 (id (value binding-object)))))))
                                          30)))
 
@@ -300,7 +300,7 @@
           (thing-boiled-available-at (+ (max (kitchen-time kitchen-state-in)
                                              (available-at (find (id thing-to-boil) binding-objects
                                                                  :key #'(lambda (binding-object)
-                                                                          (and (value binding-object)
+                                                                          (and (slot-boundp binding-object 'value)
                                                                                (id (value binding-object)))))))
                                         (* (value time-to-boil-quantity)
                                            (if (eq time-to-boil-unit 'hour)
@@ -309,7 +309,7 @@
           (kitchen-state-available-at (+ (max (kitchen-time kitchen-state-in)
                                             (available-at (find (id thing-to-boil) binding-objects
                                                                   :key #'(lambda (binding-object)
-                                                                           (and (value binding-object)
+                                                                           (and (slot-boundp binding-object 'value)
                                                                                 (id (value binding-object)))))))
                                          30)))
 
@@ -363,7 +363,7 @@
           (thing-boiled-available-at (+ (max (kitchen-time kitchen-state-in)
                                              (available-at (find (id thing-to-boil) binding-objects
                                                                  :key #'(lambda (binding-object)
-                                                                          (and (value binding-object)
+                                                                          (and (slot-boundp binding-object 'value)
                                                                                (id (value binding-object)))))))
                                        (* (value new-time-to-boil-quantity)
                                           (if (eq new-time-to-boil-unit 'hour)
@@ -372,7 +372,7 @@
           (kitchen-state-available-at (+ (max (kitchen-time kitchen-state-in)
                                             (available-at (find (id thing-to-boil) binding-objects
                                                                   :key #'(lambda (binding-object)
-                                                                           (and (value binding-object)
+                                                                           (and (slot-boundp binding-object 'value)
                                                                                 (id (value binding-object)))))))
                                          30)))
 
@@ -430,7 +430,7 @@
           (thing-boiled-available-at (+ (max (kitchen-time kitchen-state-in)
                                              (available-at (find (id thing-to-boil) binding-objects
                                                                  :key #'(lambda (binding-object)
-                                                                          (and (value binding-object)
+                                                                          (and (slot-boundp binding-object 'value)
                                                                                (id (value binding-object)))))))
                                        (* (value new-time-to-boil-quantity)
                                           (if (eq new-time-to-boil-unit 'hour)
@@ -439,7 +439,7 @@
           (kitchen-state-available-at (+ (max (kitchen-time kitchen-state-in)
                                             (available-at (find (id thing-to-boil) binding-objects
                                                                   :key #'(lambda (binding-object)
-                                                                           (and (value binding-object)
+                                                                           (and (slot-boundp binding-object 'value)
                                                                                 (id (value binding-object)))))))
                                          30)))
 
@@ -496,7 +496,7 @@
           (thing-boiled-available-at (+ (max (kitchen-time kitchen-state-in)
                                              (available-at (find (id thing-to-boil) binding-objects
                                                                  :key #'(lambda (binding-object)
-                                                                          (and (value binding-object)
+                                                                          (and (slot-boundp binding-object 'value)
                                                                                (id (value binding-object)))))))
                                         (* (value time-to-boil-quantity)
                                            (if (eq time-to-boil-unit 'hour)
@@ -505,7 +505,7 @@
           (kitchen-state-available-at (+ (max (kitchen-time kitchen-state-in)
                                             (available-at (find (id thing-to-boil) binding-objects
                                                                   :key #'(lambda (binding-object)
-                                                                           (and (value binding-object)
+                                                                           (and (slot-boundp binding-object 'value)
                                                                                 (id (value binding-object)))))))
                                          30)))
 
@@ -614,7 +614,7 @@
           (container-available-at (+ 20 (max (kitchen-time kitchen-state-in)
                                              (available-at (find (id object) binding-objects
                                                                  :key #'(lambda (binding-object)
-                                                                          (and (value binding-object)
+                                                                          (and (slot-boundp binding-object 'value)
                                                                                (id (value binding-object)))))))))
           (kitchen-state-available-at container-available-at)
           (cover-type (cond ((subtypep (type-of object) 'medium-bowl) 'medium-bowl-lid)
@@ -650,7 +650,7 @@
           (container-available-at (+ 20 (max (kitchen-time kitchen-state-in)
                                              (available-at (find (id object) binding-objects
                                                                  :key #'(lambda (binding-object)
-                                                                          (and (value binding-object)
+                                                                          (and (slot-boundp binding-object 'value)
                                                                                (id (value binding-object)))))))))
           (kitchen-state-available-at container-available-at))
 
@@ -690,7 +690,7 @@
           (container-available-at (+ 60 (max (kitchen-time kitchen-state-in)
                                              (available-at (find (id object) binding-objects
                                                                  :key #'(lambda (binding-object)
-                                                                          (and (value binding-object)
+                                                                          (and (slot-boundp binding-object 'value)
                                                                                (id (value binding-object)))))))))
           (kitchen-state-available-at container-available-at))
 
@@ -727,7 +727,7 @@
           (container-available-at (+ 60 (max (kitchen-time kitchen-state-in)
                                              (available-at (find (id object) binding-objects
                                                                  :key #'(lambda (binding-object)
-                                                                          (and (value binding-object)
+                                                                          (and (slot-boundp binding-object 'value)
                                                                                (id (value binding-object)))))))))
           (kitchen-state-available-at container-available-at))
 
@@ -761,7 +761,7 @@
           (container-available-at (+ 60 (max (kitchen-time kitchen-state-in)
                                              (available-at (find (id object) binding-objects
                                                                  :key #'(lambda (binding-object)
-                                                                          (and (value binding-object)
+                                                                          (and (slot-boundp binding-object 'value)
                                                                                (id (value binding-object)))))))))
           (kitchen-state-available-at container-available-at)
           (new-cutting-board (retrieve-concept-instance-and-bring-to-countertop 'cutting-board new-kitchen-state)))
@@ -796,7 +796,7 @@
           (container-available-at (+ 60 (max (kitchen-time kitchen-state-in)
                                              (available-at (find (id object) binding-objects
                                                                  :key #'(lambda (binding-object)
-                                                                          (and (value binding-object)
+                                                                          (and (slot-boundp binding-object 'value)
                                                                                (id (value binding-object)))))))))
           (kitchen-state-available-at container-available-at)
           (reused-cutting-board (find-object-by-persistent-id cutting-surface (counter-top new-kitchen-state))))
@@ -912,7 +912,7 @@
                  (dipped-object-available-at (+ (max (kitchen-time kitchen-state-in)
                                                      (available-at (find (id object) binding-objects
                                                                          :key #'(lambda (binding-object)
-                                                                                  (and (value binding-object)
+                                                                                  (and (slot-boundp binding-object 'value)
                                                                                        (id (value binding-object)))))))
                                                 50))
                  (kitchen-state-available-at dipped-object-available-at))
@@ -948,7 +948,7 @@
                  (dipped-object-available-at (+ (max (kitchen-time kitchen-state-in)
                                                      (available-at (find (id object) binding-objects
                                                                          :key #'(lambda (binding-object)
-                                                                                  (and (value binding-object)
+                                                                                  (and (slot-boundp binding-object 'value)
                                                                                        (id (value binding-object)))))))
                                                 50))
                  (kitchen-state-available-at dipped-object-available-at))
@@ -992,7 +992,7 @@
           (container-available-at (+ 60 (max (kitchen-time kitchen-state-in) 
                                              (available-at (find (id container-with-ingredients) binding-objects
                                                                  :key #'(lambda (binding-object)
-                                                                          (and (value binding-object)
+                                                                          (and (slot-boundp binding-object 'value)
                                                                                (id (value binding-object)))))))))
           (kitchen-state-available-at container-available-at)
           ;; 1) find draining tool
@@ -1058,7 +1058,7 @@
           (container-available-at (+ 60 (max (kitchen-time kitchen-state-in) 
                                              (available-at (find (id container-with-ingredients) binding-objects
                                                                  :key #'(lambda (binding-object)
-                                                                          (and (value binding-object)
+                                                                          (and (slot-boundp binding-object 'value)
                                                                                (id (value binding-object)))))))))
           (kitchen-state-available-at container-available-at)
           ;; 1) find draining tool
@@ -1278,7 +1278,7 @@
           (portions-available-at (+ 90 (max (kitchen-time kitchen-state-in)
                                              (available-at (find (id portions) binding-objects
                                                                  :key #'(lambda (binding-object)
-                                                                          (and (value binding-object)
+                                                                          (and (slot-boundp binding-object 'value)
                                                                                (id (value binding-object)))))))))
           (kitchen-state-available-at portions-available-at)
           ;; 1) find rolling pin and place it on the countertop
@@ -1311,7 +1311,7 @@
           (portions-available-at (+ 90 (max (kitchen-time kitchen-state-in)
                                             (available-at (find (id portions) binding-objects
                                                                 :key #'(lambda (binding-object)
-                                                                         (and (value binding-object)
+                                                                         (and (slot-boundp binding-object 'value)
                                                                               (id (value binding-object)))))))))
           (kitchen-state-available-at portions-available-at))
 
@@ -1343,7 +1343,7 @@
           (container-available-at (+ 60 (max (kitchen-time kitchen-state-in)
                                              (available-at (find (id container-to-flour) binding-objects
                                                                  :key #'(lambda (binding-object)
-                                                                          (and (value binding-object)
+                                                                          (and (slot-boundp binding-object 'value)
                                                                                (id (value binding-object)))))))))
           (kitchen-state-available-at container-available-at))
 
@@ -1400,7 +1400,7 @@
           (container-available-at (+ 60 (max (kitchen-time kitchen-state-in)
                                              (available-at (find (id container-to-flour) binding-objects
                                                                  :key #'(lambda (binding-object)
-                                                                          (and (value binding-object)
+                                                                          (and (slot-boundp binding-object 'value)
                                                                                (id (value binding-object)))))))))
           (kitchen-state-available-at container-available-at))
      
@@ -1442,7 +1442,7 @@
           (thing-fried-available-at (+ (max (kitchen-time kitchen-state-in)
                                              (available-at (find (id thing-to-fry) binding-objects
                                                                  :key #'(lambda (binding-object)
-                                                                          (and (value binding-object)
+                                                                          (and (slot-boundp binding-object 'value)
                                                                                (id (value binding-object)))))))
                                        (* (value new-time-to-fry-quantity)
                                           (if (eq new-time-to-fry-unit 'hour)
@@ -1451,7 +1451,7 @@
           (kitchen-state-available-at (+ (max (kitchen-time kitchen-state-in)
                                             (available-at (find (id thing-to-fry) binding-objects
                                                                   :key #'(lambda (binding-object)
-                                                                           (and (value binding-object)
+                                                                           (and (slot-boundp binding-object 'value)
                                                                                 (id (value binding-object)))))))
                                          30)))
 
@@ -1494,7 +1494,7 @@
           (thing-fried-available-at (+ (max (kitchen-time kitchen-state-in)
                                             (available-at (find (id thing-to-fry) binding-objects
                                                                 :key #'(lambda (binding-object)
-                                                                         (and (value binding-object)
+                                                                         (and (slot-boundp binding-object 'value)
                                                                               (id (value binding-object)))))))
                                        (* (value new-time-to-fry-quantity)
                                           (if (eq new-time-to-fry-unit 'hour)
@@ -1503,7 +1503,7 @@
           (kitchen-state-available-at (+ (max (kitchen-time kitchen-state-in)
                                               (available-at (find (id thing-to-fry) binding-objects
                                                                   :key #'(lambda (binding-object)
-                                                                           (and (value binding-object)
+                                                                           (and (slot-boundp binding-object 'value)
                                                                                 (id (value binding-object)))))))
                                          30)))
 
@@ -1550,7 +1550,7 @@
           (container-available-at (+ 60 (max (kitchen-time kitchen-state-in)
                                              (available-at (find (id container-to-grease) binding-objects
                                                                  :key #'(lambda (binding-object)
-                                                                          (and (value binding-object)
+                                                                          (and (slot-boundp binding-object 'value)
                                                                                (id (value binding-object)))))))))
           (kitchen-state-available-at container-available-at))
 
@@ -1606,7 +1606,7 @@
           (container-available-at (+ 60 (max (kitchen-time kitchen-state-in)
                                              (available-at (find (id container-to-grease) binding-objects
                                                                  :key #'(lambda (binding-object)
-                                                                          (and (value binding-object)
+                                                                          (and (slot-boundp binding-object 'value)
                                                                                (id (value binding-object)))))))))
           (kitchen-state-available-at container-available-at))
 
@@ -1644,7 +1644,7 @@
           (container-available-at (+ 90 (max (kitchen-time kitchen-state-in)
                                              (available-at (find (id container-with-ingredients-to-be-ground) binding-objects
                                                                  :key #'(lambda (binding-object)
-                                                                          (and (value binding-object)
+                                                                          (and (slot-boundp binding-object 'value)
                                                                                (id (value binding-object)))))))))
           (kitchen-state-available-at container-available-at))
 
@@ -1677,7 +1677,7 @@
           (container-available-at (+ 90 (max (kitchen-time kitchen-state-in)
                                              (available-at (find (id container-with-ingredients-to-be-ground) binding-objects
                                                                  :key #'(lambda (binding-object)
-                                                                          (and (value binding-object)
+                                                                          (and (slot-boundp binding-object 'value)
                                                                                (id (value binding-object)))))))))
           (kitchen-state-available-at container-available-at))
 
@@ -1922,7 +1922,7 @@
           (container-available-at (+ 60 (max (kitchen-time kitchen-state-in) 
                                              (available-at (find (id input-ingredient) binding-objects
                                                                  :key #'(lambda (binding-object)
-                                                                          (and (value binding-object)
+                                                                          (and (slot-boundp binding-object 'value)
                                                                                (id (value binding-object)))))))))
           (kitchen-state-available-at container-available-at))
 
@@ -1952,7 +1952,7 @@
            (container-available-at (+ 60 (max (kitchen-time kitchen-state-in) 
                                               (available-at (find (id input-ingredient) binding-objects
                                                                   :key #'(lambda (binding-object)
-                                                                           (and (value binding-object)
+                                                                           (and (slot-boundp binding-object 'value)
                                                                                 (id (value binding-object)))))))))
            (kitchen-state-available-at container-available-at))
 
@@ -1984,7 +1984,7 @@
           (container-available-at (+ 60 (max (kitchen-time kitchen-state-in) ;;duration of melting depends on manner
                                              (available-at (find (id container-with-input-ingredients) binding-objects
                                                                  :key #'(lambda (binding-object)
-                                                                          (and (value binding-object)
+                                                                          (and (slot-boundp binding-object 'value)
                                                                                (id (value binding-object)))))))))
           (kitchen-state-available-at container-available-at))
 
@@ -2011,7 +2011,7 @@
           (container-available-at (+ 60 (max (kitchen-time kitchen-state-in) ;;duration of melting depends on manner
                                              (available-at (find (id container-with-input-ingredients) binding-objects
                                                                  :key #'(lambda (binding-object)
-                                                                          (and (value binding-object)
+                                                                          (and (slot-boundp binding-object 'value)
                                                                                (id (value binding-object)))))))))
           (kitchen-state-available-at container-available-at))
 
@@ -2041,8 +2041,8 @@
           (container-available-at (+ 30 (max (kitchen-time kitchen-state-in)
                                              (available-at (find (id container-with-input-ingredients) binding-objects
                                                                  :key #'(lambda (binding-object)
-                                                                          (and (value binding-object)
-                                                                                   (id (value binding-object)))))))))
+                                                                          (and (slot-boundp binding-object 'value)
+                                                                               (id (value binding-object)))))))))
           (kitchen-state-available-at container-available-at))
 
      (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
@@ -2075,7 +2075,7 @@
           (container-available-at (+ 30 (max (kitchen-time kitchen-state-in)
                                              (available-at (find (id container-with-input-ingredients) binding-objects
                                                                  :key #'(lambda (binding-object)
-                                                                          (and (value binding-object)
+                                                                          (and (slot-boundp binding-object 'value)
                                                                                (id (value binding-object)))))))))
           (kitchen-state-available-at container-available-at))
 
@@ -2108,7 +2108,7 @@
           (container-available-at (+ 30 (max (kitchen-time kitchen-state-in)
                                              (available-at (find (id container-with-input-ingredients) binding-objects
                                                                  :key #'(lambda (binding-object)
-                                                                          (and (value binding-object)
+                                                                          (and (slot-boundp binding-object 'value)
                                                                                (id (value binding-object)))))))))
           (kitchen-state-available-at container-available-at))
 
@@ -2144,8 +2144,8 @@
           (container-available-at (+ 30 (max (kitchen-time kitchen-state-in)
                                              (available-at (find (id container-with-input-ingredients) binding-objects
                                                                  :key #'(lambda (binding-object)
-                                                                          (and (value binding-object)
-                                                                                   (id (value binding-object)))))))))
+                                                                          (and (slot-boundp binding-object 'value)
+                                                                               (id (value binding-object)))))))))
           (kitchen-state-available-at container-available-at))
 
      (cond ((and new-mixing-tool new-container-with-ingredients-to-mix)
@@ -2181,7 +2181,7 @@
           (container-available-at (+ 60 (max (kitchen-time kitchen-state-in) 
                                              (available-at (find (id input-ingredient) binding-objects
                                                                  :key #'(lambda (binding-object)
-                                                                          (and (value binding-object)
+                                                                          (and (slot-boundp binding-object 'value)
                                                                                (id (value binding-object)))))))))
           (kitchen-state-available-at container-available-at)
           ;; 1) find peeling tool
@@ -2230,7 +2230,7 @@
           (container-available-at (+ 60 (max (kitchen-time kitchen-state-in) 
                                              (available-at (find (id input-ingredient) binding-objects
                                                                  :key #'(lambda (binding-object)
-                                                                          (and (value binding-object)
+                                                                          (and (slot-boundp binding-object 'value)
                                                                                (id (value binding-object)))))))))
           (kitchen-state-available-at container-available-at)
           ;; 1) find peeling tool
@@ -2288,7 +2288,7 @@
           (portions-available-at (+ 80 (max (kitchen-time kitchen-state-in)
                                             (available-at (find (id container-with-dough) binding-objects
                                                                 :key #'(lambda (binding-object)
-                                                                         (and (value binding-object)
+                                                                         (and (slot-boundp binding-object 'value)
                                                                               (id (value binding-object)))))))))
           (kitchen-state-available-at portions-available-at))
 
@@ -2348,7 +2348,7 @@
            (portions-available-at (+ 80 (max (kitchen-time kitchen-state-in)
                                              (available-at (find (id container-with-dough) binding-objects
                                                                  :key #'(lambda (binding-object)
-                                                                          (and (value binding-object)
+                                                                          (and (slot-boundp binding-object 'value)
                                                                                (id (value binding-object)))))))))
            (kitchen-state-available-at portions-available-at))
 
@@ -2405,7 +2405,7 @@
            (portions-available-at (+ 80 (max (kitchen-time kitchen-state-in)
                                              (available-at (find (id container-with-dough) binding-objects
                                                                  :key #'(lambda (binding-object)
-                                                                          (and (value binding-object)
+                                                                          (and (slot-boundp binding-object 'value)
                                                                                (id (value binding-object)))))))))
            (kitchen-state-available-at portions-available-at))
 
@@ -2460,7 +2460,7 @@
           (portions-available-at (+ 80 (max (kitchen-time kitchen-state-in)
                                             (available-at (find (id container-with-dough) binding-objects
                                                                 :key #'(lambda (binding-object)
-                                                                         (and (value binding-object)
+                                                                         (and (slot-boundp binding-object 'value)
                                                                               (id (value binding-object)))))))))
           (kitchen-state-available-at portions-available-at))
 
@@ -2516,7 +2516,7 @@
            (portions-available-at (+ 80 (max (kitchen-time kitchen-state-in)
                                              (available-at (find (id container-with-dough) binding-objects
                                                                  :key #'(lambda (binding-object)
-                                                                          (and (value binding-object)
+                                                                          (and (slot-boundp binding-object 'value)
                                                                                (id (value binding-object)))))))))
            (kitchen-state-available-at portions-available-at))
 
@@ -2713,7 +2713,7 @@
           (container-available-at (+ 60 (max (kitchen-time kitchen-state-in) 
                                              (available-at (find (id input-ingredient) binding-objects
                                                                  :key #'(lambda (binding-object)
-                                                                          (and (value binding-object)
+                                                                          (and (slot-boundp binding-object 'value)
                                                                                (id (value binding-object)))))))))
           (kitchen-state-available-at container-available-at)
           ;; 1) find seeding tool
@@ -2753,7 +2753,7 @@
           (container-available-at (+ 60 (max (kitchen-time kitchen-state-in) 
                                              (available-at (find (id input-ingredient) binding-objects
                                                                  :key #'(lambda (binding-object)
-                                                                          (and (value binding-object)
+                                                                          (and (slot-boundp binding-object 'value)
                                                                                (id (value binding-object)))))))))
           (kitchen-state-available-at container-available-at)
           ;; 1) find seeding tool
@@ -2905,8 +2905,8 @@
           (container-available-at (+ 30 (max (kitchen-time kitchen-state-in)
                                              (available-at (find (id container-with-input-ingredients) binding-objects
                                                                  :key #'(lambda (binding-object)
-                                                                          (and (value binding-object)
-                                                                                   (id (value binding-object)))))))))
+                                                                          (and (slot-boundp binding-object 'value)
+                                                                               (id (value binding-object)))))))))
           (kitchen-state-available-at container-available-at))
 
      (setf (kitchen-time new-kitchen-state) kitchen-state-available-at)
@@ -2941,7 +2941,7 @@
                  (portions-available-at (+ 85 (max (kitchen-time kitchen-state-in)
                                                    (available-at (find (id portions) binding-objects
                                                                        :key #'(lambda (binding-object)
-                                                                                (and (value binding-object)
+                                                                                (and (slot-boundp binding-object 'value)
                                                                                      (id (value binding-object)))))))))
                  (kitchen-state-available-at portions-available-at))
 
@@ -2963,7 +2963,7 @@
                  (portions-available-at (+ 85 (max (kitchen-time kitchen-state-in)
                                                    (available-at (find (id portions) binding-objects
                                                                        :key #'(lambda (binding-object)
-                                                                                (and (value binding-object)
+                                                                                (and (slot-boundp binding-object 'value)
                                                                                      (id (value binding-object)))))))))
                  (kitchen-state-available-at portions-available-at))
 
@@ -2995,7 +2995,7 @@
           (container-available-at (+ 90 (max (kitchen-time kitchen-state-in)
                                              (available-at (find (id container-with-ingredients-to-be-sifted) binding-objects
                                                                  :key #'(lambda (binding-object)
-                                                                          (and (value binding-object)
+                                                                          (and (slot-boundp binding-object 'value)
                                                                                (id (value binding-object)))))))))
           (kitchen-state-available-at container-available-at))
 
@@ -3042,7 +3042,7 @@
           (container-available-at (+ 90 (max (kitchen-time kitchen-state-in)
                                              (available-at (find (id container-with-ingredients-to-be-sifted) binding-objects
                                                                  :key #'(lambda (binding-object)
-                                                                          (and (value binding-object)
+                                                                          (and (slot-boundp binding-object 'value)
                                                                                (id (value binding-object)))))))))
           (kitchen-state-available-at container-available-at))
 
@@ -3080,7 +3080,7 @@
           (container-available-at (+ 90 (max (kitchen-time kitchen-state-in)
                                              (available-at (find (id container-with-ingredients-to-be-sifted) binding-objects
                                                                  :key #'(lambda (binding-object)
-                                                                          (and (value binding-object)
+                                                                          (and (slot-boundp binding-object 'value)
                                                                                (id (value binding-object)))))))))
           (kitchen-state-available-at container-available-at))
 
@@ -3126,7 +3126,7 @@
           (container-available-at (+ 60 (max (kitchen-time kitchen-state-in)
                                              (available-at (find (id container-with-ingredients-to-be-sifted) binding-objects
                                                                  :key #'(lambda (binding-object)
-                                                                          (and (value binding-object)
+                                                                          (and (slot-boundp binding-object 'value)
                                                                                (id (value binding-object)))))))))
           (kitchen-state-available-at container-available-at))
 
@@ -3171,7 +3171,7 @@
           (container-available-at (+ 120 (max (kitchen-time kitchen-state-in)
                                               (available-at (find (id object-to-be-spread) binding-objects
                                                                   :key #'(lambda (binding-object)
-                                                                           (and (value binding-object)
+                                                                           (and (slot-boundp binding-object 'value)
                                                                                 (id (value binding-object)))))))))
           (kitchen-state-available-at container-available-at))
 
@@ -3231,7 +3231,7 @@
           (container-available-at (+ 20 (max (kitchen-time kitchen-state-in)
                                              (available-at (find (id object-to-be-spread) binding-objects
                                                                  :key #'(lambda (binding-object)
-                                                                          (and (value binding-object)
+                                                                          (and (slot-boundp binding-object 'value)
                                                                                (id (value binding-object)))))))))
           (kitchen-state-available-at container-available-at))
 
@@ -3299,7 +3299,7 @@
                  (sprinkled-object-available-at (+ (max (kitchen-time kitchen-state-in)
                                                         (available-at (find (id object) binding-objects
                                                                             :key #'(lambda (binding-object)
-                                                                                     (and (value binding-object)
+                                                                                     (and (slot-boundp binding-object 'value)
                                                                                           (id (value binding-object)))))))
                                                    50))
                  (kitchen-state-available-at sprinkled-object-available-at))
@@ -3336,7 +3336,7 @@
                    (sprinkled-object-available-at (+ (max (kitchen-time kitchen-state-in)
                                                           (available-at (find (id object) binding-objects
                                                                               :key #'(lambda (binding-object)
-                                                                                       (and (value binding-object)
+                                                                                       (and (slot-boundp binding-object 'value)
                                                                                             (id (value binding-object)))))))
                                                      50))
                    (kitchen-state-available-at sprinkled-object-available-at))
@@ -3386,7 +3386,7 @@
            (+ (max (kitchen-time kitchen-state-in)
                    (available-at (find (id thing-to-be-topped) binding-objects
                                        :key #'(lambda (binding-object)
-                                                (and (value binding-object)
+                                                (and (slot-boundp binding-object 'value)
                                                      (id (value binding-object)))))))
               50))
           (kitchen-state-available-at topped-object-available-at))
@@ -3449,7 +3449,7 @@
            (+ (max (kitchen-time kitchen-state-in)
                    (available-at (find (id thing-to-be-topped) binding-objects
                                        :key #'(lambda (binding-object)
-                                                (and (value binding-object)
+                                                (and (slot-boundp binding-object 'value)
                                                      (id (value binding-object)))))))
               50))
           (kitchen-state-available-at topped-object-available-at))
@@ -3528,7 +3528,7 @@
           (container-available-at (+ 20 (max (kitchen-time kitchen-state-in)
                                              (available-at (find (id container-with-input-ingredients) binding-objects
                                                                 :key #'(lambda (binding-object)
-                                                                         (and (value binding-object)
+                                                                         (and (slot-boundp binding-object 'value)
                                                                               (id (value binding-object)))))))))
           (kitchen-state-available-at container-available-at))
 
@@ -3583,7 +3583,7 @@
           (container-available-at (+ 20 (max (kitchen-time kitchen-state-in)
                                              (available-at (find (id container-with-input-ingredients) binding-objects
                                                                  :key #'(lambda (binding-object)
-                                                                          (and (value binding-object)
+                                                                          (and (slot-boundp binding-object 'value)
                                                                                (id (value binding-object)))))))))
           (kitchen-state-available-at container-available-at))
 
@@ -3636,7 +3636,7 @@
             (container-available-at (+ 120 (max (kitchen-time kitchen-state-in)
                                                 (available-at (find (id destination) binding-objects
                                                                     :key #'(lambda (binding-object)
-                                                                             (and (value binding-object)
+                                                                             (and (slot-boundp binding-object 'value)
                                                                                   (id (value binding-object)))))))))
             (kitchen-state-available-at container-available-at))
 
@@ -3702,7 +3702,7 @@
                  (container-available-at (+ 120 (max (kitchen-time kitchen-state-in)
                                                      (available-at (find (id destination) binding-objects
                                                                          :key #'(lambda (binding-object)
-                                                                                  (and (value binding-object)
+                                                                                  (and (slot-boundp binding-object 'value)
                                                                                        (id (value binding-object)))))))))
                  (kitchen-state-available-at container-available-at))
 
@@ -3762,7 +3762,7 @@
           (container-available-at (+ 20 (max (kitchen-time kitchen-state-in)
                                              (available-at (find (id object) binding-objects
                                                                  :key #'(lambda (binding-object)
-                                                                          (and (value binding-object)
+                                                                          (and (slot-boundp binding-object 'value)
                                                                                (id (value binding-object)))))))))
           (kitchen-state-available-at container-available-at)
           (new-cover (covered-with new-container)))
@@ -3798,7 +3798,7 @@
           (container-available-at (+ 60 (max (kitchen-time kitchen-state-in)
                                              (available-at (find (id container-with-input-ingredients) binding-objects
                                                                  :key #'(lambda (binding-object)
-                                                                          (and (value binding-object)
+                                                                          (and (slot-boundp binding-object 'value)
                                                                                (id (value binding-object)))))))))
           (kitchen-state-available-at container-available-at))
 

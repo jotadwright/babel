@@ -18,15 +18,14 @@
   ;; sanity check: as many bindings as slots
   (assert (= (length bindings-list)
              (length (slot-specs primitive))))
-  (let* ((bindings (if (subtypep (type-of (first bindings-list))
-                                 'binding)
+  (let* ((bindings (if (subtypep (type-of (first bindings-list)) 'binding)
                      bindings-list
                      (loop for b in bindings-list
                            collect (make-instance 'binding :var (first b)
                                                   :score (second b) :value (third b)
                                                   :available-at (fourth b)))))
          (bound-slots-pattern (loop for binding in bindings
-                                    if (value binding) collect t
+                                    if (slot-boundp binding 'value) collect t
                                     else collect nil))
          (applicable-evaluation-spec (find bound-slots-pattern
                                            (evaluation-specs primitive)
@@ -34,13 +33,14 @@
                                            :test #'equalp))
          (applicable-slot-spec (loop for slot-spec in (slot-specs primitive)
                                      for binding in bindings
-                                     always (or (null (value binding))
+                                     always (or (not (slot-boundp binding 'value))
                                                 (subtypep (type-of (value binding))
                                                           (slot-spec-type slot-spec)))))
          (primitive-is-applicable (and applicable-slot-spec applicable-evaluation-spec))
          (results (when primitive-is-applicable
                     (apply (evaluation-spec-function applicable-evaluation-spec)
-                           ontology bindings (mapcar #'value bindings)))))
+                           ontology bindings
+                           (mapcar #'(lambda (b) (if (slot-boundp b 'value) (value b) nil)) bindings)))))
     ;;  given the bound-slots-pattern there are the following cases
     ;;  no bound-slots-pattern found
     ;;  bound-slots-pattern all t -> t (success), nil (failure)
@@ -56,7 +56,7 @@
           (loop for result in results
                 collect (loop for binding in bindings
                               for res in result
-                              if (value binding) collect binding
+                              if (slot-boundp binding 'value) collect binding
                               else collect (make-instance 'binding :var (var binding)
                                                           :score (first res) :value (second res)
                                                           :available-at (third res))))

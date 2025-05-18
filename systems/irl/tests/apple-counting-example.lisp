@@ -114,13 +114,17 @@
 ;;(activate-monitor trace-irl-in-web-browser-verbose)
 
 ;; produce "97 apples"
-(evaluate-irl-program `((bind apples-set ?apples ,(make-apples-set 97))
-                        (multiply-apples ?apples ?factor ?amount-1 ?apples-2)
-                        (add-apples ?apples-2 ?amount-2 ?apples-3)
-                        (pick-apples ?apples-3 ?amount-3))
-                      *test-ontology*
-                      :primitive-inventory *apple-counting-inventory*)
+(deftest test-apple-counting ()
+  (let ((solutions
+         (evaluate-irl-program `((bind apples-set ?apples ,(make-apples-set 97))
+                                 (multiply-apples ?apples ?factor ?amount-1 ?apples-2)
+                                 (add-apples ?apples-2 ?amount-2 ?apples-3)
+                                 (pick-apples ?apples-3 ?amount-3))
+                               *test-ontology*
+                               :primitive-inventory *apple-counting-inventory*)))
+    (test-equal (length solutions) 1)))
+    
 
 ;;(deactivate-all-monitors)
 
-
+;(test-apple-counting)

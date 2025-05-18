@@ -65,7 +65,7 @@
                       (loop for b in (bindings node)
                             when (new-binding-p b parent)
                             collect b)
-                      (find-all-if #'(lambda (b) (value b)) (bindings node)))
+                      (find-all-if #'(lambda (b) (slot-boundp b 'value)) (bindings node)))
                   append new-bindings)
           do (push ordered-solution solutions))
     (sort solutions #'< :key #'length)))
@@ -169,7 +169,7 @@ div.binding td.score { padding-left:4px; }
      ((tbody)
       ((tr) 
        ((td) 
-        ,(if (value binding)
+        ,(if (slot-boundp binding 'value)
              (make-html (value binding) :expand-initially expand-initially
                         :expand/collapse-all-id expand/collapse-all-id)
              '((div :class "unbound-value") "unbound"))))
@@ -413,9 +413,8 @@ div.pipn-hidden-subtree { padding:0px;margin:0px;padding:0px;margin-bottom:2px; 
   "Check if the value of the binding has changed between parent and child"
   (when parent-node
     (let ((parent-binding (find (var child-binding) (bindings parent-node) :key #'var)))
-      (if (typep (value child-binding) 'entity)
-        (not (equal-entity (value child-binding) (value parent-binding)))
-        (not (eql (value child-binding) (value parent-binding)))))))
+      (and (not (slot-boundp parent-binding 'value))
+           (slot-boundp child-binding 'value)))))
 
 (defparameter *irl-program-processor-node-status-colors*
   '((initial . "#444")
@@ -454,7 +453,7 @@ div.pipn-hidden-subtree { padding:0px;margin:0px;padding:0px;margin-bottom:2px; 
   (lambda ()
       (multiple-value-bind (new-bindings existing-bindings unbound)
           (loop for b in (bindings node)
-                if (null (value b)) collect b into unbound
+                if (not (slot-boundp b 'value)) collect b into unbound
                 else if (new-binding-p b (parent node)) collect b into new
                 else collect b into existing
                 finally (return (values new existing unbound)))
@@ -481,7 +480,7 @@ div.pipn-hidden-subtree { padding:0px;margin:0px;padding:0px;margin-bottom:2px; 
                                    ((div :class "binding") ,(html-pprint (var b))))
                                   ((td :class "pipn-details")
                                    ((div :class "binding")
-                                    ,(if (value b)
+                                    ,(if (slot-boundp b 'value)
                                        (make-html (value b) :expand-initially expand-initially
                                                   :expand/collapse-all-id expand/collapse-all-id)
                                        '((div :class "unbound-value") "unbound"))))))
@@ -500,7 +499,7 @@ div.pipn-hidden-subtree { padding:0px;margin:0px;padding:0px;margin-bottom:2px; 
                         ((div :class "binding") ,(html-pprint (var b))))
                        ((td :class "pipn-details")
                         ((div :class "binding")
-                         ,(if (value b)
+                         ,(if (slot-boundp b 'value)
                             (make-html (value b))
                             '((div :class "unbound-value") "unbound")))))))
                   `(((span) "&#8709;"))))))
@@ -518,7 +517,7 @@ div.pipn-hidden-subtree { padding:0px;margin:0px;padding:0px;margin-bottom:2px; 
                         ((div :class "binding") ,(html-pprint (var b))))
                        ((td :class "pipn-details")
                         ((div :class "binding")
-                         ,(if (value b)
+                         ,(if (slot-boundp b 'value)
                             (make-html (value b))
                             '((div :class "unbound-value") "unbound")))))))
                   `(((span) "&#8709;")))))))))))

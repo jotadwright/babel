@@ -25,7 +25,10 @@
   (testt-irl-program-connected? '((bind t ?t t)
                                   (test ?t5 ?t3)
                                   (bind t ?t1 t)
-                                  (test ?t1 ?t4)) nil 3))
+                                  (test ?t1 ?t4)) nil 3)
+
+  ;; cleanup
+  (fmakunbound 'testt-irl-program-connected?))
 
 ;; (test-irl-program-connected?)
-  
+
