@@ -62,6 +62,9 @@
       (loop with delta = (get-configuration agent :cxn-inhibit-score) ;; separate inhibit delta!
             with remove-on-lower-bound = (get-configuration agent :remove-cxn-on-lower-bound)
             for competitor in (get-meaning-competitors agent cxns (utterance agent))
+            if (eq (attr-val competitor :cxn-type) 'lexical)
+              do (setf delta (get-delta-based-on-concept-similarity competitor cxns (get-data (ontology agent) 'concepts)
+                                                                    (get-configuration (experiment agent) :lexical-cxn-inhibition-value)))
             do (dec-cxn-score agent competitor :delta delta
                               :remove-on-lower-bound
                               remove-on-lower-bound)
@@ -69,6 +72,17 @@
             finally (notify cxns-punished competitors)))
     (when cxns
       (punish-cxns agent cxns))))
+
+
+(defun get-delta-based-on-concept-similarity (competitor applied-constructions concepts inhibition-value)
+  (let* ((concept-2 (gethash (attr-val competitor :meaning) concepts))
+         (applied-cxn-with-same-form (first (loop for cxn in applied-constructions
+                                                  when (string= (attr-val cxn :string) (attr-val competitor :string))
+                                                    collect cxn)))
+                                             
+         (concept-1 (gethash (attr-val applied-cxn-with-same-form :meaning) concepts))
+         (similarity (concept-representations::concept-similarity (meaning concept-1) (meaning concept-2))))
+      (* inhibition-value similarity)))
 
 ;; Utility functions
 (defun punish-cxns (agent cxns)

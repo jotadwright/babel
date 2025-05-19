@@ -119,13 +119,17 @@
                    best-similarity similarity)
         finally (return (cons best-concept best-similarity))))
 
+(defun get-associated-concept (ontology category)
+  (gethash category (get-data ontology 'concepts)))
+
+
 ;; ---------------------------------------
 ;; + case 2: filter (source) - invention +
 ;; ---------------------------------------
 (defun create-initial-concept-hypothesis (ontology source-set target-set)
   (loop with clg-concept = (make-instance 'clg-concept :meaning (concept-representations::create-concept-representation (objects target-set) :weighted-multivariate-distribution))
         ;; todo return iterations required as heuristic for target-set binding score
-        with max-iterations = (get-data ontology 'clg::max-concept-update-iterations)
+        with max-iterations = (get-configuration-from-ontology ontology :max-concept-update-iterations)
         with current-iteration = 0
         with excluded-objects = (set-difference (objects source-set) (objects target-set))
         with solution = nil
@@ -155,7 +159,9 @@
                                              (ontology blackboard)
                                              &key (threshold 0.5))
   "Filter the set by the given category."
-  (let* ((threshold (if (find-data ontology 'filter-similarity-threshold) (find-data ontology 'filter-similarity-threshold) threshold))
+  (let* ((threshold (if (get-configuration-from-ontology ontology :filter-similarity-threshold)
+                      (get-configuration-from-ontology ontology :filter-similarity-threshold)
+                      threshold))
          (filtered-objects (filter-objects-by-concept ontology concept (objects source-set) threshold)))
     (if filtered-objects
       (make-instance 'clevr-object-set
@@ -191,13 +197,13 @@
     #|(format t "~% Initial similarities")|#
     (debug-concept-updates concept target-objects other-objects))
     
-  (let* ((original-concepts (copy-object (get-data ontology 'original-concepts)))
+  (let* ((original-concepts (copy-object (get-data ontology 'concepts)))
          ;;(original-ontology (copy-object  (get-data ontology 'original-ontology)))
          ;; loop and update-concept, until this leads to the correct solution or max-iterations is reached.
          (consistent-p (loop with concept = (get-associated-concept ontology (id category))
                              with target-objects = (objects target-set) ;; to remove
                              with other-objects = (set-difference (objects source-set) (objects target-set))
-                             with max-iterations = 1000
+                             with max-iterations = (get-configuration-from-ontology ontology :max-concept-update-iterations)
                              with current-iteration = 0
                              while (< current-iteration max-iterations)
                              for not-used = (loop for object in (objects target-set)
@@ -224,11 +230,10 @@
      ;(add-element `((h2) ,(format nil "-----end filter----")))
      ;(concept-representations::add-concept-to-interface (meaning (get-associated-concept ontology (id category))) :weight-threshold 0.5)
     
-    (if consistent-p
-      (print "yes")
+    (when (not consistent-p)
       (progn
         ;; only set this category back instead of all concepts when multiple filters
-        (set-data ontology 'all-concepts (copy-object original-concepts))
+        (set-data ontology 'concepts (copy-object original-concepts))
          ;(setf ontology  original-ontology)
         ))
     consistent-p))
