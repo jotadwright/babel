@@ -53,8 +53,8 @@
                                  (target-set similarity candidate-target-set)))))))
   ;; third case: consistency check
   ((target-set source-set category => )
-   (when (get-configuration-from-ontology ontology :update-concepts-p)
-     (filter-by-concept-updates ontology target-set source-set category)))
+    ;; only will be used if the update-concept repair is activated
+    (filter-by-concept-updates ontology target-set source-set category))
   
   :primitive-inventory *clevr-primitives*)
 

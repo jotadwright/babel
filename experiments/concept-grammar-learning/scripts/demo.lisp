@@ -20,9 +20,9 @@
                                           (:scenes-per-question . 50)
                                           (:confidence-threshold . 1.1)
                                           (:tutor-sample-mode . :random) ;; or :random
-                                          (:cxn-incf-score . 0.3)
-                                          (:cxn-decf-score . 0.0001)
-                                          (:cxn-inhibit-score . 0.0001)
+                                          (:cxn-incf-score . 0.1)
+                                          (:cxn-decf-score . 0.1)
+                                          (:cxn-inhibit-score . 0.1)
                                           (:chunk-incf-score . 0.1)
                                           (:chunk-decf-score . 0.1)
                                           (:primitives . :symbolic)
@@ -36,12 +36,17 @@
                                           ;; new configuration
                                           (:sort-questions-on-length . t)
                                           
-                                          (:update-concepts-p . t)
-                                          (:pretrained-concepts . nil)
+                                          
+                                          
                                           (:data-source . "simulated") ;; "simulated" or "extracted"
+                                          (:pretrained-concepts . t)
+                                          (:update-concepts-with-success . nil)
 
+                                          (:sigmoid-slope-c . 0.5)
+
+                                          ;; for update-concept repair
                                           (:max-concept-update-iterations . 10)
-                                          (:filter-similarity-threshold . 0.8)
+                                          (:filter-similarity-threshold . 0.5)
                                           (:lexical-cxn-inhibition-value . 0.02)
 
                                           ;; diagnostics and repairs (order is important!)
@@ -53,7 +58,7 @@
                                                         )
                                           (:repairs 
                                                     ;add-th-links-formulation
-                                                    update-concept
+                                                    ;update-concept
                                                     add-th-links
                                                     lexical->item-based
                                                     item-based->lexical

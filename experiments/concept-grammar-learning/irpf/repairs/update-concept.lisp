@@ -1,3 +1,10 @@
+(in-package :fcg)
+
+(defclass concept-fix (fix)
+  ()
+  (:documentation "A fix class for fixes that apply a construction and return the cxn-application-result"))
+
+
 (in-package :clg)
 
 ;; ---------------------------------------
@@ -77,8 +84,3 @@
 
 
 
-(in-package :fcg)
-
-(defclass concept-fix (fix)
-  ()
-  (:documentation "A fix class for fixes that apply a construction and return the cxn-application-result"))

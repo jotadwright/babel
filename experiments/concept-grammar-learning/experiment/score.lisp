@@ -37,7 +37,7 @@
   (if success
     (progn
       ;; update concepts
-      (when (get-configuration (experiment agent) :update-concepts-p)
+      (when (get-configuration (experiment agent) :update-concepts-with-success)
         (loop with irl-program = (find-data (goal-test-data cipn) :irl-program)
               with bindings = (find-data (goal-test-data cipn) :bindings)
               for predicate in irl-program
