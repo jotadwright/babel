@@ -42,7 +42,7 @@
                                           (:pretrained-concepts . t)
                                           (:update-concepts-with-success . nil)
 
-                                          (:sigmoid-slope-c . 0.5)
+                                          (:sigmoid-slope-c . 0.5) ;; todo
 
                                           ;; for update-concept repair
                                           (:max-concept-update-iterations . 10)
@@ -61,10 +61,10 @@
                                                     ;update-concept
                                                     add-th-links
                                                     lexical->item-based
-                                                    item-based->lexical
-                                                    holophrase->item-based--substitution
-                                                    holophrase->item-based--addition
-                                                    holophrase->item-based--deletion
+                                                    ;item-based->lexical
+                                                    ;holophrase->item-based--substitution
+                                                    ;holophrase->item-based--addition
+                                                    ;holophrase->item-based--deletion
                                                     add-holophrase
                                                     ))))
 
