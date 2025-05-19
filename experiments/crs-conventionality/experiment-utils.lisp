@@ -72,7 +72,7 @@
   (let* ((strings '("a" "e" "i" "o" "u" "b" "c" "d" "f" "g" "h" "j" "k" "l" "m" "n" "p" "q" "r" "s" "t" "v" "w" "x" "y" "z"))
          (characters (loop for string in strings collect (coerce string 'character)))
          (characters-to-replace (floor (* noise-level (length utterance))))
-         (index-list (loop for i from 0 to (- characters-to-replace 1) collect i)))
+         (index-list (loop for i from 0 to (- (length utterance) 1) collect i)))
     
     (loop for i from 1 to characters-to-replace
           for index-to-replace = (random-elt index-list)
