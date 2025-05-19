@@ -113,7 +113,7 @@
 ;; debugging
 (progn
   (add-element `((h4) "Inventory: " ,(make-html (grammar (second (agents *experiment*))))))
-  (add-element (make-html (categorial-network (grammar (second (agents *experiment*)))) :weights? t)))
+  (add-element (make-html (categorial-network (grammar (second (agents *experiment*)))) :weights? t :render-program "circo")))
 
 
 (loop for id being the hash-keys of (get-data (ontology (second (agents *experiment*))) 'concepts)
