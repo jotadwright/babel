@@ -35,9 +35,8 @@
                                           (:th-link-repair-mode-formulation . :path-required)
                                           ;; new configuration
                                           (:sort-questions-on-length . t)
-                                          
-                                          
-                                          
+
+                                          (:initial-seed . 42)
                                           (:data-source . "simulated") ;; "simulated" or "extracted"
                                           (:pretrained-concepts . t)
                                           (:update-concepts-with-success . nil)
@@ -74,6 +73,8 @@
 
 (progn
   (format t "~% Starting a new experiment.~%")
+  ;; reset the seed
+  (set-seed (get-configuration *experiment* :initial-seed))
   ;; reset the web interface
   (wi::reset)
   ;; deactivate all monitors (as a sanity check)

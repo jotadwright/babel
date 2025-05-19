@@ -16,6 +16,9 @@
   (:documentation "The CLEVR learning experiment"))
 
 (defmethod initialize-instance :after ((experiment clevr-learning-experiment) &key)
+  ;; set the seed
+  (set-seed (get-configuration experiment :initial-seed))
+  
   ;; reset id counters
   (reset-id-counters)
   
