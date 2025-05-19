@@ -260,7 +260,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Monitoring Categorial Coherence   ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
+#|
 (define-monitor record-categorial-coherence
     :class 'data-recorder
     :average-window 100
@@ -269,7 +269,7 @@
 (define-event-handler (record-categorial-coherence interaction-finished)
   (let* ((coherences (loop for agent in (population experiment)
                           collect
-                          (coherence (get-type-hierarchy (grammar agent)))))
+                          (coherence (categorial-network (grammar agent)))))
          (average-coherence (average coherences)))
     (record-value monitor average-coherence)))
 
@@ -282,6 +282,7 @@
     :add-time-and-experiment-to-file-name nil
     :column-separator " "
     :comment-string "#")
+|#
 
 ;;;;;;;;;;;;;;;;
 ;; Displayers ;;

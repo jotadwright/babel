@@ -60,6 +60,8 @@
           cxn-set
           hash
           args
+          meaning-args
+          form-args
           comprehend
           comprehend-all
           formulate
@@ -111,6 +113,7 @@
                 :initform ""
                 :initarg :description
                 :accessor description)))
+
 
 (defclass contributing-unit ()
   ((name 
@@ -237,7 +240,8 @@
             (meaning-args sequence)
             (subunits set)
             (args sequence)
-            (footprints set)))))
+            (footprints set)
+            (boundaries sequence)))))
 
 (defclass hashed-fcg-construction-set (hashed-construction-set fcg-construction-set)
   ()
@@ -1017,35 +1021,46 @@ construction on the fly."
 
 (defun print-skeleton-cxn-for-string (string cxn-inventory &key (stream t))
   (let* ((hierarchy-feature (first (get-configuration (visualization-configuration cxn-inventory) :hierarchy-features)))
+         (form-as-sequence-p (> (length (assoc 'form (feature-types cxn-inventory))) 2))
          (string-list (split-string string " "))
          (cxn-name (format nil "~{~a~^-~}-cxn" string-list)))
-    (if (= 1 (length string-list))
-      ;; Only one string (lexical cxn)
-      (let* ((unit-name (format nil "?~a-unit" (first string-list))))
-        (format stream "
-(def-fcg-cxn ~a
+
+    (if form-as-sequence-p
+      (let ((unit-name (format nil "?~{~a~^-~}-unit" string-list)))
+        (format stream "~%~%(def-fcg-cxn ~a
+             ((~a
+               (lex-class ?lex-class)
+               (boundaries (?begin-sequence ?end-sequence)))
+              <-
+              (~a
+               --
+               (HASH form ((sequence ~s ?begin-sequence ?end-sequence))))))"
+                cxn-name unit-name unit-name string))
+      (if (= 1 (length string-list))
+        ;; Only one string (lexical cxn)
+        (let ((unit-name (format nil "?~a-unit" (first string-list))))
+          (format stream "(def-fcg-cxn ~a
              ((~a
                (lex-class ?lex-class))
               <-
               (~a
                --
                (HASH form ((string ~(~a~) ~s))))))"
-                cxn-name
-                unit-name
-                unit-name
-                unit-name
-                (first string-list)))
-           ;; Multiple strings
-           (let* ((subunit-names (mapcar #'(lambda (s) (make-var (format nil "~a-unit" s))) string-list))
-                  (words-with-subunit-names (loop for s1 in string-list
-                                                  for s2 in subunit-names
-                                                  append (list s2 s2 s1)))
-                  (meets-constraints (loop for (subunit . rest) on subunit-names
-                                           if rest
-                                           append `(meets ,subunit ,(first rest))))
-                  (unit-name (format nil "?~{~a~^-~}-unit" string-list)))
-             (format stream "
-(def-fcg-cxn ~a
+                  cxn-name
+                  unit-name
+                  unit-name
+                  unit-name
+                  (first string-list)))
+        ;; Multiple strings
+        (let* ((subunit-names (mapcar #'(lambda (s) (make-var (format nil "~a-unit" s))) string-list))
+               (words-with-subunit-names (loop for s1 in string-list
+                                               for s2 in subunit-names
+                                               append (list s2 s2 s1)))
+               (meets-constraints (loop for (subunit . rest) on subunit-names
+                                        if rest
+                                          append `(meets ,subunit ,(first rest))))
+               (unit-name (format nil "?~{~a~^-~}-unit" string-list)))
+          (format stream "(def-fcg-cxn ~a
              ((~a
                (~(~a~) (~{~(~a~^ ~)~})))
               <-
@@ -1058,14 +1073,12 @@ construction on the fly."
                (HASH form (~{(~(~a~) ~(~a~) ~(~a~))~^
                            ~})))))
              "
-                     cxn-name
-                     unit-name
-                     hierarchy-feature
-                     subunit-names
-                     words-with-subunit-names
-                     unit-name
-                     meets-constraints)))))
+                  cxn-name
+                  unit-name
+                  hierarchy-feature
+                  subunit-names
+                  words-with-subunit-names
+                  unit-name
+                  meets-constraints))))))
 
 ;; (print-skeleton-cxn-for-string "until light and fluffy" *fcg-constructions*)
-
-

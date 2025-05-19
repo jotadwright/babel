@@ -64,6 +64,46 @@ matching."
     (* (length (conditional-part applied-cxn)) 2)))
 
 
+(defmethod apply-heuristic ((node cip-node) (mode (eql :nr-of-roles-integrated)))
+  "Returns the number of roles integrated by the cxn."
+  (let ((applied-cxn (get-original-cxn (car-applied-cxn (cipn-car node)))))
+    (if (eql (attr-val applied-cxn :label) 'propbank-grammar::argument-structure-cxn)
+      (let ((cxn-meaning (first (fcg-unit-feature-value (first (contributing-part applied-cxn)) 'meaning))))
+        (- (length cxn-meaning) 1))
+      0)))
+
+
+(defmethod apply-heuristic ((node cip-node) (mode (eql :minimize-path-length)))
+  ""
+  (let ((applied-cxn (get-original-cxn (car-applied-cxn (cipn-car node)))))
+    (if (eql (attr-val applied-cxn :label) 'propbank-grammar::argument-structure-cxn)
+      (let* ((transient-structure (car-resulting-cfs (cipn-car node)))
+             (bindings (car-second-merge-bindings (cipn-car node)))
+             (cxn-renamings (renamings (processing-cxn (get-original-cxn (car-applied-cxn (cipn-car node))))))
+             (cxn-meaning (first (fcg-unit-feature-value (first (contributing-part applied-cxn)) 'meaning)))
+             (v-unit-var-processing-cxn (cdr (assoc (last-elt (find 'frame cxn-meaning :key #'first :test #'eql)) cxn-renamings)))
+             (cxn-renamings-2 (renamings (car-applied-cxn (cipn-car node))))
+             (v-unit-name (lookup (lookup v-unit-var-processing-cxn cxn-renamings-2) bindings)))
+           (if v-unit-name
+             (let* ((roles-w-unit-names (loop for predicate in cxn-meaning
+                                              when (eql 'frame-element (first predicate))
+                                                collect (cons (second predicate) ;;role name
+                                                              (lookup (lookup (cdr (assoc (fourth predicate) cxn-renamings)) cxn-renamings-2)
+                                                                      (car-second-merge-bindings (cipn-car node))))))
+                    (path-per-frame-element (loop with v-unit = (assoc v-unit-name (left-pole-structure transient-structure))
+                                                  for (role . role-unit-name) in roles-w-unit-names
+                                                  for  role-unit = (assoc role-unit-name (left-pole-structure transient-structure))
+                                                  collect (cons role (find-path-in-syntactic-tree role-unit v-unit (left-pole-structure transient-structure))))))
+               (if path-per-frame-element
+                 (loop for (nil . path) in path-per-frame-element
+                       sum (length path) into total-path-length
+                       finally (return (/ total-path-length
+                                          (length roles-w-unit-names))))
+                 1))
+             0))
+      0)))
+
+
 (defparameter *argm-predictor* "http://localhost:3600/predict")
 
 (defun send-request (json &key (host *argm-predictor*) (connection-timeout 3600))
