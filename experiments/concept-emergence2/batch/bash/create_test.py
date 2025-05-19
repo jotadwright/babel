@@ -20,9 +20,12 @@ template = """\
 sbcl --dynamic-space-size 16000 --non-interactive --load test.lisp \\
     exp-name {exp_name} \\
     nr-of-interactions {nr_of_interactions} \\
-    dataset {dataset} \\
+    dataset-loader {dataset_loader} \\
+    min-context-size {min_context_size} \\
+    max-context-size {max_context_size} \\
+    dataset "({dataset})" \\
     dataset-split {dataset_split} \\
-    feature-set {feature_set} \\
+    feature-set "({feature_set})" \\
     scene-sampling {scene_sampling} \\
     topic-sampling {topic_sampling} \\
     seed ${{1}} \\
@@ -48,9 +51,7 @@ def main(input_file, output_dir, exp_fname):
 if __name__ == "__main__":
     args = parser.parse_args()
     exp_fname = args.csv
-    input_csv_file = (
-        f"data-test/{exp_fname}.csv"  # Replace with your input CSV file name
-    )
-    output_directory = "bash/scripts"  # Replace with your desired output directory
+    input_csv_file = f"config/test/{exp_fname}.csv"
+    output_directory = "bash/scripts"
 
     main(input_csv_file, output_directory, exp_fname)

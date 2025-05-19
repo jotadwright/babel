@@ -67,7 +67,7 @@ function comprehend() {
 				},
 				statusCode: {
 					500: function(data) {
-						alert('Timeout Exceededor other internal server error.');
+						alert('Timeout Exceeded or other internal server error.');
 						hideLoader();
 					}
 				},

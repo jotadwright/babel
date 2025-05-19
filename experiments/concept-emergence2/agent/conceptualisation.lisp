@@ -10,15 +10,8 @@
   (agent cle-agent)
   (discriminating-cxns list)
   (applied-cxn list))
-(define-event event-coherence-p
-  (experiment cle-experiment)
-  (coherence symbol)
-  (speaker-cxn t)
-  (hearer-cxn t))
 
 (defmethod conceptualise ((agent cle-agent))
-  ;; notify
-  (notify event-conceptualisation-start agent)
   ;; conceptualise ifo the role
   (case (discourse-role agent)
     (speaker (speaker-conceptualise agent))
@@ -29,14 +22,17 @@
 ;; -------------
 (defmethod speaker-conceptualise ((agent cle-agent))
   "Conceptualise the topic of the interaction."
+  (notify event-conceptualisation-start agent)
   (if (empty-lexicon-p agent)
     nil
-    (destructuring-bind (applied-cxn . competitors) (find-best-concept agent)
-      ;; set competitors
-      (set-data agent 'meaning-competitors competitors)
-      ;; set the applied-cxn slot
-      (set-data agent 'applied-cxn applied-cxn)
-      applied-cxn)))
+    (let* ((topic  (get-data agent 'topic))
+           (context (remove topic (objects (get-data agent 'context)))))
+      (destructuring-bind (applied-cxn . competitors) (find-best-concept agent topic context)
+        ;; set competitors
+        (set-data agent 'meaning-competitors competitors)
+        ;; set the applied-cxn slot
+        (set-data agent 'applied-cxn applied-cxn)
+        applied-cxn))))
 
 (defmethod hearer-conceptualise ((agent cle-agent))
   "Conceptualise the topic as the hearer"
@@ -45,17 +41,27 @@
     (if (conceptualised-p agent)
       ;; if already conceptualised, just return the result
       (find-data agent 'hypothetical-cxn)
-      (destructuring-bind (hypothetical-cxn . competitors) (find-best-concept agent)
-        ;; hypothetical-cxn corresponds to the concept that hearer would have produces as a speaker
-        (let* ((applied-cxn (find-data agent 'applied-cxn))
-               (competitors (if hypothetical-cxn
-                              (cons hypothetical-cxn competitors)
-                              competitors))
-               (all-competitors (remove applied-cxn competitors :test #'(lambda (x y) (equal x y)))))
-          (set-data agent 'meaning-competitors all-competitors))
-        ;; set the hypothetical-cxn slot
-        (set-data agent 'hypothetical-cxn hypothetical-cxn)
-        hypothetical-cxn))))
+      ;; get the topic and and context from the speaker's perspective
+      (let* ((experiment (experiment agent))
+             (speaker (speaker experiment))
+             (hearer (hearer experiment))
+             (topic (case (get-configuration experiment :coherence-perspective)
+                      (:speaker (get-data speaker 'topic))
+                      (:hearer (get-data hearer 'topic))))
+             (context (case (get-configuration experiment :coherence-perspective)
+                        (:speaker (remove topic (objects (get-data speaker 'context))))
+                        (:hearer (remove topic (objects (get-data hearer 'context)))))))
+        (destructuring-bind (hypothetical-cxn . competitors) (find-best-concept agent topic context)
+          ;; hypothetical-cxn corresponds to the concept that hearer would have produces as a speaker
+          (let* ((applied-cxn (find-data agent 'applied-cxn))
+                 (competitors (if hypothetical-cxn
+                                (cons hypothetical-cxn competitors)
+                                competitors))
+                 (all-competitors (remove applied-cxn competitors :test #'(lambda (x y) (equal x y)))))
+            (set-data agent 'meaning-competitors all-competitors))
+          ;; set the hypothetical-cxn slot
+          (set-data agent 'hypothetical-cxn hypothetical-cxn)
+          hypothetical-cxn)))))
 
 ;; --------------------------------------------
 ;; + Conceptualisation through discrimination +
@@ -65,20 +71,20 @@
   """Calculates the maximim similarity between the given concept and all objects in the context."
   (loop named lazy-loop
         for object in context
-        for other-sim = (weighted-similarity agent object concept)
+        for other-sim = (concept-entity-similarity agent object concept)
         when (<= topic-sim other-sim)
           ;; lazy stopping
           do (return-from lazy-loop other-sim)
         maximize other-sim))
 
-(defun find-best-concept (agent)
+(defun find-best-concept (agent topic context)
   "Searches the lexicon for the best concept for the given topic and context.
 
   The agent first searches its fast inventory,
   if no cxn is found, it searches the trash inventory."
   (loop with all-competitors = nil
         for inventory-name in (list :fast :trash)
-        for (best-score best-candidate competitors) = (search-inventory agent inventory-name)
+        for (best-score best-candidate competitors) = (search-inventory agent inventory-name topic context)
         ;; if a cxn is found, return it
         if best-candidate
           do (return (cons best-candidate
@@ -92,27 +98,24 @@
           ;; if nothing is found, return nil nil
           (return (cons nil all-competitors))))
 
-(defmethod search-inventory (agent inventory-name)
+(defmethod search-inventory (agent inventory-name topic context)
   "Searches an inventory for the best concept.
 
   The best concept corresponds to the concept that maximises
   the multiplication of its entrenchment score and its discriminative power."
-  (loop with similarity-threshold = (get-configuration (experiment agent) :similarity-threshold)
-        with topic = (get-data agent 'topic)
-        with context = (remove topic (objects (get-data agent 'context)))
-        with best-score = -1
+  (loop with best-score = -1
         with best-candidate = nil
         with competitors = '()
         ;; iterate
         for cxn being the hash-values of (get-inventory (lexicon agent) inventory-name)
         for concept = (meaning cxn)
-        for topic-sim = (weighted-similarity agent topic concept)
+        for topic-sim = (concept-entity-similarity agent topic concept)
         for best-other-sim = (calculate-max-similarity-in-context agent concept context topic-sim)
         for discriminative-power = (abs (- topic-sim best-other-sim))
         ;; trash inventory -> the score is irrelevant (so set score to 1), otherwise use score
         for score = (if (eq inventory-name :trash) 1 (score cxn))
         ;; check if the concept is discriminative
-        if (> topic-sim (+ best-other-sim similarity-threshold))
+        if (> topic-sim best-other-sim)
           ;; the concept is discriminative, thus it is a candidate
           do (if (> (* discriminative-power score) best-score)
                ;; update the best candidate
@@ -142,8 +145,6 @@
          (coherence (if (and speaker-cxn hearer-cxn)
                       (string= (form speaker-cxn) (form hearer-cxn))
                       nil)))
-    ;; notify
-    (notify event-coherence-p experiment coherence speaker-cxn hearer-cxn)
     ;; return
     coherence))
 

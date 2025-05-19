@@ -27,6 +27,7 @@
   :serial t
   :components 
   ((:file "package")
+   (:file "demo-grammar")
    (:module unify-and-merge
     :serial t
     :components ((:file "matcher")
@@ -139,6 +140,7 @@
                  (:file "html")
                  (:file "css")
                  (:file "js")))
+   (:file "make-json")
    (:module tests
     :serial t
     :components ((:file "helpers")

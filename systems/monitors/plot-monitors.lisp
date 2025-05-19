@@ -28,10 +28,11 @@
 
 (defun pipe-to-gnuplot ()
   "Starts a gnuplot process and returns a stream for writing to that process"
-   (let ((stream (pipe-output  "gnuplot"
-                               :args (list "-persist" "-") :wait nil)))
-     #+(or :win32 :windows :macos) (format stream "set terminal qt~%")
-     stream))
+  (let ((stream (pipe-output  "gnuplot"
+                              :args (list (format nil "-~apersist" (if cl-user::*persist-gnuplot-windows* "" "no"))) :wait nil)))
+    #+(or :win32 :linux) (format stream "set terminal x11 1 noraise~%")
+    #+darwin (format stream "set terminal qt noraise~%")
+    stream))
 
 
 ;; ############################################################################
@@ -94,8 +95,14 @@
 	     :type (or string null) :initarg :y2-label :initform nil :reader y2-label)
    (stream :documentation "Where the plot-data method writes its output"
 	   :reader plot-stream :initform nil)
-   (colors :documentation "A list of line colors to use for plotting." 
+   (colors :documentation "A list of line colors to use for plotting" 
 	   :accessor colors :initform *great-gnuplot-colors*)
+   (caption-font-size :documentation "The font size of the caption"
+                      :type integer :initarg :caption-font-size :initform 12 :reader caption-font-size)
+   (axis-label-font-size :documentation "The font size of the x- and y-axis labels"
+                         :type integer :initarg :axis-label-font-size :initform 14 :reader axis-label-font-size)
+   (tics-font-size :documentation "The font size of the tics"
+                   :type integer :initarg :tics-font-size :initform 12 :reader tics-font-size)
    (divide-indices-by :documentation "A constant by which the indices (x-values) are divided by."
 		      :accessor divide-indices-by :initform 1 :initarg :divide-indices-by))
   (:documentation "Generic class for plotting with gnuplot"))
@@ -113,11 +120,11 @@
   (when y2-max (check-type y2-max number))
   (when y2-min (check-type y2-min number))
   (when line-width (check-type line-width integer))
-  (when (and use-y-axis  (or (not (listp use-y-axis)) 
-			     (not (= (length use-y-axis) (length data-sources)))
-			     (not (loop for x in use-y-axis
-				     always (and (numberp x)
-						 (or (= x 1) (= x 2)))))))
+  (when (and use-y-axis (or (not (listp use-y-axis)) 
+                            (not (= (length use-y-axis) (length data-sources)))
+                            (not (loop for x in use-y-axis
+                                       always (and (numberp x)
+                                                   (or (= x 1) (= x 2)))))))
     (error "use-y-axis should be a list containing 1 or 2 for each data-source"))
   (when (and caption (or (not (listp caption))
 			 (not (= (length caption) (length data-sources)))
@@ -138,80 +145,80 @@
   "computes for each source in data a (index data-points error-bars) list.
    data is a list batches of series of values, as recorded for example by data-recorders"
   (loop
-   for source in data
-   ;; the length of the longest series determines the range
-   for range = (loop for series in source maximize (length series))
-   ;; the minimum number of samples used
-   for s = (/ range minimum-number-of-data-points)
-   ;; in order to have error bars at nice positions, round them
-   for _steps = (or steps 
-                    (cond ((<= s 1) 1) ((<= s 5) 2) ((<= s 10) 5)
-                          ((<= s 20) 10) ((<= s 25) 20) ((<= s 50) 25)
-                          ((<= s 100) 50) ((<= s 250) 100) ((<= s 500) 250)
-                          ((<= s 1000) 500) ((<= s 2500) 1000) ((<= s 500) 2500)
-                          (t 5000)))
-   ;; error bars at nice positions
-   for error-bar-distance = (cond ((<= range 101) 10)
-                                  ((<= range 201) 20)
-                                  ((<= range 501 50)) 
-                                  ((<= range 1001) 100)
-                                  ((<= range 2001) 200)
-                                  ((<= range 5001) 500)
-                                  ((<= range 10001) 1000) 
-                                  ((<= range 20001) 2000)
-                                  ((<= range 50001) 5000)
-                                  ((<= range 100001) 10000)
-                                  ((<= range 200001) 20000)
-                                  ((<= range 500000) 50000)
-                                  ((<= range 1000001) 100000)
-                                  (t 200000))
-   collect
-   (loop
-    for i from 0 to (- range 1) by _steps
-    for values =
-    (remove
-     nil
-     (loop
-      for series in source
-      unless (< (length series) (+ i 1))
-      collect
-      (if (and *plot-with-averaged-by-step* (> i 0))
-        (let ((vs (remove
-                   nil
-                   (loop for j from (- i (- _steps 1)) to i
-                         collect (nth (- (length series) j 1)
-                                      series)))))
-          (when vs (average vs)))
-        (nth (- (length series) i 1) series))))
-    for average = (when values (average values))
-    collect (/ i divide-indices-by) into index
-    collect average into average-values
-    when (and values
-              error-bars
-              (> (length source) 1)
-              (> i 0) (= (mod i error-bar-distance) 0)
-              (>= (length values) 1))
-    ;; alist monitor was not creating plots for single series
-    ;; because the format strings that are send to gnuplot EXPECT
-    ;; error bar information. Instead of changing those format strings
-    ;; (too complicated), error bars are always created even when
-    ;; only a single series is ran...
-    collect
-    (cond ((eq error-bars :min-max)
-           (list (/ i divide-indices-by) average
-                 (loop for el in values minimize el)
-                 (loop for el in values maximize el)))
-          ((and (consp error-bars) 
-                (eq (first error-bars) :percentile))
-           (list (/ i divide-indices-by) average
-                 (nth-percentile values (second error-bars))
-                 (nth-percentile values (third error-bars))))
-          (t
-           (let ((stdev (stdev values :average average)))
-             (list (/ i divide-indices-by) average 
-                   (- average stdev) (+ average stdev)))))
-    into errorbars
-    finally (return (list index average-values errorbars)))))
+     for source in data
+     ;; the length of the longest series determines the range
+     for range = (loop for series in source maximize (length series))
+     ;; the minimum number of samples used
+     for s = (/ range minimum-number-of-data-points)
+     ;; in order to have error bars at nice positions, round them
+     for _steps = (or steps 
+                      (cond ((<= s 1) 1) ((<= s 5) 2) ((<= s 10) 5)
+                            ((<= s 20) 10) ((<= s 25) 20) ((<= s 50) 25)
+                            ((<= s 100) 50) ((<= s 250) 100) ((<= s 500) 250)
+                            ((<= s 1000) 500) ((<= s 2500) 1000) ((<= s 500) 2500)
+                            (t 5000)))
+     ;; error bars at nice positions
+     for error-bar-distance = (cond ((<= range 101) 10)
+                                    ((<= range 201) 20)
+                                    ((<= range 501 50)) 
+                                    ((<= range 1001) 100)
+                                    ((<= range 2001) 200)
+                                    ((<= range 5001) 500)
+                                    ((<= range 10001) 1000) 
+                                    ((<= range 20001) 2000)
+                                    ((<= range 50001) 5000)
+                                    ((<= range 100001) 10000)
+                                    ((<= range 200001) 20000)
+                                    ((<= range 500000) 50000)
+                                    ((<= range 1000001) 100000)
+                                    (t 200000))
+     collect
+       (loop
+          for i from 0 to (- range 1) by _steps
+          for values =
+            (remove
+             nil
+             (loop
+                for series in source
+                unless (< (length series) (+ i 1))
+                  collect
+                    (if (and *plot-with-averaged-by-step* (> i 0))
+                      (let ((vs (remove
+                                 nil
+                                 (loop for j from (- i (- _steps 1)) to i
+                                       collect (nth (- (length series) j 1)
+                                                    series)))))
+                        (when vs (average vs)))
+                      (nth (- (length series) i 1) series))))
+          for average = (when values (average values))
+          collect (/ i divide-indices-by) into index
+          collect average into average-values
+          when (and values
+                    error-bars
+                    (> (length source) 1)
+                    (> i 0) (= (mod i error-bar-distance) 0)
+                    (>= (length values) 1))
+            ;; alist monitor was not creating plots for single series
+            ;; because the format strings that are send to gnuplot EXPECT
+            ;; error bar information. Instead of changing those format strings
+            ;; (too complicated), error bars are always created even when
+            ;; only a single series is ran...
+            collect
+              (cond ((eq error-bars :min-max)
+                     (list (/ i divide-indices-by) average
+                           (loop for el in values minimize el)
+                           (loop for el in values maximize el)))
+                    ((and (consp error-bars) 
+                          (eq (first error-bars) :percentile))
+                     (list (/ i divide-indices-by) average
+                           (nth-percentile values (second error-bars))
+                           (nth-percentile values (third error-bars))))
+                    (t
+                     (let ((stdev (stdev values :average average)))
+                       (list (/ i divide-indices-by) average 
+                             (- average stdev) (+ average stdev)))))
+              into errorbars
+          finally (return (list index average-values errorbars)))))
 
 (defun compute-index-and-data-points-and-error-bars (data monitor)
   "computes for each source in data a (index data-points error-bars) list.
@@ -226,57 +233,61 @@
   (:documentation "Writes the data to the stream of the monitor"))
 
 (defun plot-data-aux (data stream &key key-location
-                      use-y-axis y1-min y1-max y2-min y2-max
-                      caption
-                      monitor-ids-of-sources
-                      (lines t)
-                      (line-width 2)
-                      (colors *great-gnuplot-colors*)
-                      (draw-y1-grid nil) (draw-y2-grid nil)
-                      (x-label nil)
-                      (y1-label nil)
-		      (y2-label nil)
-                      (grid-color "#aaaaaa")
-                      (grid-line-width 0.5))
+                           use-y-axis y1-min y1-max y2-min y2-max
+                           caption
+                           monitor-ids-of-sources
+                           (lines t)
+                           (line-width 2)
+                           (colors *great-gnuplot-colors*)
+                           (draw-y1-grid nil) (draw-y2-grid nil)
+                           (x-label nil)
+                           (y1-label nil)
+                           (y2-label nil)
+                           (tics-font-size 12)
+                           (axis-label-font-size 14)
+                           (caption-font-size 12)
+                           (grid-color "#aaaaaa")
+                           (grid-line-width 0.5))
   (assert stream)
   (format stream "~cset grid back noxtics" #\linefeed)
   (format stream "~cset grid back ~:[noytics~;ytics lt 4 lc rgb \"~a\" lw ~a~]" 
           #\linefeed draw-y1-grid grid-color grid-line-width)
   (format stream "~cset grid back ~:[noy2tics~;y2tics lt 4 lc rgb \"~a\" lw ~a~]" 
           #\linefeed draw-y2-grid grid-color grid-line-width)
-  (format stream "~cset key ~a" #\linefeed key-location)
-  (format stream "~cset ytics nomirror~cset yrange [~:[*~;~:*~d~]:~:[*~;~:*~d~]]" 
-          #\linefeed #\linefeed y1-min y1-max)
-  (format stream "~cset xlabel ~:[~;~:*~s~]" #\linefeed x-label)
-  (format stream "~cset ylabel ~:[~;~:*~s~]" #\linefeed y1-label)
-  (format stream "~cset y2label ~:[~;~:*~s~]" #\linefeed y2-label)
+  (format stream "~cset key ~a font \",~a\"" #\linefeed key-location caption-font-size)
+  (format stream "~cset tics font \",~a\"" #\linefeed tics-font-size)
+  (format stream "~cset ytics nomirror font \",~a\"~cset yrange [~:[*~;~:*~d~]:~:[*~;~:*~d~]]" 
+          #\linefeed tics-font-size #\linefeed y1-min y1-max)
+  (format stream "~cset xlabel ~:[~;~:*~s~] font \",~a\"" #\linefeed x-label axis-label-font-size)
+  (format stream "~cset ylabel ~:[~;~:*~s~] font \",~a\"" #\linefeed y1-label axis-label-font-size)
+  (format stream "~cset y2label ~:[~;~:*~s~] font \",~a\"" #\linefeed y2-label axis-label-font-size)
   (if (member 2 use-y-axis)
-      (format stream "~cset y2tics nomirror~cset y2range [~:[*~;~:*~d~]:~:[*~;~:*~d~]]" 
-              #\linefeed #\linefeed y2-min y2-max)
-      (format stream "~cunset y2tics" #\linefeed))
+    (format stream "~cset y2tics nomirror font \",~a\"~cset y2range [~:[*~;~:*~d~]:~:[*~;~:*~d~]]" 
+            #\linefeed tics-font-size #\linefeed y2-min y2-max)
+    (format stream "~cunset y2tics" #\linefeed))
   (format stream "~cplot " #\linefeed)
   (loop for source in data 
-     for source-number from 0
-     for color = (nth (mod source-number (length colors)) colors)
-     do (format stream "~:[~*~*~*~*~;'-' axes x1y~:[1~;~:*~d~] notitle with errorbars lt ~a ps 0.01 lw ~a lc rgb ~s,~] '-' axes x1y~:[1~;~:*~d~] title ~s ~a lt ~a lw ~a lc rgb ~s~:[~;, ~]"
-                (third source) (nth source-number use-y-axis)
-                (+ 1 (mod source-number 8)) line-width color
-                (nth source-number use-y-axis)
-                (if (and caption (nth source-number caption))
-                    (nth source-number caption)
-                    (nth source-number (reverse monitor-ids-of-sources)))
-                (if lines "with lines" "with points")
-                (+ 1 (mod source-number 8)) line-width color
-                (< source-number (- (length data) 1))))
+        for source-number from 0
+        for color = (nth (mod source-number (length colors)) colors)
+        do (format stream "~:[~*~*~*~*~;'-' axes x1y~:[1~;~:*~d~] notitle with errorbars lt ~a ps 0.01 lw ~a lc rgb ~s,~] '-' axes x1y~:[1~;~:*~d~] title ~s ~a lt ~a lw ~a lc rgb ~s~:[~;, ~]"
+                   (third source) (nth source-number use-y-axis)
+                   (+ 1 (mod source-number 8)) line-width color
+                   (nth source-number use-y-axis)
+                   (if (and caption (nth source-number caption))
+                     (nth source-number caption)
+                     (nth source-number (reverse monitor-ids-of-sources)))
+                   (if lines "with lines" "with points")
+                   (+ 1 (mod source-number 8)) line-width color
+                   (< source-number (- (length data) 1))))
   (loop for source in data
-     do (when (third source)
-          (loop for error-bar in (third source) 
-             do (format stream "~c~{~,3f ~,3f ~,3f ~,3f~}"  #\linefeed error-bar))
-          (format stream "~ce"  #\linefeed))
-     (mapcar #'(lambda (index average-values) 
-                 (format stream "~c~,3f ~,3f"  #\linefeed index average-values))
-             (first source) (second source))
-     (format stream "~ce~c" #\linefeed #\linefeed)))
+        do (when (third source)
+             (loop for error-bar in (third source) 
+                   do (format stream "~c~{~,3f ~,3f ~,3f ~,3f~}"  #\linefeed error-bar))
+             (format stream "~ce"  #\linefeed))
+           (mapcar #'(lambda (index average-values) 
+                       (format stream "~c~,3f ~,3f"  #\linefeed index average-values))
+                   (first source) (second source))
+           (format stream "~ce~c" #\linefeed #\linefeed)))
 
 (defmethod plot-data ((monitor gnuplotter))
   (let ((data (compute-index-and-data-points-and-error-bars
@@ -294,9 +305,12 @@
                    :colors (colors monitor)
                    :lines (lines monitor)
                    :line-width (line-width monitor)
-		   :x-label (x-label monitor)
-		   :y1-label (y1-label monitor)
-		   :y2-label (y2-label monitor)
+                   :x-label (x-label monitor)
+                   :y1-label (y1-label monitor)
+                   :y2-label (y2-label monitor)
+                   :caption-font-size (caption-font-size monitor)
+                   :axis-label-font-size (axis-label-font-size monitor)
+                   :tics-font-size (tics-font-size monitor)
                    :caption (caption monitor)
                    :monitor-ids-of-sources (monitor-ids-of-sources monitor))))
 
@@ -317,35 +331,43 @@
   (:documentation "Plots values in realtime on a display using gnuplot"))
 
 (defmethod initialize-instance :around ((monitor gnuplot-display)
-					&key id &allow-other-keys)
+                                        &key id &allow-other-keys)
   (let ((previous-monitor (get-monitor id)))
     (call-next-method)
     (when previous-monitor
       (setf (slot-value monitor 'stream) (plot-stream previous-monitor)))
-    (subscribe-to-event id 'interaction-finished)))
+    (subscribe-to-event id 'interaction-finished)
+    (subscribe-to-event id 'reset-monitors)))
 
 (defmethod handle-interaction-finished-event :after ((monitor gnuplot-display) 
-						     (monitor-id symbol) 
-						     (event (eql 'interaction-finished))
-						     (experiment t) (interaction t)(interaction-number number))
+                                                     (monitor-id symbol) 
+                                                     (event (eql 'interaction-finished))
+                                                     (experiment t) (interaction t)(interaction-number number))
   (when (= (mod interaction-number (update-interval monitor)) 0)
     (unless (plot-stream monitor)
       (setf (slot-value monitor 'stream) (pipe-to-gnuplot)))
     (format (plot-stream monitor) "~cset title \"~(~a~) (~d:~d)\""
-	    #\linefeed (title monitor) (length (car (first (sources monitor))))
-	    (length (caar (first (sources monitor)))))
+            #\linefeed (title monitor) (length (car (first (sources monitor))))
+            (length (caar (first (sources monitor)))))
     (plot-data monitor)
     (finish-output (plot-stream monitor))))
+
+(defmethod handle-reset-monitors-event :after ((monitor gnuplot-display) 
+                                               (monitor-id symbol)
+                                               (event (eql 'reset-monitors)))
+  "Reset the gnuplot stream (which flushes the data)"
+  (let ((stream (plot-stream monitor)))
+    (setf stream (pipe-to-gnuplot))))
 
 (defmethod activate-monitor-method :after ((monitor gnuplot-display) &optional active)
   "Opens or closes a pipe to gnuplot."
   (declare (ignore active))
   (if (active monitor)
-      (unless (plot-stream monitor)
-	(setf (slot-value monitor 'stream) (pipe-to-gnuplot)))
-      (when (plot-stream monitor)
-	(close-pipe (plot-stream monitor))
-	(setf (slot-value monitor 'stream) nil))))
+    (unless (plot-stream monitor)
+      (setf (slot-value monitor 'stream) (pipe-to-gnuplot)))
+    (when (plot-stream monitor)
+      (close-pipe (plot-stream monitor))
+      (setf (slot-value monitor 'stream) nil))))
 
 
 ;; ############################################################################
@@ -401,9 +423,9 @@
 					(monitor-id symbol) (event (eql 'batch-finished))
 					(experiment-class string))
   (let ((file-name (if (add-time-and-experiment-to-file-name monitor)
-		       (make-file-name-with-time-and-experiment-class 
-			(file-name monitor) experiment-class)
-		       (file-name monitor))))
+                     (make-file-name-with-time-and-experiment-class 
+                      (file-name monitor) experiment-class)
+                     (file-name monitor))))
     (format t "~%monitor ~(~a~): generating ~a ...~%" (id monitor) file-name)
     (force-output t)
     (when (slot-value monitor 'stream)
@@ -460,10 +482,10 @@
   (let ((data (compute-index-and-data-points-and-error-bars (reverse (sources monitor)) monitor)))
     (with-open-file (file (file-name monitor) :direction :output)
       (loop for index in (first (first data))
-	 for n from 0
-	 do (format file "~d ~{~,3f~^ ~}~c" index 
-		    (mapcar (lambda (x) (nth n x))
-			    (mapcar #'second data)) #\linefeed)))
+            for n from 0
+            do (format file "~d ~{~,3f~^ ~}~c" index 
+                       (mapcar (lambda (x) (nth n x))
+                               (mapcar #'second data)) #\linefeed)))
     (when (third (first data))
       (let ((file-name (make-pathname :directory (pathname-directory (file-name monitor))
 				      :type (pathname-type (file-name monitor))
@@ -472,10 +494,10 @@
 							 "_errorbar"))))
 	(with-open-file (file file-name :direction :output)
 	  (loop for index in (mapcar #'first (third (first data)))
-	     for n from 0
-	     do (format file "~d ~{~{~,3f ~,3f ~,3f~^ ~}~^ ~}~c" index 
-			(mapcar (lambda (x) (cdr (nth n x)))
-				(mapcar #'third data)) #\linefeed)))))))
+                for n from 0
+                do (format file "~d ~{~{~,3f ~,3f ~,3f~^ ~}~^ ~}~c" index 
+                           (mapcar (lambda (x) (cdr (nth n x)))
+                                   (mapcar #'third data)) #\linefeed)))))))
 
 
 ;; ############################################################################

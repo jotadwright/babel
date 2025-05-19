@@ -55,10 +55,17 @@
 (pushnew :hunchentoot-no-ssl *features*)
 
 ;; when t, then the web-interface is automatically started upon compiling
-(defvar *automatically-start-web-interface* t)
+
+(defvar *automatically-start-web-interface*
+  #-delivery t
+  #+delivery nil)
 
 ;; when t, the web interface will always scroll to the bottom when adding new elements
 (defvar *automatically-scroll-to-bottom* t)
+
+;; when t, gnuplot windows will persist after the process has quit
+;; in other words, to close a gnuplot window, you have to do it manually!
+(defvar *persist-gnuplot-windows* t)
 
 ;; in some lisps *print-pretty* is t by default, that means everything
 ;; passed to format, print, mkstr, etc or everything returned from an
@@ -97,6 +104,7 @@
                         (funcall fun)
                         (setf (car gsc) *gensym-counter*))))))))
 
+#-delivery
 (let ((init-babel-user (babel-pathname :name "init-babel-user" :type "lisp")))
   (when (probe-file init-babel-user)
     (load init-babel-user)))

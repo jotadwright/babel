@@ -11,8 +11,8 @@ Example usage
  
 ;; compare individual runs
 (progn
-  (setf *exp1* (restore-exp "cle3-seed-run1" "clevr" "2024-08-1_0h4m26s-seed1"))
-  (setf *exp2* (restore-exp "cle3-seed-run2" "clevr" "2024-08-1_0h13m27s-seed1"))
+  (setf *exp1* (restore-exp "cle3-seed-run1" "train" "..." "2024-08-1_0h4m26s-seed1"))
+  (setf *exp2* (restore-exp "cle3-seed-run2" "train" "..." "2024-08-1_0h4m26s-seed1"))
   (assert (equal-exp *exp1* *exp2*)))
 
 ;; compare entire top-level-dirs
@@ -25,14 +25,15 @@ Example usage
                                "concept-emergence2"
                                "logging")))
 
-(defun restore-exp (exp-top-dir exp-name log-dir)
+(defun restore-exp (exp-top-dir split exp-name log-dir)
   (cl-store:restore
    (merge-pathnames (make-pathname :directory  `(:relative
                                                  ,exp-top-dir
+                                                 ,split
                                                  ,exp-name
                                                  ,log-dir
                                                  "stores")
-                                   :name "1-history"
+                                   :name "seed-1"
                                    :type "store")
                     (cle-storage))))
 

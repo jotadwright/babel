@@ -186,8 +186,9 @@
                   (unless (find-same-cxn (get-original-cxn cxn) (grammar agent) (get-configuration agent :strategy))
                    (add-cxn (get-original-cxn cxn) (grammar agent))))
                 (when (equal (get-configuration agent :strategy) :categorisation-strategy)
-                  (setf (type-hierarchies::graph (get-type-hierarchy (grammar agent))) (type-hierarchies::graph (get-type-hierarchy (construction-inventory repaired-cipn))))
-                  (notify type-hierarchy-updated (get-type-hierarchy (grammar agent))))
+                  (setf (fcg::graph (categorial-network (grammar agent)))
+                        (fcg::graph (categorial-network (construction-inventory repaired-cipn)))) ;;graph?
+                  (notify categorial-network-updated (categorial-network (grammar agent))))
                 (set-data agent :cipn repaired-cipn)
                 (set-data agent :utterance (render (car-resulting-cfs (cipn-car repaired-cipn))
                                                    (get-configuration (construction-inventory repaired-cipn) :render-mode))))
@@ -200,9 +201,9 @@
 
 (in-package :fcg)
 
-(export '(list-of-meanings produce formulate create-initial-structure))
+(export '(list-of-meanings run-produce formulate create-initial-structure))
 
-(defmethod formulate (meaning &key (cxn-inventory syntax-grammar) (silent nil))
+(defmethod formulate (meaning &key (cxn-inventory fcg-construction-set) (silent nil))
   "formulate the input meaning in FCG Light"
   (let ((processing-cxn-inventory (processing-cxn-inventory cxn-inventory))
         (list-of-meanings (make-instance 'list-of-meanings
@@ -210,7 +211,7 @@
                                          :redundant-meaning (get-data (blackboard cxn-inventory) :redundant-meaning))))
                                          
     (if processing-cxn-inventory
-      (produce list-of-meanings processing-cxn-inventory silent)
+      (run-produce list-of-meanings processing-cxn-inventory silent)
       (format nil "Failed. ~a does not contain a processing-cxn-inventory" cxn-inventory))))
 
 (defclass list-of-meanings ()
@@ -220,7 +221,7 @@
                   :initform nil :initarg :non-redundant-meaning :accessor non-redundant))
   (:documentation "class to store redundant and non redundant conceptualized meanings"))
 
-(defmethod produce ((list-of-meanings list-of-meanings) (construction-inventory construction-inventory)
+(defmethod run-produce ((list-of-meanings list-of-meanings) (construction-inventory construction-inventory)
                     &optional silent)
   "Produce for origins of syntax experiment with meaning and optionally redundant meaning."
   (let ((initial-cfs  
@@ -360,8 +361,8 @@ of the objects in the topic of the speaker and sets communicated-successfully ac
                   (unless (find-same-cxn (get-original-cxn cxn) (grammar agent) (get-configuration agent :strategy))
                    (add-cxn (get-original-cxn cxn) (grammar agent))))
                 (when (equal (get-configuration agent :strategy) :categorisation-strategy)
-                  (setf (type-hierarchies::graph (get-type-hierarchy (grammar agent))) (type-hierarchies::graph (get-type-hierarchy (construction-inventory repaired-cipn))))
-                  (notify type-hierarchy-updated (get-type-hierarchy (grammar agent))))
+                  (setf (fcg::graph (categorial-network (grammar agent))) (fcg::graph (categorial-network (construction-inventory repaired-cipn))))
+                  (notify categorial-network-updated (categorial-network (grammar agent))))
                 (set-data agent :cipn repaired-cipn))
               (set-data agent :cipn cipn)))))
       (set-data agent :cipn cipn)))
@@ -449,41 +450,41 @@ of the objects in the topic of the speaker and sets communicated-successfully ac
               (notify construction-punished agent applied-cxn))))))
 
 
-(defmethod align-agent ((agent syntax-agent) (strategy (eql :type-hierarchy)))
+(defmethod align-agent ((agent syntax-agent) (strategy (eql :categorial-network)))
   "Alignment on type hierarchies."
   (notify alignment-started agent)
   (if (communicated-successfully agent)
-    ;; Communicative Success: loop through used type-hierarchy links
+    ;; Communicative Success: loop through used categorial-network links
     (progn
       (loop for (lex-cat . gramm-cat) in (used-th-links (get-data agent :cipn))
             do
-            ;; Reward the type-hierarchy-links used
-            (reward-link lex-cat gramm-cat (get-type-hierarchy (grammar agent)) (get-configuration agent :li-decf-weight))
-            finally (notify type-hierarchy-rewarded agent (used-th-links (get-data agent :cipn))))
+            ;; Reward the categorial-network-links used
+            (reward-link lex-cat gramm-cat (categorial-network (grammar agent)) (get-configuration agent :li-decf-weight))
+            finally (notify categorial-network-rewarded agent (used-th-links (get-data agent :cipn))))
       ;; Loop through competitors and punish them
       (loop for (lex-cat . gramm-cat) in (competing-th-links (get-data agent :cipn))
             do
-            ;; Reward the type-hierarchy-links used
-            (punish-link lex-cat gramm-cat (get-type-hierarchy (grammar agent)) (get-configuration agent :li-incf-weight))
-            finally (notify type-hierarchy-punished agent (competing-th-links (get-data agent :cipn)))))
+            ;; Reward the categorial-network-links used
+            (punish-link lex-cat gramm-cat (categorial-network (grammar agent)) (get-configuration agent :li-incf-weight))
+            finally (notify categorial-network-punished agent (competing-th-links (get-data agent :cipn)))))
     
     ;; Communicative Failure: 
     (when (equal (discourse-role agent) 'speaker)
       ;; If speaker, loop through the used th-links and punish them.
       (loop for (lex-cat . gramm-cat) in (used-th-links (get-data agent :cipn))
             do
-            (punish-link lex-cat gramm-cat (get-type-hierarchy (grammar agent)) (get-configuration agent :li-incf-weight))
-            finally (notify type-hierarchy-punished agent (used-th-links (get-data agent :cipn)))))))
+            (punish-link lex-cat gramm-cat (categorial-network (grammar agent)) (get-configuration agent :li-incf-weight))
+            finally (notify categorial-network-punished agent (used-th-links (get-data agent :cipn)))))))
 
-(defun reward-link (lex-cat gramm-cat type-hierarchy &optional delta (lower-bound 0.01))
-  (let* ((current-weight (link-weight lex-cat gramm-cat type-hierarchy))
+(defun reward-link (lex-cat gramm-cat categorial-network &optional delta (lower-bound 0.01))
+  (let* ((current-weight (link-weight lex-cat gramm-cat categorial-network))
          (new-weight (- current-weight delta)))
-    (set-link-weight lex-cat gramm-cat type-hierarchy (max lower-bound new-weight))))
+    (set-link-weight lex-cat gramm-cat categorial-network (max lower-bound new-weight))))
 
-(defun punish-link (lex-cat gramm-cat type-hierarchy &optional delta (upper-bound 1.0))
-  (let* ((current-weight (link-weight lex-cat gramm-cat type-hierarchy))
+(defun punish-link (lex-cat gramm-cat categorial-network &optional delta (upper-bound 1.0))
+  (let* ((current-weight (link-weight lex-cat gramm-cat categorial-network))
          (new-weight (+ current-weight delta)))
-    (set-link-weight lex-cat gramm-cat type-hierarchy (min upper-bound new-weight))))
+    (set-link-weight lex-cat gramm-cat categorial-network (min upper-bound new-weight))))
    
 (defun inc-score (cxn &optional (delta 0.1) (upper-bound 1.0))
   (incf (attr-val cxn :score) delta)
@@ -519,7 +520,8 @@ of the objects in the topic of the speaker and sets communicated-successfully ac
     (setf (population experiment)
           (loop for i from 1 to (get-configuration experiment :population-size)
                 collect (make-instance 'syntax-agent
-                                       :id i :grammar (initialize-lexicon word-list (get-configuration experiment :strategy))
+                                       :id i
+                                       :grammar (initialize-lexicon word-list (get-configuration experiment :strategy))
                                        :experiment experiment)))
     ;; Set world
     (setf (world experiment)
@@ -537,7 +539,7 @@ of the objects in the topic of the speaker and sets communicated-successfully ac
                      ((,unit-name
                        (args (?x))
                        (unit-type word)
-                       (syn-cat (lex-class ,(intern (symbol-name (make-const meaning)) :type-hierarchies))))
+                       (syn-cat (lex-class ,(intern (symbol-name (make-const meaning)) :fcg))))
                       <-
                       (,unit-name
                        (HASH meaning ((,meaning ?x)))
@@ -716,10 +718,9 @@ list-of-object-instances."
   "Returns all shortest possible-feature-combinations that are discriminative for object in list-of-objects."
   (let ((pfcs-to-return nil))
     (loop for p-f-c in (filter-feature-combinations possible-feature-combinations object)
-          do
-          (when (and (no-shorter-element p-f-c pfcs-to-return)
-                     (discriminative-string-cat-meaning-tuple p-f-c (mapcar #'attributes list-of-objects))
-                     (push p-f-c pfcs-to-return))))
+          when (and (no-shorter-element p-f-c pfcs-to-return)
+                    (discriminative-string-cat-meaning-tuple p-f-c (mapcar #'attributes list-of-objects)))
+            do (push p-f-c pfcs-to-return))
     (reverse pfcs-to-return)))
 
 (defun no-shorter-element (element list)
@@ -904,7 +905,7 @@ mode ~a. Please check why it did not calculate a priority score." (get-configura
          ;; go to the next label
          (setf (current-label cxn-supplier) (car (remaining-labels cxn-supplier)))
          (setf (remaining-labels cxn-supplier) (cdr (remaining-labels cxn-supplier)))
-à         (setf (all-constructions-of-current-label cxn-supplier)
+         (setf (all-constructions-of-current-label cxn-supplier)
                (all-constructions-of-label-by-nr-of-categories-and-score node (current-label cxn-supplier)))
          (setf (remaining-constructions cxn-supplier)
                (all-constructions-of-current-label cxn-supplier))

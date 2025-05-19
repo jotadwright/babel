@@ -11,15 +11,10 @@
                :utils
                :web-interface
                :monitors
-               :plot-raw-data
                :experiment-framework
-               :test-framework
-               :meta-layer-learning
                :irl
-               :fcg
-               :cl-mop
-               :cl-json
-               :cl-jonathan
+               :cl-store
+               :com.inuoe.jzon
                ;:distributions
                )
   :serial t
