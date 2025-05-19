@@ -16,6 +16,9 @@
   (:documentation "The CLEVR learning experiment"))
 
 (defmethod initialize-instance :after ((experiment clevr-learning-experiment) &key)
+  ;; reset id counters
+  (reset-id-counters)
+  
   ;; set data path
   (reset-clevr-data-path (get-configuration experiment :data-source))
   ;; set the world of the experiment
