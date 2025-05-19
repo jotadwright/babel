@@ -39,7 +39,7 @@
                                           (:log-every-x-interactions . 100)
                                           ;(:sort-questions-on-length . t) ;; doesnt work yet
 
-                                          (:initial-seed . 42)
+                                          (:seed . 42)
                                           (:data-source . "simulated") ;; "simulated" or "extracted"
                                           (:pretrained-concepts . nil)
                                           (:update-concepts-with-success . t)
@@ -77,7 +77,7 @@
 (progn
   (format t "~% Starting a new experiment.~%")
   ;; reset the seed
-  (set-seed (get-configuration *experiment* :initial-seed))
+  (set-seed (get-configuration *experiment* :seed))
   ;; reset the web interface
   (wi::reset)
   ;; deactivate all monitors (as a sanity check)

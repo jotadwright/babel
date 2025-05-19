@@ -37,9 +37,14 @@
 
                                           ;; logging and monitors
                                           (:log-every-x-interactions . 100)
+                                          (:experiment-group . "clevr")
+                                          (:dataset-split . "val")
+                                          (:experiment-name . "clevr-simulated")
+                                          
+                                          ;; new configuration
                                           ;(:sort-questions-on-length . t) ;; doesnt work yet
 
-                                          (:initial-seed . 42)
+                                          (:seed . 42)
                                           (:data-source . "simulated") ;; "simulated" or "extracted"
                                           (:pretrained-concepts . t)
                                           (:update-concepts-with-success . nil)
@@ -77,7 +82,7 @@
 (progn
   (format t "~% Starting a new experiment.~%")
   ;; reset the seed
-  (set-seed (get-configuration *experiment* :initial-seed))
+  (set-seed (get-configuration *experiment* :seed))
   ;; reset the web interface
   (wi::reset)
   ;; deactivate all monitors (as a sanity check)
@@ -94,10 +99,9 @@
 
   ;; activate monitors
   (activate-monitor print-a-dot-for-each-interaction)
-  ;(activate-monitor log-every-x-interactions-in-output-browser)
   (activate-monitor display-metrics)
 
-  (run-series *experiment* 20000))
+  (run-series *experiment* 1000))
 
 ;; Option 2: run experiment with real-time tracing in the web-interface
 (progn
@@ -110,18 +114,46 @@
   (activate-monitor trace-irl)
   (activate-monitor print-a-dot-for-each-interaction)
   (activate-monitor trace-interactions-in-wi)
-  ;(activate-monitor trace-tasks-and-processes)
 
   (run-series *experiment* 1)
   )
 
+;; Option 3: run experiment and log experiments to disk
+(progn
+  ;; reset monitors
+  (deactivate-all-monitors)
 
-;; debugging
+  ;; activate monitors
+  ;(activate-monitor print-a-dot-for-each-interaction)
+  (activate-monitor log-every-x-interactions-in-output-browser)
+
+  (set-configuration *experiment* :experiment-run-name (generate-log-dir-name (get-configuration *experiment* :seed)))
+  (set-seed (get-configuration *experiment* :seed))
+  ;(activate-monitor display-metrics)
+  (set-up-monitors (list "log-every-x-interactions-in-output-browser"
+                         "record-communicative-success"
+                         "record-number-of-holophrase-cxns"
+                         "record-number-of-item-based-cxns"
+                         "record-number-of-lexical-cxns"
+                         "export-communicative-success"
+                         "export-number-of-holophrase-cxns"
+                         "export-number-of-item-based-cxns"
+                         "export-number-of-lexical-cxns")
+                   *experiment*)
+
+  (run-series *experiment* 1000)
+
+  (notify run-series-finished *experiment*)
+  (notify series-finished 1)
+  (notify batch-finished (class-string *experiment*)))
+
+
+;; DEBUGGING: print inventory to web interface
 (progn
   (add-element `((h4) "Inventory: " ,(make-html (grammar (second (agents *experiment*))))))
   (add-element (make-html (categorial-network (grammar (second (agents *experiment*)))) :weights? t :render-program "circo")))
 
-
+;; DEBUGGING: print concepts to web interface
 (loop for id being the hash-keys of (get-data (ontology (second (agents *experiment*))) 'concepts)
         using (hash-value concept) and idx from 0
       do (add-element `((h2) ,(format nil "~a: ~a" idx (mkstr id))))
