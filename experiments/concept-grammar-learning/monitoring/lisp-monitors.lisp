@@ -43,10 +43,10 @@
                 :documentation "Records the game outcome of each game (1 or 0).")
 
 (define-monitor export-communicative-success
-                :class 'csv-data-file-writer
+                :class 'lisp-data-file-writer
                 :documentation "Exports communicative success."
                 :data-sources '(record-communicative-success)
-                :file-name (babel-pathname :name "communicative-success" :type "csv"
+                :file-name (babel-pathname :name "communicative-success" :type "lisp"
                                            :directory '("experiments" "concept-grammar-learning" "logging"))
                 :add-time-and-experiment-to-file-name nil)
 
@@ -64,9 +64,9 @@
                 :class 'data-recorder)
 
 (define-monitor export-number-of-holophrase-cxns
-                :class 'csv-data-file-writer
+                :class 'lisp-data-file-writer
                 :data-sources '(record-number-of-holophrase-cxns)
-                :file-name (babel-pathname :name "number-of-holophrase-cxns" :type "csv"
+                :file-name (babel-pathname :name "number-of-holophrase-cxns" :type "lisp"
                                            :directory '("experiments" "concept-grammar-learning" "logging"))
                 :add-time-and-experiment-to-file-name nil)
 
@@ -81,9 +81,9 @@
                 :class 'data-recorder)
 
 (define-monitor export-number-of-item-based-cxns
-                :class 'csv-data-file-writer
+                :class 'lisp-data-file-writer
                 :data-sources '(record-number-of-item-based-cxns)
-                :file-name (babel-pathname :name "number-of-item-based-cxns" :type "csv"
+                :file-name (babel-pathname :name "number-of-item-based-cxns" :type "lisp"
                                            :directory '("experiments" "concept-grammar-learning" "logging"))
                 :add-time-and-experiment-to-file-name nil)
 
@@ -98,9 +98,9 @@
                 :class 'data-recorder)
 
 (define-monitor export-number-of-lexical-cxns
-                :class 'csv-data-file-writer
+                :class 'lisp-data-file-writer
                 :data-sources '(record-number-of-lexical-cxns)
-                :file-name (babel-pathname :name "number-of-lexical-cxns" :type "csv"
+                :file-name (babel-pathname :name "number-of-lexical-cxns" :type "lisp"
                                            :directory '("experiments" "concept-grammar-learning" "logging"))
                 :add-time-and-experiment-to-file-name nil)
 

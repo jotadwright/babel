@@ -142,7 +142,7 @@
                          "export-number-of-lexical-cxns")
                    *experiment*)
 
-  (run-series *experiment* 1000)
+  (run-series *experiment* 20000)
 
   (notify run-series-finished *experiment*)
   (notify series-finished 1)
