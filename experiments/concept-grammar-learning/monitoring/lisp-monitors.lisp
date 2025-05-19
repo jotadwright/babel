@@ -131,6 +131,42 @@
                 :y2-min 0
                 :draw-y1-grid t
                 :error-bars nil)
+
+;; -----------------
+;; + Export CONFIG +
+;; -----------------
+(define-monitor export-experiment-configurations
+                :documentation "Export the configurations of the experiment at the end of the series.")
+
+(define-event-handler (export-experiment-configurations run-series-finished)
+                      (let* ((experiment-group (get-configuration experiment :experiment-group))
+                             (dataset-split (get-configuration experiment :dataset-split))
+                             (experiment-name (get-configuration experiment :experiment-name))
+                             (experiment-run-name (get-configuration experiment :experiment-run-name))
+                             (path (babel-pathname
+                                    :directory `("experiments"
+                                                 "concept-grammar-learning"
+                                                 "logging"
+                                                 ,experiment-group     ;; directory name that groups a set of related of experiments together
+                                                 ,dataset-split        ;; store experiments by split (more convenient)
+                                                 ,experiment-name      ;; directory name that groups different runs of an experiment
+                                                 ,experiment-run-name) ;; directory name for a single run
+                                    :name "experiment-configurations" 
+                                    :type "json"))
+                             (config (configuration experiment)))
+                        ;; add the git hash to the configuration
+                        (setf (gethash :HASH config) (first (exec-and-return "git" "rev-parse" "HEAD")))
+                        (ensure-directories-exist path)
+                        (with-open-file (stream path :direction :output
+                                                :if-exists :overwrite
+                                                :if-does-not-exist :create)
+                          (write-string (jzon::stringify config) stream))))
+
+(define-monitor export-experiment-store
+                :documentation "Exports the entire experiment to a .store file")
+
+(define-event-handler (export-experiment-store run-series-finished)
+  (store-experiment experiment))
                            
 
 ;; utilty function to get all of them

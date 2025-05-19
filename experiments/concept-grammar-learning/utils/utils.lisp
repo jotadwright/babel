@@ -22,6 +22,8 @@
             (id primitive))
     (format stream ">")))
 
+(in-package :clg)
+
 (defun set-up-monitors (monitors configuration)
   (monitors::deactivate-all-monitors)
   (loop for monitor-name in monitors

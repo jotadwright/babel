@@ -9,4 +9,5 @@
         :tasks-and-processes :meta-layer-learning
         :irl :fcg :clevr-world :concept-representations)
   (:import-from :cl-json :decode-json-from-source)
-  (:shadowing-import-from :clevr-world :size :attributes))
+  (:shadowing-import-from :clevr-world :size :attributes)
+  (:local-nicknames (:jzon :com.inuoe.jzon)))

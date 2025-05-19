@@ -131,6 +131,7 @@
   (set-seed (get-configuration *experiment* :seed))
   ;(activate-monitor display-metrics)
   (set-up-monitors (list "log-every-x-interactions-in-output-browser"
+                         "export-experiment-configurations"
                          "record-communicative-success"
                          "record-number-of-holophrase-cxns"
                          "record-number-of-item-based-cxns"

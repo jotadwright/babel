@@ -16,7 +16,8 @@
                :irl
                :fcg
                :clevr-world
-               :cl-json)
+               :cl-json
+               :com.inuoe.jzon)
   :serial t
   :components ((:file "package")
                (:module "clevr-primitives"
