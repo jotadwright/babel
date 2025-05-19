@@ -34,6 +34,9 @@
                                           (:th-link-repair-mode-comprehension . :no-path-required)
                                           (:th-link-repair-mode-formulation . :path-required)
                                           ;; new configuration
+
+                                          ;; logging and monitors
+                                          (:log-every-x-interactions . 100)
                                           ;(:sort-questions-on-length . t) ;; doesnt work yet
 
                                           (:initial-seed . 42)
@@ -91,9 +94,10 @@
 
   ;; activate monitors
   (activate-monitor print-a-dot-for-each-interaction)
+  ;(activate-monitor log-every-x-interactions-in-output-browser)
   (activate-monitor display-metrics)
 
-  (run-series *experiment* 5000))
+  (run-series *experiment* 20000))
 
 ;; Option 2: run experiment with real-time tracing in the web-interface
 (progn
