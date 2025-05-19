@@ -36,9 +36,13 @@
                                           ;; new configuration
                                           (:sort-questions-on-length . t)
                                           
-                                          (:update-concepts-p . nil)
-                                          (:pretrained-concepts . t)
+                                          (:update-concepts-p . t)
+                                          (:pretrained-concepts . nil)
                                           (:data-source . "simulated") ;; "simulated" or "extracted"
+
+                                          (:max-concept-update-iterations . 10)
+                                          (:filter-similarity-threshold . 0.8)
+                                          (:lexical-cxn-inhibition-value . 0.02)
 
                                           ;; diagnostics and repairs (order is important!)
                                           (:diagnostics 
@@ -49,7 +53,7 @@
                                                         )
                                           (:repairs 
                                                     ;add-th-links-formulation
-                                                    ;update-concept
+                                                    update-concept
                                                     add-th-links
                                                     lexical->item-based
                                                     item-based->lexical
@@ -97,7 +101,7 @@
   (activate-monitor trace-interactions-in-wi)
   ;(activate-monitor trace-tasks-and-processes)
 
-  (run-interaction *experiment*)
+  (run-series *experiment* 1)
   )
 
 
@@ -229,3 +233,77 @@
 (concept-representations::update-concept (meaning (gethash *id* *original-concepts-ht*)) (first *scene*) (rest *scene*))
 
 (concept-representations::add-concept-to-interface (meaning (gethash *id* *copy-concepts-ht*)) :weight-threshold 0.5)
+
+
+
+  
+  (wi::reset)
+  ;; reset monitors
+  (deactivate-all-monitors)
+
+  ;; activate monitors
+  (activate-monitor trace-fcg)
+  (activate-monitor trace-irl)
+  (activate-monitor print-a-dot-for-each-interaction)
+  (activate-monitor trace-interactions-in-wi)
+  ;(activate-monitor display-metrics)
+  ;(activate-monitor trace-tasks-and-processes)
+
+  (run-series *experiment* 10)
+  
+  )
+
+
+
+;(set-data (ontology learner) 'max-concept-update-iterations (get-configuration experiment :max-concept-update-iterations))
+;(set-data (ontology learner) 'filter-similarity-threshold (get-configuration experiment :filter-similarity-threshold))
+
+
+(notify-learning
+
+(defun test ()
+  (let* ((form-and-concepts (loop for cxn in (constructions-list (grammar (second (agents *experiment*))))
+                                  for concepts = (get-data (ontology (second (agents *experiment*))) 'concepts)
+                                  for string = (attr-val cxn :string)
+                                  for meaning = (attr-val cxn :meaning)
+                                  for type = (attr-val cxn :cxn-type)
+                                  for score = (attr-val cxn :score)
+                                  for concept = (gethash meaning concepts)
+                                  when (and concept (eq type 'lexical))
+                                    do (concept-representations::add-concept-to-interface (meaning concept) :weight-threshold 0.5)
+                                    and collect (list string concept score) into form-and-concepts
+                                  do (add-element (make-html cxn))
+                                  finally (return form-and-concepts)))
+         (unique-forms (remove-duplicates (mapcar #'first form-and-concepts) :test #'string=)))
+    (setf sorted-form-and-concepts (sort form-and-concepts #'> :key #'third))
+    (loop for unique-form in unique-forms
+          ;; get all concepts that have the same form as unique-form
+          for concepts = (mapcar #'second (find-all unique-form sorted-form-and-concepts :key #'first :test #'string=))
+          for scores = (mapcar #'third (find-all unique-form sorted-form-and-concepts :key #'first :test #'string=))
+
+          when (string= unique-form "blocks")
+            do (format t "~a~%" unique-form)
+            
+            and do (format t "~{~,2f~^, ~}~%" (mapcar #'id concepts))
+            and do (format t "~{~,2f~^, ~}~%" scores)
+
+            and do (loop for concept in concepts
+                         for similarity-scores
+                           = (mapcar #'(lambda (c2) (concept-representations::concept-similarity (meaning concept) (meaning c2))) concepts)
+                         for easy-similarity-scores
+                           = (mapcar #'(lambda (score) (if (> score 0.7) "high" "low")) similarity-scores)
+                         do (format t "~a: ~{~,2f~^, ~}~%" (id concept) similarity-scores)))))
+
+
+(test)
+
+ ;(grammar (second (agents *experiment*)))
+
+
+(loop for id being the hash-keys of (get-data (ontology (second (agents *experiment*))) 'concepts)
+        using (hash-value concept) and idx from 0
+      do (add-element `((h2) ,(format nil "~a: ~a" idx (mkstr id))))
+      do (concept-representations::add-concept-to-interface (meaning concept) :weight-threshold 0.5))
+
+(reset-id-counters)
+

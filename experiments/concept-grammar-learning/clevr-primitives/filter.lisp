@@ -191,11 +191,12 @@
   (format t "~% Initial source-set: ~a" (objects source-set))
   (format t "~% Initial target-set: ~a" (objects target-set))|#
 
-  (let* ((concept (get-associated-concept ontology (id category)))
+  #|(let* ((concept (get-associated-concept ontology (id category)))
          (target-objects (objects target-set))
          (other-objects (set-difference (objects source-set) (objects target-set))))
-    #|(format t "~% Initial similarities")|#
-    (debug-concept-updates concept target-objects other-objects))
+    (format t "~% Initial similarities")
+    (debug-concept-updates concept target-objects other-objects)
+    )|#
     
   (let* ((original-concepts (copy-object (get-data ontology 'concepts)))
          ;;(original-ontology (copy-object  (get-data ontology 'original-ontology)))

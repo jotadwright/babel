@@ -129,12 +129,12 @@
   "Delete the cxn from the cxn inventory
    and remove ALL associated categories
    from the categorial network."
-  ;; if you are using :pretrained-concepts -> only remove if its not a lex
   ;; if you are not using :pretrained-concepts -> go ahead
+  ;; if you are using :pretrained-concepts, go ahead only if its not a lex
   (when (or (not (get-configuration agent :pretrained-concepts))
             (and (get-configuration agent :pretrained-concepts)
                  (not (get-lex-classes cxn agent))))
-    (remove-categories lex-classes type-hierarchy)
+    ;(remove-categories lex-classes type-hierarchy) ;; TODO: to add again?
     (delete-cxn cxn (grammar agent))
     (notify lexicon-changed)))
 
