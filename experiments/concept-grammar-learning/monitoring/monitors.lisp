@@ -9,7 +9,8 @@
     (lexical->item-based . "l")
     (item-based->lexical . "i")
     (add-th-links . "c")
-    (add-th-links-formulation . "5")))
+    (add-th-links-formulation . "5")
+    (update-concept . "u")))
     
 (define-monitor print-a-dot-for-each-interaction
                 :documentation "Prints a '.' for each interaction
