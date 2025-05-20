@@ -42,9 +42,9 @@
             ;; some extreme optimisations that are CLEVR specific
             ;; also, they will not work for level 3 questions!
             (set-configuration copy :node-tests
-                               (append (get-configuration copy :node-tests)
-                                       '(:remove-clevr-incoherent-filter-groups
-                                         :remove-clevr-filter-permutations)))
+                                (append (get-configuration copy :node-tests)
+                                        (get-configuration (experiment agent) :composer-node-tests)))
+                                        
             copy))
          ;; make the chunk composer
          (composer (make-chunk-composer :topic target-category
