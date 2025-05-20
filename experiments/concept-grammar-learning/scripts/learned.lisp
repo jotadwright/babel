@@ -19,7 +19,7 @@
                                           ;(:questions-per-challenge . 1000)
                                           (:scenes-per-question . 50)
                                           (:confidence-threshold . 1.1)
-                                          (:tutor-sample-mode . :random) ;; or :random
+                                          (:tutor-sample-mode . :select-from-question-list-random) ;; or :random
                                           (:cxn-incf-score . 0.1)
                                           (:cxn-decf-score . 0.1)
                                           (:cxn-inhibit-score . 0.1)
@@ -60,7 +60,7 @@
                                                         )
                                           (:repairs 
                                                     ;add-th-links-formulation
-                                                    update-concept
+                                                    ;update-concept
                                                     add-th-links
                                                     lexical->item-based
                                                     item-based->lexical
@@ -68,7 +68,11 @@
                                                     holophrase->item-based--addition
                                                     holophrase->item-based--deletion
                                                     add-holophrase
-                                                    ))))
+                                                    )
+                                          (:composer-node-tests
+                                           ;:remove-clevr-incoherent-filter-groups ;; this one checks the type of the bindings of the filter group, you cannot have multiple filters that filter on the same type of bind statement
+                                           ;:remove-clevr-filter-permutations
+                                           ))))
 
 ;; (ontology (second (agents *experiment*)))
 
@@ -111,6 +115,97 @@
   (activate-monitor print-a-dot-for-each-interaction)
   (activate-monitor trace-interactions-in-wi)
   ;(activate-monitor trace-tasks-and-processes)
+
+  (run-series *experiment* 1)
+  )
+
+
+
+
+;;;; question lists
+
+(defparameter *easy-peasy-questions* (list "How many spheres are there?"
+                                           "How many blocks are there?"
+                                           "How many cubes are there?"
+                                           "How many balls are there?"
+                                           "How many cylinders are there?"))
+
+(defparameter *harder-color-questions* (list "How many cyan cubes are there?"
+                                             "How many green cubes are there?"
+                                             "How many blue cubes are there?"
+                                             "How many red cubes are there?"
+                                             "How many green cubes are there?"))
+
+(defparameter *harder-size-questions* (list "How many large cubes are there?"
+                                            "How many small cubes are there?"))
+
+(defparameter *harder-material-questions* (list "How many metal cubes are there?"
+                                            "How many rubber cubes are there?"))
+
+
+
+;; start experiment
+
+(defparameter *experiment* (make-instance 'clevr-learning-experiment :configuration *configuration*))
+
+
+;; eerste fase van experiment: leer cubes, spheres, blocks, balls, cylinders en how many x are there? in 2000 interacties
+(progn
+  
+  (set-configuration *experiment* :questions-list *easy-peasy-questions*)
+
+
+  (reset-id-counters)
+  (format t "~% Starting a new experiment.~%")
+  ;; reset the web interface
+  (wi::reset)
+  ;; deactivate all monitors (as a sanity check)
+  (monitors::notify reset-monitors)
+
+  ;; reset population
+  (setf (population *experiment*) (list (make-clevr-learning-tutor *experiment*)
+                                        (make-clevr-learning-learner *experiment*)))
+
+
+  ;; reset monitors
+  (deactivate-all-monitors)
+
+  ;; activate monitors
+  (activate-monitor print-a-dot-for-each-interaction)
+  (activate-monitor display-metrics)
+
+  (run-series *experiment* 3000)
+  )
+
+
+;; inspect the concepts
+(progn 
+  (print-concepts-of-lexicals "spheres" (grammar (second (agents *experiment*))) (second (agents *experiment*)))
+  (print-concepts-of-lexicals "cubes" (grammar (second (agents *experiment*))) (second (agents *experiment*)))
+  (print-concepts-of-lexicals "cylinders" (grammar (second (agents *experiment*))) (second (agents *experiment*)))
+  
+  (print-concepts-of-lexicals "balls" (grammar (second (agents *experiment*))) (second (agents *experiment*)))
+  (print-concepts-of-lexicals "blocks" (grammar (second (agents *experiment*))) (second (agents *experiment*)))
+  (print-concepts-of-lexicals "cylinders" (grammar (second (agents *experiment*))) (second (agents *experiment*)))
+  )
+
+(print-concepts-of-lexicals "large" (grammar (second (agents *experiment*))) (second (agents *experiment*)))
+
+(set-configuration *experiment* :questions-list *harder-size-questions*)
+
+
+(progn
+  (wi::reset)
+  ;; reset monitors
+  (deactivate-all-monitors)
+
+  ;; activate monitors
+  (activate-monitor trace-fcg)
+  (activate-monitor trace-irl)
+  (activate-monitor print-a-dot-for-each-interaction)
+  (activate-monitor trace-interactions-in-wi)
+  ;(activate-monitor trace-tasks-and-processes)
+  (activate-monitor display-metrics)
 
   (run-series *experiment* 1)
   )

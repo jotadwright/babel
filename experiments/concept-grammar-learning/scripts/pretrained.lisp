@@ -73,7 +73,14 @@
                                                     ;holophrase->item-based--addition
                                                     ;holophrase->item-based--deletion
                                                     add-holophrase
-                                                    ))))
+                                                    )
+                                          ;; composer node tests
+                                          ;; remove clevr incoherent filter groups checks the type of the bindings of the filter group,
+                                          ;; you cannot have multiple filters that filter on the same type of bind statement
+                                          (:composer-node-tests
+                                           :remove-clevr-incoherent-filter-groups ;; this one checks the type of the bindings of the filter group, you cannot have multiple filters that filter on the same type of bind statement
+                                           :remove-clevr-filter-permutations
+                                           ))))
 
 ;; (ontology (second (agents *experiment*)))
 
