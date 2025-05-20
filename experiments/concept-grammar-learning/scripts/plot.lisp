@@ -2,6 +2,8 @@
 (in-package :clg)
 
 (defun create-graph-for-single-strategy (experiment-group
+                                         experiment-name
+                                         experiment-run-name
                                          measure-names
                                          &rest evo-plot-keyword-args)
   ;; take some arguments, but pass along the rest to raw-files->evo-plot
@@ -12,8 +14,8 @@
                                          "logging"
                                          ,experiment-group
                                          "val"
-                                         "clevr-simulated"
-                                         "2025-05-20_0h53m50s-seed42-70593"
+                                         ,experiment-name
+                                         ,experiment-run-name
                                          ,measure-name)))
          (default-plot-file-name
           (reduce #'(lambda (str1 str2) (string-append str1 "+" str2)) 
@@ -29,6 +31,8 @@
   (format t "~%Graphs have been created."))
 
 (create-graph-for-single-strategy "clevr"
+                                  "clevr-extracted"
+                                  "2025-05-20_9h53m0s-seed42-91542"
                                   '("communicative-success"
                                     "number-of-holophrase-cxns"
                                     "number-of-item-based-cxns"
