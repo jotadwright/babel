@@ -30,7 +30,7 @@
                                           (:alignment-strategy . :lateral-inhibition)
                                           (:hide-type-hierarchy . nil)
                                           (:remove-cxn-on-lower-bound . t)
-                                          (:composer-strategy . :standard)
+                                          
                                           (:th-link-repair-mode-comprehension . :no-path-required)
                                           (:th-link-repair-mode-formulation . :path-required)
                                           ;; new configuration
@@ -74,11 +74,16 @@
                                                     ;holophrase->item-based--deletion
                                                     add-holophrase
                                                     )
+                                          
+                                          ;; composer strategy
+                                          (:composer-strategy . :standard) ;; :standard or :store-past-scenes
                                           ;; composer node tests
-                                          ;; remove clevr incoherent filter groups checks the type of the bindings of the filter group,
-                                          ;; you cannot have multiple filters that filter on the same type of bind statement
+                                          ;;    - remove clevr incoherent filter groups checks the type of the bindings of the filter group,
+                                          ;;    - you cannot have multiple filters that filter on the same type of bind statement
                                           (:composer-node-tests
-                                           :remove-clevr-incoherent-filter-groups ;; this one checks the type of the bindings of the filter group, you cannot have multiple filters that filter on the same type of bind statement
+                                           ;;  - this one checks the type of the bindings of the filter group,
+                                           ;;  - you cannot have multiple filters that filter on the same type of bind statement
+                                           :remove-clevr-incoherent-filter-groups 
                                            :remove-clevr-filter-permutations
                                            ))))
 
