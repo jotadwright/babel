@@ -1,4 +1,4 @@
-(in-package :monitors)
+(in-package :clg)
 
 
 (defun print-concepts-of-lexicals (form cxn-inventory agent)

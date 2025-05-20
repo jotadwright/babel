@@ -111,7 +111,8 @@
                              (:file "questions")
                              (:file "loading")
                              (:file "processes")
-                             (:file "tasks")))
+                             (:file "tasks")
+                             (:file "debugging")))
                (:module "monitoring"
                 :serial t
                 :components ((:file "web-monitors")
