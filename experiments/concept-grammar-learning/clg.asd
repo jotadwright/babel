@@ -107,6 +107,7 @@
                 :serial t
                 :components ((:file "fcg-utils")
                              (:file "utils")
+                             (:file "category-formation")
                              (:file "logging")
                              (:file "questions")
                              (:file "loading")
