@@ -54,6 +54,24 @@
          (nth-sample (nth n (question-data (experiment agent)))))
     (load-clevr-scene-and-answer agent nth-sample)))
 
+
+
+;; ----------------------------------
+;; + DEBUG questions -- start len 4 +
+;; ----------------------------------
+(defmethod sample-question ((agent clevr-learning-agent) (mode (eql :select-from-question-list-random)))
+  ;; sample a question according to the index of the interaction
+
+  (let* ((questions (get-configuration (experiment agent) :questions-list))
+        ; (current-interaction-nr (interaction-number (current-interaction (experiment agent))))
+        ; (nr-of-samples (length (question-data (experiment agent))))
+        ; (n (mod (1- current-interaction-nr) nr-of-samples))
+         (random-question (random-elt questions))
+         (random-sample (find random-question (question-data (experiment agent)) :test #'string= :key #'first)))
+    (load-clevr-scene-and-answer agent random-sample)))
+
+
+
 ;; -------------------
 ;; + SMART questions +
 ;; -------------------
