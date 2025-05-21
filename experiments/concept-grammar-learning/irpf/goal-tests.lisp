@@ -7,6 +7,10 @@
    When arriving at this goal test, the other goal tests have already succeeded.
    Thus, we know the meaning is fully connected.
    We get all necessary information from the blackboard of the cxn-inventory."
+  (let* ((category-to-concept (find-category-per-binding node))
+         (ontology (find-data (blackboard (construction-inventory node)) :ontology)))
+    (set-data ontology 'cat-to-concept-map category-to-concept))
+
   (let* ((irl-program (extract-meanings (left-pole-structure (car-resulting-cfs (cipn-car node)))))
          (ontology (find-data (blackboard (construction-inventory node)) :ontology))
          (primitive-inventory (find-data (blackboard (construction-inventory node)) :primitive-inventory))
@@ -41,7 +45,7 @@
     ;; when not successful, enqueue the node again so it can be diagnosed
     ;; when not successful, write this in the blackboard of the initial node
     ;; for more efficient diagnostics
-    (unless success
+    (when (not success)
       (push 'fcg::goal-test-failed (statuses node))
       (set-data (initial-node node) :some-interpretation-failed t)
       (push-data (initial-node node) :potential-update-concept-nodes node))

@@ -33,3 +33,13 @@
          (best-concept (car res))
          (similarity (cdr res)))
     (cons (find-entity-by-id ontology (id best-concept)) similarity)))
+
+(defun get-candidate-concepts (ontology attribute-category)
+  (cond ((eq (id attribute-category) 'clevr-world::color)
+         (hash-values (get-data ontology 'clg::color-concept)))
+        ((eq (id attribute-category) 'clevr-world::material)
+         (hash-values (get-data ontology 'clg::material-concept)))
+        ((eq (id attribute-category) 'clevr-world::size)
+         (hash-values (get-data ontology 'clg::size-concept)))
+        ((eq (id attribute-category) 'clevr-world::shape)
+         (hash-values (get-data ontology 'clg::shape-concept)))))

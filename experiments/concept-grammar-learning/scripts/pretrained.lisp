@@ -51,6 +51,10 @@
 
                                           (:sigmoid-slope-c . 0.5) ;; todo
 
+                                          ;; category-strategy
+                                          (:category-strategy . :use-predefined-categories) ; :use-predefined-categories :use-categorial-network
+                                          (:category-strategy-threshold . 0.5)
+
                                           ;; for update-concept repair
                                           (:max-concept-update-iterations . 10)
                                           (:filter-similarity-threshold . 0.5)
@@ -161,10 +165,27 @@
   (notify batch-finished (class-string *experiment*)))
 
 
+;; phase 2
+
+(set-configuration *experiment* :category-strategy :use-categorial-network)
+(progn
+  (wi::reset)
+  ;; reset monitors
+  (deactivate-all-monitors)
+
+  ;; activate monitors
+  (activate-monitor trace-fcg)
+  (activate-monitor trace-irl)
+  (activate-monitor print-a-dot-for-each-interaction)
+  (activate-monitor trace-interactions-in-wi)
+
+  (run-series *experiment* 1)
+  )
+
 ;; DEBUGGING: print inventory to web interface
 (progn
   (add-element `((h4) "Inventory: " ,(make-html (grammar (second (agents *experiment*))))))
-  (add-element (make-html (categorial-network (grammar (second (agents *experiment*)))) :weights? t :render-program "circo")))
+  (add-element (make-html (categorial-network (grammar (second (agents *experiment*)))) :weights? t )))
 
 ;; DEBUGGING: print concepts to web interface
 (loop for id being the hash-keys of (get-data (ontology (second (agents *experiment*))) 'concepts)

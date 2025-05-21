@@ -194,18 +194,23 @@
          (cxn-pl-name (internal-symb (upcase (string-append (hyphenize word) "s-lex-cxn"))))
          (unit-name (make-var (upcase (string-append (hyphenize lex-id) "-unit"))))
          (out-var (make-var sem-class))
-         (initial-cxn-score (get-configuration agent :initial-cxn-score)))
+         (initial-cxn-score (get-configuration agent :initial-cxn-score))
+         (lex-class-name-1 (intern (symbol-name (make-const word)) :fcg))
+         (lex-class-name-2 (intern (symbol-name (make-const word)) :fcg))
+         (category-id (internal-symb (hyphenize lex-id))))
+
 
     ;; singular
+    (push-data (ontology agent) 'cat-mapper (cons lex-class-name-1 category-id))
     (eval `(def-fcg-cxn ,cxn-name
                         ((,unit-name
                           (syn-cat (phrase-type lexical)
-                                   (fcg::lex-class ,(intern (symbol-name (make-const word)) :fcg)))
+                                   (fcg::lex-class ,lex-class-name-1))
                           (args (,out-var))
                           )
                          <-
                          (,unit-name
-                          (HASH meaning ((bind ,category-type ,out-var ,(internal-symb (hyphenize lex-id)))))
+                          (HASH meaning ((bind ,category-type ,out-var ,category-id)))
                           --
                           (HASH form ((string ,unit-name ,word)))
                           ))
@@ -215,18 +220,21 @@
                                      :cxn-type lexical
                                      :repair concept-learning ;; TODO
                                      :string ,word
-                                     :meaning ,(internal-symb (hyphenize lex-id)))))
+                                     :construction-category ,lex-class-name-1
+                                     :meaning ,category-id)))
     ;; plural
     (when add-plural
+
+      (push-data (ontology agent) 'cat-mapper (cons lex-class-name-2 category-id))
       (eval `(def-fcg-cxn ,cxn-pl-name
                           ((,unit-name
                             (syn-cat (phrase-type lexical)
-                                     (fcg::lex-class ,(intern (symbol-name (make-const word)) :fcg)))
+                                     (fcg::lex-class ,lex-class-name-2))
                             (args (,out-var))
                             )
                            <-
                            (,unit-name
-                            (HASH meaning ((bind ,category-type ,out-var ,(internal-symb (hyphenize lex-id)))))
+                            (HASH meaning ((bind ,category-type ,out-var ,category-id)))
                             --
                             (HASH form ((string ,unit-name ,(concatenate 'string word "s"))))
                             ))
@@ -236,7 +244,8 @@
                                        :cxn-type lexical
                                        :repair concept-learning ;; TODO
                                        :string ,(concatenate 'string word "s")
-                                       :meaning ,(internal-symb (hyphenize lex-id))))))))
+                                       :construction-category ,lex-class-name-2
+                                       :meaning ,category-id))))))
 
 ;; utility function
 (defun get-feature-names (experiment)
@@ -247,36 +256,6 @@
          (object (first (objects loaded-scene)))
          (feature-names (utils::hash-keys (features object))))
     feature-names))
-
-(defun get-competing-concepts (ontology category)
-  "Given a category, find the associated concept and its competing concepts.
-
-   For example, given <small>, the function returns (<concept-small> <concept-large>)."
-  (cond ;; colors
-        ((gethash (id category) (get-data ontology 'clg::color-concept))
-         (hash-values (get-data ontology 'clg::color-concept)))
-        ;; shape
-        ((gethash (id category) (get-data ontology 'clg::shape-concept))
-         (hash-values (get-data ontology 'clg::shape-concept)))  
-        ;; materials
-        ((gethash (id category) (get-data ontology 'clg::material-concept))
-         (hash-values (get-data ontology 'clg::material-concept)))
-        ;; size
-        ((gethash (id category) (get-data ontology 'clg::size-concept))
-         (hash-values (get-data ontology 'clg::size-concept)))
-        ;; get all concepts
-        (t
-         (hash-values (get-data ontology 'concepts)))))
-
-(defun get-candidate-concepts (ontology attribute-category)
-  (cond ((eq (id attribute-category) 'clevr-world::color)
-         (hash-values (get-data ontology 'clg::color-concept)))
-        ((eq (id attribute-category) 'clevr-world::material)
-         (hash-values (get-data ontology 'clg::material-concept)))
-        ((eq (id attribute-category) 'clevr-world::size)
-         (hash-values (get-data ontology 'clg::size-concept)))
-        ((eq (id attribute-category) 'clevr-world::shape)
-         (hash-values (get-data ontology 'clg::shape-concept)))))
 
 
 

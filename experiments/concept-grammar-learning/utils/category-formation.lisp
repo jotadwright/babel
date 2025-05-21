@@ -1,23 +1,18 @@
 (in-package :clg)
 
-(defun category-class (cxn)
-  (loop for unit in (contributing-part cxn)
-        for syn-cat = (cdr (find 'syn-cat (fcg::unit-structure unit) :key #'first))
-        for category-type = (when syn-cat (second (find 'fcg::lex-class syn-cat :key #'first)))
-        when category-type
-          return category-type))
+(defun construction-category (cxn)
+  (attr-val cxn :construction-category))
 
 (defun find-meaning (cxn)
-  (assqv :meaning (fcg::attributes cxn)))
+  (attr-val cxn :meaning))
 
 (defun cxn-type (cxn)
-  (assqv :cxn-type (fcg::attributes cxn)))
+  (attr-val cxn :cxn-type))
 
 (defun find-category-per-binding (node)
   (loop for applied-cxn in (applied-constructions node)
-        for cxn = (original-cxn applied-cxn)
-        when (eq (cxn-type cxn) 'clg::lexical)
-          collect (cons (find-meaning cxn) (category-class cxn))))
+        when (eq (cxn-type applied-cxn) 'clg::lexical)
+          collect (cons (find-meaning applied-cxn) (construction-category applied-cxn))))
 
 
 (defun find-competing-candidate-categories (agent category)
@@ -32,17 +27,14 @@
 
 (defun filter-entries-above-threshold (entries threshold)
   (loop for entry in entries
-        while (> (cdr entry) threshold)
-        collect entry))
+        when (> (cdr entry) threshold)
+          collect entry))
 
 (in-package :graph-utils)
 
 (defun my-similar-nodes-weighted-cosine (node graph)
   "loop through all nodes in graph, sort by weighted cosine similarity"
-  (loop ;with node-type = (get-node-type (lookup-node graph node) graph)
-       ; for other-node-id in (remove-duplicates (gethash node-type (node-types graph)))
-        ;for other-node = (lookup-node graph other-node-id)
-        for node-similarity = (my-weighted-graph-cosine-similarity other-node node graph)
+  (loop for node-similarity = (my-weighted-graph-cosine-similarity other-node node graph)
         when (>= node-similarity 0)
           collect (cons other-node node-similarity)
             into similar-nodes

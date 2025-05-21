@@ -1,12 +1,5 @@
 (in-package :clg)
 
-;; case: second case: given source set, compute category and target-set
-#|(loop for category2 in (loop for top-cat in (list 'cw::materials 'cw::sizes 'cw::shapes 'cw::colors)
-                                append (get-data ontology top-cat))
-         for computed-set = (filter-by-concept source-set category2 ontology)
-         do (bind (category 1.0 category2)
-                  (target-set 1.0 computed-set)))|#
-
 ;; --------------------
 ;; + filter primitive +
 ;; --------------------
@@ -100,7 +93,7 @@
    Which entities have higher similarity with a concept associated to category than to the other concepts
 
    Example: all entities for which the similarity with category 'small' is higher than 'large'."
-  (loop with concepts = (get-competing-concepts ontology category)
+  (loop with concepts = (get-competing-concepts ontology category (get-configuration-from-ontology ontology :category-strategy))
         for entity in entities
         for (best-concept . similarity) = (find-best-concept concepts entity)
         when (and best-concept (eq (id category) (id best-concept)))
@@ -240,7 +233,7 @@
     consistent-p))
 
 
-(defun debug-concept-updates (concept target-objects other-objects)
+#|(defun debug-concept-updates (concept target-objects other-objects)
   (loop for obj in target-objects
         do (format t "~%    - ~a (u): ~,3f"
                    (id obj)
@@ -251,9 +244,40 @@
         do (format t "~%    - ~a (d): ~,3f"
                    (id obj)
                    (concept-representations::concept-entity-similarity (meaning concept)
-                                                                       obj))))
-
-
+                                                                       obj))))|#
 
 (defun get-configuration-from-ontology (ontology key)
   (get-configuration (get-data ontology 'owner) key))
+
+;; utilities
+(defmethod get-competing-concepts (ontology category (mode (eql :use-predefined-categories)))
+  (cond ;; colors
+        ((gethash (id category) (get-data ontology 'clg::color-concept))
+         (hash-values (get-data ontology 'clg::color-concept)))
+        ;; shape
+        ((gethash (id category) (get-data ontology 'clg::shape-concept))
+         (hash-values (get-data ontology 'clg::shape-concept)))  
+        ;; materials
+        ((gethash (id category) (get-data ontology 'clg::material-concept))
+         (hash-values (get-data ontology 'clg::material-concept)))
+        ;; size
+        ((gethash (id category) (get-data ontology 'clg::size-concept))
+         (hash-values (get-data ontology 'clg::size-concept)))
+        ;; get all concepts
+        (t
+         (hash-values (get-data ontology 'concepts)))))
+
+(defmethod get-competing-concepts (ontology category (mode (eql :use-categorial-network)))
+  (let ((threshold (get-configuration-from-ontology ontology :category-strategy-threshold)))
+    (let* ((agent (get-data ontology 'owner))
+           (category-id (id category))
+           (concept-id (assqv category-id (get-data ontology 'cat-to-concept-map))))
+      (when concept-id
+        (let* ((candidates (find-competing-candidate-categories agent concept-id))
+               (filtered-candidates (filter-entries-above-threshold candidates threshold))
+               (concepts (remove-duplicates (loop for (cat . sim) in filtered-candidates
+                                                  for key = (assqv cat (get-data ontology 'cat-mapper))
+                                                  collect (gethash key (get-data ontology 'concepts))))))
+
+          (format t "~%~a := ~a" concept-id concepts)
+          concepts)))))
