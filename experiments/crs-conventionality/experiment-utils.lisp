@@ -15,7 +15,9 @@
   "Push a number of new agents to the population of an experiment."
   (let ((new-agents '()))
     (loop for i from 1 to number-of-agents
-          for new-agent = (make-instance 'naming-game-agent
+          for new-agent = (make-instance (if (equalp (type-of experiment) 'concept-emergence-game-experiment)
+                                           'concept-emergence-game-agent
+                                           'naming-game-agent)
                                          :id (make-id "AGENT")
                                          :experiment experiment
                                          :population (population experiment)
@@ -41,7 +43,9 @@
          (agents-to-replace (random-elts (agents (population experiment)) nr-of-replacements))
          (new-agents '()))
     (loop for old-agent in agents-to-replace
-          do (let ((new-agent (make-instance 'naming-game-agent
+          do (let ((new-agent (make-instance (if (equalp (type-of experiment) 'concept-emergence-game-experiment)
+                                               'concept-emergence-game-agent
+                                               'naming-game-agent)
                                              :id (make-id "AGENT")
                                              :experiment experiment
                                              :population (population experiment)
