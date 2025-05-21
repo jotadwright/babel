@@ -270,14 +270,14 @@
 (defmethod get-competing-concepts (ontology category (mode (eql :use-categorial-network)))
   (let ((threshold (get-configuration-from-ontology ontology :category-strategy-threshold)))
     (let* ((agent (get-data ontology 'owner))
-           (category-id (id category))
-           (concept-id (assqv category-id (get-data ontology 'cat-to-concept-map))))
-      (when concept-id
-        (let* ((candidates (find-competing-candidate-categories agent concept-id))
+           (concept-id (id category))
+           (construction-category (find-category-given-concept ontology concept-id)))
+      (when construction-category
+        (let* ((candidates (find-competing-candidate-categories agent construction-category))
                (filtered-candidates (filter-entries-above-threshold candidates threshold))
                (concepts (remove-duplicates (loop for (cat . sim) in filtered-candidates
-                                                  for key = (assqv cat (get-data ontology 'cat-mapper))
-                                                  collect (gethash key (get-data ontology 'concepts))))))
+                                                  for concept-id = (find-concept-given-category ontology cat)
+                                                  collect (gethash concept-id (get-data ontology 'concepts))))))
 
           (format t "~%~a := ~a" concept-id concepts)
           concepts)))))

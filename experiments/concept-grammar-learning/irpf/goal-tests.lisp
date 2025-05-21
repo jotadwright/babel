@@ -7,9 +7,9 @@
    When arriving at this goal test, the other goal tests have already succeeded.
    Thus, we know the meaning is fully connected.
    We get all necessary information from the blackboard of the cxn-inventory."
-  (let* ((category-to-concept (find-category-per-binding node))
+  #|(let* ((category-to-concept (find-category-per-binding node))
          (ontology (find-data (blackboard (construction-inventory node)) :ontology)))
-    (set-data ontology 'cat-to-concept-map category-to-concept))
+    (set-data ontology 'cat-to-concept-map category-to-concept))|#
 
   (let* ((irl-program (extract-meanings (left-pole-structure (car-resulting-cfs (cipn-car node)))))
          (ontology (find-data (blackboard (construction-inventory node)) :ontology))

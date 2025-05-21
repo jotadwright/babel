@@ -152,7 +152,7 @@
 ;; eerste fase van experiment: leer cubes, spheres, blocks, balls, cylinders en how many x are there? in 2000 interacties
 (progn
   
-  (set-configuration *experiment* :questions-list *easy-peasy-questions*)
+  ;(set-configuration *experiment* :questions-list *easy-peasy-questions*)
 
 
   (reset-id-counters)

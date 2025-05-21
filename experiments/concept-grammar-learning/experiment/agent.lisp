@@ -122,10 +122,30 @@
                       :name (format nil "inventory-~a" (get-configuration agent :data-source))
                       :type "store")))
 
+
+(defun find-concept-given-category (ontology category)
+  (gethash category (gethash 'category-to-concept (get-data ontology 'category-concept-map))))
+
+(defun find-category-given-concept (ontology concept)
+  (gethash concept (gethash 'concept-to-category (get-data ontology 'category-concept-map))))
+
+(defun add-category-and-concept-to-ontology (ontology concept category)
+  (setf (gethash category (gethash 'category-to-concept (get-data ontology 'category-concept-map))) concept)
+  (setf (gethash concept (gethash 'concept-to-category (get-data ontology 'category-concept-map))) category)
+  )
+
 (defmethod set-up-concepts (agent)
   (let* ((grammar (grammar agent))
          (ontology (ontology agent))
          (concepts (load-pretrained-concepts agent)))
+
+    (let ((cat-to-concept-table (make-hash-table :test 'eq))
+          (concept-to-cat-table (make-hash-table :test 'eq))
+          (table (make-hash-table :test 'eq)))
+      (setf (gethash 'concept-to-category table) cat-to-concept-table)
+      (setf (gethash 'category-to-concept table) concept-to-cat-table)    
+      (set-data ontology 'category-concept-map table))
+    
     (loop with table = (make-hash-table :test 'eq)
           for form being the hash-keys of concepts
             using (hash-value concept) and idx from 0
@@ -150,20 +170,27 @@
   (let ((grammar (grammar agent))
         (ontology (ontology agent))
         (clg-concept (make-instance attribute-class
-                                    :id (intern (upcase form) :clevr-world)
-                                    :meaning concept)))
+                                    :id (intern (upcase form))
+                                    ;; copy concept as they otherwise would be shared by different synonyms
+                                    :meaning (copy-object concept)))) 
     ;; add the concept to the table
-    (setf (gethash (intern (upcase form) 'clevr-world) table) clg-concept)
+    (setf (gethash (intern (upcase form)) table) clg-concept)
 
     ;; create an attribute table if it doesnt exist yet
-    (when (not (find-data ontology attribute-class))
-      (set-data ontology attribute-class (make-hash-table :test #'eq)))
+    #|(when (not (find-data ontology attribute-class))
+      (set-data ontology attribute-class (make-hash-table :test #'eq)))|#
     ;; add the concept to its attribute class table
-    (setf (gethash (id clg-concept) (get-data ontology attribute-class)) clg-concept)
+    ;(setf (gethash (id clg-concept) (get-data ontology attribute-class)) clg-concept)
     ;; create lexical constructions for the concepts
     (loop for synonym in (get-synonyms form)
-          do (add-lex-cxn-for-concept agent grammar clg-concept synonym sem-class category-type :add-plural add-plural))
-    (add-lex-cxn-for-concept agent grammar clg-concept form sem-class category-type :add-plural add-plural)))
+          for clg-concept = (make-instance attribute-class
+                                            :id (intern (upcase synonym))
+                                            :meaning (copy-object concept))
+          do (setf (gethash (intern (upcase synonym) ) table) clg-concept)
+          do (setf (id (meaning clg-concept)) (intern (upcase synonym)))
+          ;do (setf (gethash (id clg-concept) (get-data ontology attribute-class)) clg-concept)
+          do (add-lex-cxn-for-concept agent grammar clg-concept synonym sem-class category-type attribute-class table ontology :add-plural add-plural))
+    (add-lex-cxn-for-concept agent grammar clg-concept form sem-class category-type attribute-class table ontology :add-plural add-plural)))
 
 
 (defun get-synonyms (form)
@@ -188,7 +215,7 @@
     (rest (assqv (intern (upcase form) :keyword) synonyms))))
 
 
-(defmethod add-lex-cxn-for-concept (agent cxn-inventory concept word sem-class category-type &key (add-plural nil))
+(defmethod add-lex-cxn-for-concept (agent cxn-inventory concept word sem-class category-type attribute-class table ontology &key (add-plural nil))
   (let* ((lex-id (upcase (id concept)))
          (cxn-name (internal-symb (upcase (string-append (hyphenize word) "-lex-cxn"))))
          (cxn-pl-name (internal-symb (upcase (string-append (hyphenize word) "s-lex-cxn"))))
@@ -196,12 +223,14 @@
          (out-var (make-var sem-class))
          (initial-cxn-score (get-configuration agent :initial-cxn-score))
          (lex-class-name-1 (intern (symbol-name (make-const word)) :fcg))
-         (lex-class-name-2 (intern (symbol-name (make-const word)) :fcg))
+         (lex-class-name-2 (intern (symbol-name (make-const (concatenate 'string word "s"))) :fcg))
          (category-id (internal-symb (hyphenize lex-id))))
 
-
     ;; singular
-    (push-data (ontology agent) 'cat-mapper (cons lex-class-name-1 category-id))
+    (add-category-and-concept-to-ontology ontology (id concept) lex-class-name-1)
+    ;(push-data ontology 'list-of-things-to-make-it-work concept)
+    
+    (push-data ontology 'categories (make-instance 'category :id (id concept)))
     (eval `(def-fcg-cxn ,cxn-name
                         ((,unit-name
                           (syn-cat (phrase-type lexical)
@@ -224,28 +253,37 @@
                                      :meaning ,category-id)))
     ;; plural
     (when add-plural
-
-      (push-data (ontology agent) 'cat-mapper (cons lex-class-name-2 category-id))
-      (eval `(def-fcg-cxn ,cxn-pl-name
-                          ((,unit-name
-                            (syn-cat (phrase-type lexical)
-                                     (fcg::lex-class ,lex-class-name-2))
-                            (args (,out-var))
-                            )
-                           <-
-                           (,unit-name
-                            (HASH meaning ((bind ,category-type ,out-var ,category-id)))
-                            --
-                            (HASH form ((string ,unit-name ,(concatenate 'string word "s"))))
-                            ))
-                          :cxn-inventory ,cxn-inventory
-                          :cxn-set (hashed hashed-lex)
-                          :attributes (:score ,initial-cxn-score
-                                       :cxn-type lexical
-                                       :repair concept-learning ;; TODO
-                                       :string ,(concatenate 'string word "s")
-                                       :construction-category ,lex-class-name-2
-                                       :meaning ,category-id))))))
+      (let ((clg-concept (make-instance attribute-class
+                                        :id (intern (upcase (concatenate 'string word "s")))
+                                        :meaning (copy-object (meaning concept)))))
+        (setf (id (meaning clg-concept)) (intern (upcase (concatenate 'string word "s"))))
+        (setf (gethash (intern (upcase (concatenate 'string word "s"))) table) clg-concept)
+        ;(setf (gethash (id clg-concept) (get-data ontology attribute-class)) clg-concept)
+  
+        ;(push-data (ontology agent) 'cat-mapper (cons lex-class-name-2 (id clg-concept)))
+        (add-category-and-concept-to-ontology ontology (id clg-concept) lex-class-name-2)
+        ;(push-data ontology 'list-of-things-to-make-it-work clg-concept)
+        
+        (eval `(def-fcg-cxn ,cxn-pl-name
+                            ((,unit-name
+                              (syn-cat (phrase-type lexical)
+                                       (fcg::lex-class ,lex-class-name-2))
+                              (args (,out-var))
+                              )
+                             <-
+                             (,unit-name
+                              (HASH meaning ((bind ,category-type ,out-var ,category-id)))
+                              --
+                              (HASH form ((string ,unit-name ,(concatenate 'string word "s"))))
+                              ))
+                            :cxn-inventory ,cxn-inventory
+                            :cxn-set (hashed hashed-lex)
+                            :attributes (:score ,initial-cxn-score
+                                         :cxn-type lexical
+                                         :repair concept-learning ;; TODO
+                                         :string ,(concatenate 'string word "s")
+                                         :construction-category ,lex-class-name-2
+                                         :meaning ,category-id)))))))
 
 ;; utility function
 (defun get-feature-names (experiment)

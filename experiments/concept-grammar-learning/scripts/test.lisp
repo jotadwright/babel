@@ -1,14 +1,29 @@
 
 
-(in-package :clg)
 
-(get-similar-lex-categories 'tiny-98
+
+
+
+
+#|(get-similar-lex-categories 'tiny-98
  (categorial-network (grammar (second (agents *experiment*)))))
 
 (neighbouring-categories (first (neighbouring-categories 'fcg::tiny-2 (categorial-network (grammar (second (agents *experiment*))))))
                          (categorial-network (grammar (second (agents *experiment*)))))
 
+(find-competing-candidate-categories (categorial-network (grammar (second (agents *experiment*))))
+                                     fcg::tiny-2)
+        
 
+
+|#
+
+          
+
+
+  
+  
+#|
 (loop for category in (reduce #'union
                               (loop for slot in (neighbouring-categories 'fcg::TINY-2 (categorial-network (grammar (second (agents *experiment*)))))
                                     for neighbours-of-slot = (neighbouring-categories slot (categorial-network (grammar (second (agents *experiment*)))))
@@ -33,17 +48,17 @@
                         category
                         (fcg::graph (categorial-network (grammar (second (agents *experiment*))))))
       do (format t "~%~a" (cons category similarity)))
+|#
 
-
-(defun competing-categories (slot-filler)
+#|(defun competing-categories (slot-filler)
   (loop for (sl . el) in (loop for slot in (neighbouring-categories slot-filler (categorial-network (grammar (second (agents *experiment*)))))
                                for neighbours-of-slot = (neighbouring-categories slot (categorial-network (grammar (second (agents *experiment*)))))
                                collect (cons slot neighbours-of-slot))
         do (format t "~%~a                    => [~a]" el sl))
-  )
+  )|#
 
 
-(competing-categories 'fcg::tiny-2)
+#|(competing-categories 'fcg::tiny-2)
 
 (defun competing-categories2 (slot-filler
 (loop for neighbour-filler in (neighbouring-categories slot-filler (categorial-network (grammar (second (agents *experiment*))))))
@@ -62,11 +77,11 @@
     ;(when (not similar-lex-categories)
     ;(setf similar-lex-categories (graph-utils::my-similar-nodes-weighted-cosine-same-node-type lex-category graph))
     ;(setf (gethash lex-category (graph-utils::node-similarities graph)) similar-lex-categories))
-    similar-lex-categories))
+    similar-lex-categories))|#
 
 
 
-(in-package :graph-utils)
+#|(in-package :graph-utils)
 
 (defun my-similar-nodes-weighted-cosine (node graph)
   "loop through all nodes in graph, sort by weighted cosine similarity"
@@ -123,3 +138,4 @@
       (loop for node-id being the hash-keys of ht
         collect node-id))))
 
+|#

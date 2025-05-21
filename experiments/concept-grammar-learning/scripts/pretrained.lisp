@@ -134,7 +134,10 @@
   (run-series *experiment* 1)
   )
 
+
+
 ;; Option 3: run experiment and log experiments to disk
+(set-configuration *experiment* :category-strategy :use-categorial-network)
 (progn
   ;; reset monitors
   (deactivate-all-monitors)

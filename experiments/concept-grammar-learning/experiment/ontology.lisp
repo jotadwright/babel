@@ -1,7 +1,7 @@
 (in-package :clg)
 
 ;; Make subclasses for concept-entity for each of the concept types
-(defclass clg-concept ()
+(defclass clg-concept (entity)
   ((id
     :initarg :id :accessor id :initform (make-id "CONCEPT") :type symbol
     :documentation "Id of the concept.")
@@ -31,7 +31,7 @@
 ;; old stuff
 
 (defparameter *challenge-level-primitive-dict*
-  '((1 count! exist filter get-context query unique)
+  '((1 count! exist filter get-context unique)
     (2 count! exist filter get-context query unique relate same)
     (3 count! exist filter get-context query unique relate same
        equal? intersect union! equal-integer less-than greater-than)))
