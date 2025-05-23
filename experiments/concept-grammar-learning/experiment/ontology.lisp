@@ -1,19 +1,32 @@
 (in-package :clg)
 
+;; We need a class for the concepts (concept-1, concept-2: replacing blue, cubes etc) used in the filter primitive --> clg-concept
+;; We need a class for categories (category-1, category-2: replacing size-category etc) used in the query primitive --> category
+
+(defclass category (entity)
+  ((id
+    :initarg :id :accessor id :initform nil :type symbol
+    :documentation "Id of the category"))
+  (:documentation "Abstract class for representing categories"))
+
+(defclass boolean-category (category)
+  ((bool :type bool :initarg :bool :reader bool))
+  (:documentation "An entity representation of booleans"))
+
 ;; Make subclasses for concept-entity for each of the concept types
 (defclass clg-concept (entity)
   ((id
     :initarg :id :accessor id :initform (make-id "CONCEPT") :type symbol
     :documentation "Id of the concept.")
    (meaning
-    :initarg :meaning :accessor meaning :type concept))
+    :initarg :meaning :accessor meaning :initform nil :type concept))
   (:documentation "Abstract class for representing concepts."))
 
-(defclass color-concept (clg-concept) ())
-(defclass size-concept (clg-concept) ())
-(defclass material-concept (clg-concept) ())
-(defclass shape-concept (clg-concept) ())
-(defclass spatial-concept (clg-concept) ())
+;(defclass color-concept (clg-concept) ())
+;(defclass size-concept (clg-concept) ())
+;(defclass material-concept (clg-concept) ())
+;(defclass shape-concept (clg-concept) ())
+;(defclass spatial-concept (clg-concept) ())
 
 ;; utility functions
 
@@ -47,6 +60,10 @@
         (available-primitives
          (rest (assoc (get-configuration agent :current-challenge-level)
                       *challenge-level-primitive-dict*))))
+    
+    (set-configuration primitive-inventory :max-nr-of-nodes 100)
+    (set-configuration primitive-inventory :node-tests (list :no-duplicate-solutions :restrict-nr-of-nodes))
+    
     ;; add them to the new primitive inventory
     (loop with source-inventory = *clevr-primitives*
           for p in available-primitives
