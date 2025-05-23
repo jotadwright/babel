@@ -5,7 +5,7 @@
 ;; -------------------
 
 
-(defprimitive query ((target-category attribute)
+(defprimitive query ((target-category category)
                      (source-object clevr-object)
                      (attribute attribute-category))
   ;; first case; given attribute and source-object, compute the target category
@@ -16,7 +16,7 @@
 
   ;; second case; given source-object, compute pairs of attribute and target-category
   ((source-object => attribute target-category)
-   (loop for attr in (get-data ontology 'cw::attributes)
+   (loop for attr in (get-data ontology 'attributes)
          for (target-cat . sim) = (query-object-attribute source-object attr ontology)
          when target-cat
            do (bind (attribute 1.0 attr)
@@ -26,7 +26,7 @@
 
 ;; Utilities
 (defmethod query-object-attribute ((object clevr-object)
-                                   (attribute-category attribute-category)
+                                   (attribute-category category)
                                    ontology)
   (let* ((candidate-concepts (get-candidate-concepts ontology attribute-category))
          (res (find-best-concept candidate-concepts object))
@@ -34,7 +34,7 @@
          (similarity (cdr res)))
     (cons (find-entity-by-id ontology (id best-concept)) similarity)))
 
-(defun get-candidate-concepts (ontology attribute-category)
+#|(defun get-candidate-concepts (ontology attribute-category)
   (cond ((eq (id attribute-category) 'clevr-world::color)
          (hash-values (get-data ontology 'clg::color-concept)))
         ((eq (id attribute-category) 'clevr-world::material)
@@ -42,4 +42,4 @@
         ((eq (id attribute-category) 'clevr-world::size)
          (hash-values (get-data ontology 'clg::size-concept)))
         ((eq (id attribute-category) 'clevr-world::shape)
-         (hash-values (get-data ontology 'clg::shape-concept)))))
+         (hash-values (get-data ontology 'clg::shape-concept)))))|#
