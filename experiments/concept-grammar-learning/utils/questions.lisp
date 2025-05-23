@@ -117,7 +117,7 @@
          (program (second question-scenes-answers-cons))
          (scenes-and-answers (third question-scenes-answers-cons))
          (random-scene-and-answer (random-elt scenes-and-answers))
-         (answer-entity (find-clevr-entity (cdr random-scene-and-answer) *clevr-ontology*))
+         (answer-entity (find-clevr-entity (cdr random-scene-and-answer) (ontology agent)))
          (clevr-scene (find-scene-by-name (car random-scene-and-answer) (world (experiment agent)))))
     (if clevr-scene
       (values question program clevr-scene answer-entity)
