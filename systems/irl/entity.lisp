@@ -75,5 +75,10 @@
         (find-entity-by-id (cdr cons) id :type type))))
 
 
+(defmethod find-entity-by-id ((ht hash-table) (id symbol) &key (type 'entity))
+  (loop for hash-value in (hash-values ht)
+        thereis (find-entity-by-id hash-value id :type type)))
+
+
 
 
