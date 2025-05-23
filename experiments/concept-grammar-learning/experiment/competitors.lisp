@@ -68,14 +68,14 @@
   ;; less or more general item-based cxns
   ;; that also work for the current utterance
   ;; and holophrase cxns
-  (let* ((cxn-name-with-placeholders (make-cxn-placeholder-name (extract-form-predicates cxn) cxn-inventory))
+  (let* ((cxn-name-with-placeholders (make-cxn-placeholder-name (fcg::extract-form-predicates cxn) cxn-inventory))
          (de-rendered-utterance (fcg::tokenize utterance))
          (possible-item-based-competitors (find-all 'item-based
                                                     (constructions-list cxn-inventory)
                                                     :key #'get-cxn-type))
          (item-based-competitors (loop for comp in possible-item-based-competitors
                                        for comp-name-with-placeholders = (make-cxn-placeholder-name
-                                                                          (extract-form-predicates comp)
+                                                                          (fcg::extract-form-predicates comp)
                                                                           cxn-inventory)
                                        when (and (length= cxn-name-with-placeholders
                                                           comp-name-with-placeholders)
@@ -116,9 +116,10 @@
                         (string= other-elem nth-word))
                    ;; more abstract
                    (and (placeholderp other-elem)
-                        (stringp cxn-elem)))))
+                        (stringp cxn-elem))
+                   )))
 
 (defun extract-and-render (cxn)
   (list-of-strings->string
-   (render (extract-form-predicates cxn)
+   (render (fcg::extract-form-predicates cxn)
            (get-configuration (cxn-inventory cxn) :render-mode))))
