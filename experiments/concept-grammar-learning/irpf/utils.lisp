@@ -105,7 +105,7 @@
     cxns-to-sort
     (let ((resulting-list (make-list (length utterance))))
       (loop for cxn-obj in cxns-to-sort
-            for cxn-string = (third (first (extract-form-predicates cxn-obj)))
+            for cxn-string = (third (first (fcg::extract-form-predicates cxn-obj)))
             do (loop
                 with sub-length = (length cxn-string)
                 for i from 0 to (- (length utterance) sub-length)
@@ -356,7 +356,7 @@
   (let ((resulting-form observed-form)
         (lex-unit-names nil))
     (loop for lex-cxn in matching-lex-cxns
-          for lex-cxn-form = (extract-form-predicates lex-cxn)
+          for lex-cxn-form = (fcg::extract-form-predicates lex-cxn)
           do (let* ((prev-res-form (copy-object resulting-form))
                     (elm-to-remove (loop for elm in resulting-form
                                          when (irl:unify-irl-programs lex-cxn-form (list elm))
@@ -378,7 +378,7 @@
   (let ((resulting-meaning gold-standard-meaning)
         (args nil))
     (loop for lex-cxn in matching-lex-cxns
-          for lex-cxn-meaning = (extract-meaning-predicates lex-cxn)
+          for lex-cxn-meaning = (fcg::extract-meaning-predicates lex-cxn)
           do (let* ((prev-res-meaning (copy-object resulting-meaning))
                     (elm-to-remove
                      (loop for elm in resulting-meaning
