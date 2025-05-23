@@ -15,26 +15,32 @@
                :concept-representations
                :irl
                :fcg
-               :clevr-world
                :cl-json
-               :com.inuoe.jzon)
+               :com.inuoe.jzon
+               :cl-jonathan)
   :serial t
   :components ((:file "package")
+               (:module "experiment"
+                :serial t
+                :components ((:file "agent")
+                             (:file "alignment")
+                             (:file "competitors")
+                             (:file "experiment")
+                             (:file "interaction")
+                             (:file "ontology")
+                             (:file "score")
+                             (:file "clevr-world")
+                             (:file "html")
+                             ))
                (:module "clevr-primitives"
                 :serial t
                 :components ((:file "primitive-inventory")
                              (:file "get-context")
                              (:file "filter")
                              (:file "query")
-                             (:file "same")
-                             (:file "equal")
                              (:file "count")
                              (:file "exist")
-                             (:file "unique")
-                             (:file "relate")
-                             (:file "intersect")
-                             (:file "union")
-                             (:file "equal-less-greater")))
+                             (:file "unique")))
                (:module "clevr-grammar"
                 :serial t
                 :components ((:file "lex-and-morph")
@@ -68,15 +74,7 @@
                              (:file "problems-diagnostics")
                              (:file "utils")
                              (:file "web-monitors")))
-               (:module "experiment"
-                :serial t
-                :components ((:file "agent")
-                             (:file "alignment")
-                             (:file "competitors")
-                             (:file "experiment")
-                             (:file "interaction")
-                             (:file "ontology")
-                             (:file "score")))
+               
                (:module "irpf"
                 :serial t
                 :components ((:file "handle-fix")
