@@ -16,6 +16,8 @@
 (defparameter *configuration* (utils::make-configuration
                                :entries `((:determine-interacting-agents-mode . :tutor-learner)
                                           (:question-sample-mode . :all)
+                                          (:questions-type . :count)
+                                          (:nr-of-filters . :all)
                                           ;(:questions-per-challenge . 1000)
                                           (:scenes-per-question . 50)
                                           (:confidence-threshold . 1.1)
@@ -52,12 +54,12 @@
                                           (:sigmoid-slope-c . 0.5) ;; todo
 
                                           ;; category-strategy
-                                          (:category-strategy . :use-predefined-categories) ; :use-predefined-categories :use-categorial-network
-                                          (:category-strategy-threshold . 0.5)
+                                          (:category-strategy . :use-categorial-network) ; :use-predefined-categories :use-categorial-network
+                                          (:category-strategy-threshold . 0.8)
 
                                           ;; for update-concept repair
                                           (:max-concept-update-iterations . 10)
-                                          (:filter-similarity-threshold . 0.5)
+                                          (:filter-similarity-threshold . 0.1)
                                           (:lexical-cxn-inhibition-value . 0.02)
 
                                           ;; diagnostics and repairs (order is important!)
@@ -87,11 +89,13 @@
                                           (:composer-node-tests
                                            ;;  - this one checks the type of the bindings of the filter group,
                                            ;;  - you cannot have multiple filters that filter on the same type of bind statement
-                                           :remove-clevr-incoherent-filter-groups 
-                                           :remove-clevr-filter-permutations
-                                           ))))
+                                            
+                                           :remove-clevr-filter-permutations)
+                                          
+                                          )))
 
 ;; (ontology (second (agents *experiment*)))
+;; (question-data  *experiment*)
 
 (defparameter *experiment* (make-instance 'clevr-learning-experiment :configuration *configuration*))
 
@@ -131,11 +135,11 @@
   (activate-monitor print-a-dot-for-each-interaction)
   (activate-monitor trace-interactions-in-wi)
 
-  (run-series *experiment* 1)
+  (run-series *experiment* 10)
   )
 
-
-
+(set-configuration *experiment* :category-strategy-threshold  0.8 )
+(set-configuration *experiment* :filter-similarity-threshold  0.1 )
 ;; Option 3: run experiment and log experiments to disk
 (set-configuration *experiment* :category-strategy :use-categorial-network)
 (progn
