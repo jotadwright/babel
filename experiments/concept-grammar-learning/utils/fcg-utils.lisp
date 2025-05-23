@@ -102,8 +102,8 @@
 (defun find-cxn-by-type-form-and-meaning (type form meaning cxn-inventory)
   "returns a cxn with the same meaning and form if it's in the cxn-inventory"
   (loop for cxn in (find-all type (constructions-list cxn-inventory) :key #'get-cxn-type)
-        when (and (irl:equivalent-irl-programs? form (extract-form-predicates cxn))
-                  (irl:equivalent-irl-programs? meaning (extract-meaning-predicates cxn)))
+        when (and (irl:equivalent-irl-programs? form (fcg::extract-form-predicates cxn))
+                  (irl:equivalent-irl-programs? meaning (fcg::extract-meaning-predicates cxn)))
         return cxn))
 
 
