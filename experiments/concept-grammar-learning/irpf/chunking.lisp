@@ -25,16 +25,16 @@
   ;; inputs from count!, exist, intersect, union!
   ;; and unique cannot be the output of get-context
   (let* ((irl-program (irl-program (chunk node)))
-         (context-predicates (find-all 'clevr-world:get-context  irl-program :key #'car)))
+         (context-predicates (find-all 'get-context irl-program :key #'car)))
     (if context-predicates
       (loop for context-predicate in context-predicates
             for context-var = (second context-predicate)
             for predicates-with-var = (find-all context-var irl-program :test #'member)
             always (loop for predicate in predicates-with-var
                          never (member (first predicate)
-                                       '(clevr-world:count! clevr-world:exist
-                                         clevr-world:intersect clevr-world:union!
-                                         clevr-world:unique))))
+                                       '(count! exist
+                                         intersect union!
+                                         unique))))
       t)))
 
 
@@ -44,8 +44,8 @@
   ;; the last element from filter, query, equal?,
   ;; relate and same must always be an open variable
   (let ((irl-program (irl-program (chunk node))))
-    (loop for p in '(clevr-world:filter clevr-world:query clevr-world:equal?
-                     clevr-world:relate clevr-world:same)
+    (loop for p in '(filter query equal?
+                     relate same)
           for preds = (find-all p irl-program :key #'car)
           always (loop for pred in preds
                        always (member (last-elt pred)
@@ -58,7 +58,7 @@
                             (mode (eql :clevr-filter-group-length)))
   ;; filter predicates chained together can be maximally 4 long
   (let ((irl-program (irl-program (chunk node))))
-    (if (> (count 'clevr-world:filter irl-program :key #'first) 1)
+    (if (> (count 'filter irl-program :key #'first) 1)
       (let ((filter-groups (collect-filter-groups irl-program)))
         (loop for group in filter-groups
               never (length> group 4)))
@@ -106,20 +106,12 @@
 
 ;; + chunk-node-tests +
 (defparameter *allowed-primitive-counts*
-  '((clevr-world:count! . 1)
-    (clevr-world:equal-integer . 1)
-    (clevr-world:less-than . 1)
-    (clevr-world:greater-than . 1)
-    (clevr-world:equal? . 1)
-    (clevr-world:exist . 1)
-    (clevr-world:filter . 4) ;;
-    (clevr-world:get-context . 1) ;; TODO, for stage 2, needs to be 2
-    (clevr-world:intersect . 1)
-    (clevr-world:query . 1) ;; TODO, for stage 2, needs to be 2
-    (clevr-world:relate . 3)
-    (clevr-world:same . 1)
-    (clevr-world:union! . 1)
-    (clevr-world:unique . 1)))
+  '((clg::count! . 1)
+    (clg::exist . 1)
+    (clg::filter . 4) ;;
+    (clg::get-context . 1) ;; TODO, for stage 2, needs to be 2
+    (clg::query . 1) ;; TODO, for stage 2, needs to be 2
+    (clg::unique . 1)))
 
 (defun collect-filter-groups (irl-program)
   "Collect groups of filter operations using traverse-meaning-network."
@@ -128,16 +120,16 @@
      irl-program
      ;; use get-context predicates as start of the search
      :first-predicate-fn #'(lambda (program)
-                             (find 'clevr-world:get-context program :key #'first))
+                             (find 'get-context program :key #'first))
      ;; traverse the network by following in/out variables
      :next-predicate-fn #'(lambda (predicate program)
                             (or (find-all (second predicate) program :key #'third)
                                 (find-all (second predicate) program :key #'fourth)))
      ;; collect filter predicates in groups
      :do-fn #'(lambda (predidate)
-                (cond ((and prev-was-filter (eql (first predidate) 'clevr-world:filter))
+                (cond ((and prev-was-filter (eql (first predidate) 'filter))
                        (push predidate (first filter-groups)))
-                      ((eql (first predidate) 'clevr-world:filter)
+                      ((eql (first predidate) 'filter)
                        (push (list predidate) filter-groups)
                        (setf prev-was-filter t))
                       (prev-was-filter
@@ -196,7 +188,7 @@
     (loop with solution-bindings = (remove target-var (bindings result) :key #'var)
           for binding in solution-bindings
           thereis (eql (type-of (value binding))
-                       'clevr-world:shape-category))))
+                       'shape-category))))
 
 
 ; + Expand-chunk functions +
@@ -205,7 +197,7 @@
    even though the get-context primitive is allowed to occur once.
    The variable needs to be shared. To enforce this, it is added to the
    open variables of the chunk, unless it is already shared."
-  (let ((get-context-predicate (find 'clevr-world:get-context
+  (let ((get-context-predicate (find 'get-context
                                      (irl-program chunk)
                                      :key #'first)))
     (when get-context-predicate
@@ -214,7 +206,7 @@
           (let* ((all-variables (find-all-anywhere-if #'variable-p (irl-program chunk)))
                  (context-var-count (count context-var all-variables)))
             (when (< context-var-count 3)
-              (push (cons context-var 'clevr-world:clevr-object-set)
+              (push (cons context-var 'clevr-object-set)
                     (open-vars chunk)))))))
     chunk))
 
@@ -235,10 +227,10 @@
                          (mode (eql :clevr-expand-chunk)))
   (if (loop for predicate in (irl-program chunk)
             thereis (member (first predicate)
-                            '(clevr-world:union!
-                              clevr-world:intersect clevr-world:equal?
-                              clevr-world:equal-integer clevr-world:less-than
-                              clevr-world:greater-than)))
+                            '(union!
+                              intersect equal?
+                              equal-integer less-than
+                              greater-than)))
     (append (expand-chunk chunk composer :combine-program)
             (check-duplicate-variables
              (expand-chunk
@@ -261,7 +253,7 @@
           (length (irl-program chunk)) ;; less primitives are better
           ;; less duplicate primitives are better
           ;; (bind statements and filters are not considered)
-          (let ((predictes (remove 'clevr-world:filter
+          (let ((predictes (remove 'filter
                                    (all-predicates
                                     (irl-program chunk))
                                    :key #'car)))
@@ -269,7 +261,7 @@
                     (length (remove-duplicates predictes)))))
           ;; chain-type programs are preferred over tree-type programs
           ;; (i.e. get-context occurs once instead of twice)
-          (count 'clevr-world:get-context
+          (count 'get-context
                  (irl-program chunk)
                  :key #'car))
        ;; the higher the score the better
@@ -279,13 +271,13 @@
 ;; clevr filter permutation detection
 
 (defparameter *allowed-type-map*
-  '((clevr-world:shape-category clevr-world:material-category
-                                clevr-world:color-category
-                                clevr-world:size-category)
-    (clevr-world:material-category clevr-world:color-category
-                                   clevr-world:size-category)
-    (clevr-world:color-category clevr-world:size-category)
-    (clevr-world:size-category . nil)))
+  '((shape-category material-category
+                                color-category
+                                size-category)
+    (material-category color-category
+                                   size-category)
+    (color-category size-category)
+    (size-category . nil)))
 
 (defun valid-permutation-p (permutation)
   ;; the permutation is ordered such that the node that was
@@ -295,10 +287,10 @@
   ;; Thus, when looking at the type of the first binding
   ;; (e.g. a material), only color and size are allowed
   ;; to appear in the following bindings.
-  (loop with allowed-next-types = '(clevr-world:shape-category
-                                    clevr-world:material-category
-                                    clevr-world:color-category
-                                    clevr-world:size-category)
+  (loop with allowed-next-types = '(shape-category
+                                    material-category
+                                    color-category
+                                    size-category)
         for binding-value in permutation
         for binding-type = (type-of binding-value)
         if (member binding-type allowed-next-types)
@@ -320,12 +312,12 @@
   ;; Detect and remove permutations in bindings of filter predicates
   ;; as soon as possible. Also make sure that only the correct permutations
   ;; are kept.
-  (if (eql (first (primitive-under-evaluation node)) 'clevr-world:filter)
+  (if (eql (first (primitive-under-evaluation node)) 'filter)
     (let ((filter-group
            (loop with group = nil
                  with current-node = node
                  while (eql (first (primitive-under-evaluation current-node))
-                            'clevr-world:filter)
+                            'filter)
                  do (push current-node group)
                  do (setf current-node (parent current-node))
                  finally (return group))))
@@ -346,11 +338,11 @@
 
 (defmethod pip-node-test ((node pip-node) (mode (eql :remove-clevr-incoherent-filter-groups)))
   ;; Detect and remove incoherent filter groups as soon as possible
-  (if (eql (first (primitive-under-evaluation node)) 'clevr-world:filter)
+  (if (eql (first (primitive-under-evaluation node)) 'filter)
     (let ((filter-group
            (loop with group = nil
                  with current-node = node
-                 while (eql (first (primitive-under-evaluation current-node)) 'clevr-world:filter)
+                 while (eql (first (primitive-under-evaluation current-node)) 'filter)
                  do (push current-node group)
                  do (setf current-node (parent current-node))
                  finally (return group))))
