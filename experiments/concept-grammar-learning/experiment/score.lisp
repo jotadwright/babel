@@ -48,7 +48,7 @@
 
               ;; if its a bind and its a not an attribute-category
               ;;     it should be either a color-category, shape-category, size-category, material-category
-              when (and (eq predicate-name 'bind) (not (eq type 'cw::attribute-category)))
+              when (and (eq predicate-name 'bind) (not (eq type 'attribute-category)))
                 do (multiple-value-bind (target source) (find-associated-filter irl-program bindings variable)
                      (let ((other-objects (set-difference source target))
                            (concept (gethash category (get-data (ontology agent) 'concepts))))
