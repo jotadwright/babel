@@ -61,7 +61,7 @@
   (make-instance 'clevr-learning-tutor
                  :role 'tutor :experiment experiment
                  :grammar (default-clevr-grammar)
-                 :ontology (copy-object *clevr-ontology*)
+                 :ontology (make-blackboard)
                  :success-table (loop for i below (length (question-data experiment))
                                       collect (cons i nil))
                  :available-primitives (copy-object *clevr-primitives*)))
@@ -73,7 +73,7 @@
                                                         (get-configuration experiment :learner-cxn-supplier)
                                                         (get-configuration experiment :diagnostics)
                                                         (get-configuration experiment :repairs))
-                                :ontology (copy-object *clevr-ontology*))))
+                                :ontology (make-blackboard))))
 
     ;; to access configurations
     (set-data (ontology learner) 'owner learner)
@@ -154,16 +154,16 @@
                    ; (add-cxn-and-ontology agent 'spatial-concept concept form 'spatial 'spatial-category table))
                    ;; colors
                    ((member form '("blue" "brown" "cyan" "gray" "green" "purple" "red" "yellow") :test #'equalp)
-                    (add-cxn-and-ontology agent 'color-concept concept form 'color 'color-category table))
+                    (add-cxn-and-ontology agent 'clg-concept concept form 'concept 'clg-concept table))
                    ;; materials
                    ((member form '("metal" "rubber") :test #'equalp)
-                    (add-cxn-and-ontology agent 'material-concept concept form 'material 'material-category table))
+                    (add-cxn-and-ontology agent 'clg-concept concept form 'concept 'clg-concept table))
                    ;; size
                    ((member form '("small" "large") :test #'equalp)
-                    (add-cxn-and-ontology agent 'size-concept concept form 'size 'size-category table))
+                    (add-cxn-and-ontology agent 'clg-concept concept form 'concept 'clg-concept table))
                    ;; shapes
                    ((member form '("cube" "cylinder" "sphere") :test #'equalp)
-                    (add-cxn-and-ontology agent 'shape-concept concept form 'shape 'shape-category table :add-plural t)))
+                    (add-cxn-and-ontology agent 'clg-concept concept form 'concept 'clg-concept table :add-plural t)))
           finally (set-data ontology 'concepts table))))
 
 (defun add-cxn-and-ontology (agent attribute-class concept form sem-class category-type table &key (add-plural nil))
@@ -230,7 +230,7 @@
     (add-category-and-concept-to-ontology ontology (id concept) lex-class-name-1)
     ;(push-data ontology 'list-of-things-to-make-it-work concept)
     
-    (push-data ontology 'categories (make-instance 'category :id (id concept)))
+    ;(push-data ontology 'categories (make-instance 'category :id (id concept)))
     (eval `(def-fcg-cxn ,cxn-name
                         ((,unit-name
                           (syn-cat (phrase-type lexical)
@@ -272,7 +272,7 @@
                               )
                              <-
                              (,unit-name
-                              (HASH meaning ((bind ,category-type ,out-var ,category-id)))
+                              (HASH meaning ((bind ,category-type ,out-var ,(intern (upcase (concatenate 'string word "s"))))))
                               --
                               (HASH form ((string ,unit-name ,(concatenate 'string word "s"))))
                               ))
@@ -283,7 +283,7 @@
                                          :repair concept-learning ;; TODO
                                          :string ,(concatenate 'string word "s")
                                          :construction-category ,lex-class-name-2
-                                         :meaning ,category-id)))))))
+                                         :meaning ,(intern (upcase (concatenate 'string word "s"))))))))))
 
 ;; utility function
 (defun get-feature-names (experiment)
