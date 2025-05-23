@@ -6,23 +6,22 @@
 
 (defprimitive filter ((target-set clevr-object-set)
                       (source-set clevr-object-set)
-                      (category attribute))
+                      (concept clg-concept))
   ;; first case: if given source-set and category, compute target-set
-  ((source-set category => target-set)
-   (let ((computed-set (filter-by-concept source-set category ontology)))
+  ((source-set concept => target-set)
+   (let ((computed-set (filter-by-concept source-set concept ontology)))
      (bind (target-set 1.0 computed-set))))
   ;; second case: given source set, compute category and target-set
   ;; invention case: make all possible combinations of objects in the source-set,
   ;; for each of those combinations find a concept that filters those successfully (using threshold) + max-iterations
   ;; if concept is found, make target-set with as score a combination of the iterations that were needed + similarity scores
-  ((source-set => category target-set)
+  ((source-set => concept target-set)
 
    (if (get-configuration-from-ontology ontology :pretrained-concepts)
      ;; CASE 1: using pretrained-concepts
-     (loop for category2 in (loop for top-cat in (list 'cw::materials 'cw::sizes 'cw::shapes 'cw::colors)
-                                  append (get-data ontology top-cat))
-           for computed-set = (filter-by-concept source-set category2 ontology)
-           do (bind (category 1.0 category2)
+     (loop for cand-concept in (hash-values (get-data ontology 'concepts))
+           for computed-set = (filter-by-concept source-set cand-concept ontology)
+           do (bind (concept 1.0 cand-concept)
                     (target-set 1.0 computed-set)))
      ;; CASE 2: not using pretrained-concepts, thus inventing
      (loop for combination-length from 1 to (length (objects source-set))
@@ -39,15 +38,15 @@
                     for similarity = (sum (second (find candidate-concept (third candidate-concept-and-iteration) :key #'first)))
                     when candidate-concept
                       ;; todo: for target-set -> use similarity score as binding-score + as little as possible updates
-                      do (let ((cat (make-instance 'attribute :id (id candidate-concept))))
+                      do (let ((cat (make-instance 'clg-concept :id (id candidate-concept))))
                            (push-data ontology 'categories cat)
                            (push-data ontology 'candidate-concepts candidate-concept)
-                           (bind (category 1.0 cat)
+                           (bind (concept 1.0 cat)
                                  (target-set similarity candidate-target-set)))))))
   ;; third case: consistency check
-  ((target-set source-set category => )
+  ((target-set source-set concept => )
     ;; only will be used if the update-concept repair is activated
-    (filter-by-concept-updates ontology target-set source-set category))
+    (filter-by-concept-updates ontology target-set source-set concept))
   
   :primitive-inventory *clevr-primitives*)
 
@@ -55,20 +54,20 @@
 ;; + GENERAL UTILITY +
 ;; -------------------
 (defmethod filter-by-concept ((source-set clevr-object-set)
-                              (category category)
+                              (concept clg-concept)
                               (ontology blackboard))
   "Filter the set by the given category."
   
   (if (get-configuration-from-ontology ontology :pretrained-concepts)
     ;; CASE 1: using pretrained-concepts
-    (filter-by-concept-no-threshold source-set category ontology)
+    (filter-by-concept-no-threshold source-set concept ontology)
     ;; CASE 2: not using pretrained-concepts, thus inventing
-    (let ((candidate-concept (find (id category) (find-data ontology 'candidate-concepts) :test #'eq :key #'id)))
+    (let ((candidate-concept (find (id concept) (find-data ontology 'candidate-concepts) :test #'eq :key #'id)))
       (if candidate-concept
         ;; case 1: associated concept is candidate, so filter based on that
         (filter-by-concept-with-threshold source-set candidate-concept ontology)
         (filter-by-concept-with-threshold source-set
-                                          (gethash (id category) (find-data ontology 'concepts))
+                                          (gethash (id concept) (find-data ontology 'concepts))
                                           ontology)))))
 
 ;; -------------------------------------
@@ -96,7 +95,8 @@
   (loop with concepts = (get-competing-concepts ontology category (get-configuration-from-ontology ontology :category-strategy))
         for entity in entities
         for (best-concept . similarity) = (find-best-concept concepts entity)
-        when (and best-concept (eq (id category) (id best-concept)))
+        when (and best-concept (eq (id category) (id best-concept))
+                  (> similarity (get-configuration-from-ontology ontology :filter-similarity-threshold)))
           collect entity into entities
         collect (cons (id entity) similarity) into similarities
         finally (return (list entities similarities))))
@@ -278,6 +278,7 @@
                (concepts (remove-duplicates (loop for (cat . sim) in filtered-candidates
                                                   for concept-id = (find-concept-given-category ontology cat)
                                                   collect (gethash concept-id (get-data ontology 'concepts))))))
+          (format t "These are the competing concepts ~a of concept ~a ~%" concepts category)
 
-          (format t "~%~a := ~a" concept-id concepts)
+          
           concepts)))))
