@@ -16,14 +16,17 @@
 
 
 (defun find-competing-candidate-categories (agent category)
-  (loop with categorial-network = (categorial-network (grammar agent))
-        for candidate in (reduce #'union
-                                 (loop for slot in (neighbouring-categories category categorial-network)
-                                       for neighbours-of-slot = (neighbouring-categories slot categorial-network)
-                                       collect neighbours-of-slot))
-        for similarity = (graph-utils::my-weighted-graph-cosine-similarity category candidate (fcg::graph categorial-network))
-        collect (cons candidate similarity) into results
-        finally (return results)))
+  ;; in beginning of experiment, there are no categories in categorial network
+  (if (find category (hash-keys (graph-utils::nodes (fcg::graph (categorial-network (grammar agent))))))
+    (loop with categorial-network = (categorial-network (grammar agent))
+          for candidate in (reduce #'union
+                                   (loop for slot in (neighbouring-categories category categorial-network)
+                                         for neighbours-of-slot = (neighbouring-categories slot categorial-network)
+                                         collect neighbours-of-slot))
+          for similarity = (graph-utils::my-weighted-graph-cosine-similarity category candidate (fcg::graph categorial-network))
+          collect (cons candidate similarity) into results
+          finally (return results))
+    (list (cons category 1.0))))
 
 (defun filter-entries-above-threshold (entries threshold)
   (loop for entry in entries
