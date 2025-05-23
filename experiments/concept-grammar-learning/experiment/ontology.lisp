@@ -41,6 +41,12 @@
   (pprint-logical-block (stream nil)
     (format stream "<Concept: ~a>" (id concept))))
 
+(defmethod copy-object ((bool-cat boolean-category))
+  (make-instance 'boolean-category
+                 :id (id bool-cat)
+                 :bool (bool bool-cat)))
+
+
 ;; old stuff
 
 (defparameter *challenge-level-primitive-dict*

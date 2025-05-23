@@ -58,13 +58,18 @@
   (eql (role agent) 'learner))
 
 (defun make-clevr-learning-tutor (experiment)
-  (make-instance 'clevr-learning-tutor
-                 :role 'tutor :experiment experiment
-                 :grammar (default-clevr-grammar)
-                 :ontology (make-blackboard)
-                 :success-table (loop for i below (length (question-data experiment))
-                                      collect (cons i nil))
-                 :available-primitives (copy-object *clevr-primitives*)))
+  (let ((tutor
+         (make-instance 'clevr-learning-tutor
+                        :role 'tutor :experiment experiment
+                        :grammar (default-clevr-grammar)
+                        :ontology (make-blackboard)
+                        :success-table (loop for i below (length (question-data experiment))
+                                             collect (cons i nil))
+                        :available-primitives (copy-object *clevr-primitives*))))
+    (push-data (ontology tutor) 'booleans (make-instance 'boolean-category :id 'yes :bool t))
+    (push-data (ontology tutor) 'booleans (make-instance 'boolean-category :id 'no :bool nil))
+    tutor))
+
 
 (defun make-clevr-learning-learner (experiment)
   (let ((learner (make-instance 'clevr-learning-learner
@@ -77,6 +82,9 @@
 
     ;; to access configurations
     (set-data (ontology learner) 'owner learner)
+
+    (push-data (ontology learner) 'booleans (make-instance 'boolean-category :id 'yes :bool t))
+    (push-data (ontology learner) 'booleans (make-instance 'boolean-category :id 'no :bool nil))
 
     ;; setup pretrained-concepts or not
     (if (get-configuration experiment :pretrained-concepts)
