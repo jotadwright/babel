@@ -6,8 +6,7 @@
 ;; Extracting form and meaning from fcg-constructions ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-(export '(extract-meaning-predicates
-          extract-form-predicates))
+
 
 (defgeneric extract-meaning-predicates (object))
 

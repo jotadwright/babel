@@ -36,7 +36,7 @@
          (applied-lex-cxns (find-all 'lexical applied-cxns :key #'get-cxn-type))
          (applied-item-based-cxn (find 'item-based applied-cxns :key #'get-cxn-type)))
     (when (and applied-lex-cxns (null applied-item-based-cxn))
-      (let* ((partial-program (deduplicate-variables (mapcan #'extract-meaning-predicates applied-lex-cxns)))
+      (let* ((partial-program (deduplicate-variables (mapcan #'fcg::extract-meaning-predicates applied-lex-cxns)))
              (composer-strategy (get-configuration agent :composer-strategy))
              (composer-solution (compose-program agent (topic agent) utterance composer-strategy :partial-program partial-program)))
         (if composer-solution
