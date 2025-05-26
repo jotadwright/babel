@@ -6,7 +6,10 @@
 (defclass category (entity)
   ((id
     :initarg :id :accessor id :initform nil :type symbol
-    :documentation "Id of the category"))
+    :documentation "Id of the category")
+   (concepts
+    :initarg :concepts :accessor concepts :initform nil :type list
+    :documentation "Concepts of the category"))
   (:documentation "Abstract class for representing categories"))
 
 (defclass boolean-category (category)
@@ -36,6 +39,12 @@
                  :id (id concept)
                  :meaning (copy-object (meaning concept))))
 
+(defmethod copy-object ((category category))
+  "Returns a copy of the category"
+  (make-instance 'category
+                 :id (id category)
+                 :concepts (copy-object (concepts category))))
+
 (defmethod print-object ((concept clg-concept) stream)
   "Prints the concept."
   (pprint-logical-block (stream nil)
@@ -50,7 +59,7 @@
 ;; old stuff
 
 (defparameter *challenge-level-primitive-dict*
-  '((1 count! exist filter get-context unique)
+  '((1 count! exist filter get-context query unique)
     (2 count! exist filter get-context query unique relate same)
     (3 count! exist filter get-context query unique relate same
        equal? intersect union! equal-integer less-than greater-than)))
