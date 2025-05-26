@@ -13,11 +13,15 @@
 
 ;; Finding the data
 
+(progn
+
 (defparameter *configuration* (utils::make-configuration
                                :entries `((:determine-interacting-agents-mode . :tutor-learner)
                                           (:question-sample-mode . :all)
                                           (:questions-type . :count)
                                           (:nr-of-filters . :all)
+                                          ;(:questions-type . :query)
+                                          ;(:nr-of-filters . :all)
                                           ;(:questions-per-challenge . 1000)
                                           (:scenes-per-question . 50)
                                           (:confidence-threshold . 1.1)
@@ -50,12 +54,13 @@
                                           (:data-source . "simulated") ;; "simulated" or "extracted"
                                           (:pretrained-concepts . t)
                                           (:update-concepts-with-success . nil)
+                                          (:nr-of-categories . 4)
 
                                           (:sigmoid-slope-c . 0.5) ;; todo
 
                                           ;; category-strategy
                                           (:category-strategy . :use-categorial-network) ; :use-predefined-categories :use-categorial-network
-                                          (:category-strategy-threshold . 0.8)
+                                          (:category-strategy-threshold . 0)
 
                                           ;; for update-concept repair
                                           (:max-concept-update-iterations . 10)
@@ -96,6 +101,7 @@
 
 ;; (ontology (second (agents *experiment*)))
 ;; (question-data  *experiment*)
+
 
 (defparameter *experiment* (make-instance 'clevr-learning-experiment :configuration *configuration*))
 
@@ -138,8 +144,52 @@
   (run-series *experiment* 10)
   )
 
-(set-configuration *experiment* :category-strategy-threshold  0.8 )
-(set-configuration *experiment* :filter-similarity-threshold  0.1 )
+
+(progn
+  (set-configuration *experiment* :category-strategy-threshold 0.8)
+  
+  (setf *categories* (make-categories (second (agents *experiment*))))
+  
+  (set-configuration *experiment* :questions-type :query)
+  (set-configuration *experiment* :nr-of-filters :all)
+  
+  (load-questions-for-current-challenge-level *experiment* :all)
+  
+  (set-data (ontology (second (agents *experiment*))) 'categories  *categories*)
+  
+  )
+
+
+(progn
+  ;; reset monitors
+  (deactivate-all-monitors)
+
+  ;; activate monitors
+  (activate-monitor print-a-dot-for-each-interaction)
+  (activate-monitor display-metrics)
+
+  (run-series *experiment* 1000))
+
+
+)
+
+
+(progn
+  (wi::reset)
+  ;; reset monitors
+  (deactivate-all-monitors)
+
+  ;; activate monitors
+  (activate-monitor trace-fcg)
+  (activate-monitor trace-irl)
+  (activate-monitor print-a-dot-for-each-interaction)
+  (activate-monitor trace-interactions-in-wi)
+
+  (run-series *experiment* 10)
+  )
+
+
+
 ;; Option 3: run experiment and log experiments to disk
 (set-configuration *experiment* :category-strategy :use-categorial-network)
 (progn
