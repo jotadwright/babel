@@ -89,3 +89,19 @@
 
 ;; utilities
 
+(defun make-categories (agent)
+  (let* ((ontology (ontology agent))
+         (similarity-table (calculate-all-similarities-of-concepts agent))
+         (nr-of-cats (get-configuration (experiment agent) :nr-of-categories))
+         (all-combinations (loop for concepts-and-similarities in (hash-values similarity-table)
+                                 for possible-concepts = (loop for (concept-id . similarity) in concepts-and-similarities
+                                                               for concept = (gethash concept-id (get-data ontology 'concepts))
+                                                               when (> similarity (get-configuration (experiment agent) :category-strategy-threshold))
+                                                                 collect concept)
+                                 collect possible-concepts))
+         (all-relevant-combinations (mapcar #'(lambda (x) (when (> (length x) 1) x)) all-combinations))
+         (all-relevant-combinations-no-duplicates (remove nil (remove-duplicates all-relevant-combinations :test #'equal)))
+         (categories (loop for cat from 1 to nr-of-cats
+                           for concepts in all-relevant-combinations-no-duplicates 
+                           collect (make-instance 'category :concepts concepts))))
+    categories))
