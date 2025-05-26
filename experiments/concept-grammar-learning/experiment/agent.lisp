@@ -68,7 +68,11 @@
                         :available-primitives (copy-object *clevr-primitives*))))
     (push-data (ontology tutor) 'booleans (make-instance 'boolean-category :id 'yes :bool t))
     (push-data (ontology tutor) 'booleans (make-instance 'boolean-category :id 'no :bool nil))
+
+    (loop for concept in (list "blue" "brown" "cyan" "gray" "green" "purple" "red" "yellow" "metal" "rubber" "small" "large" "cube" "cylinder" "sphere")
+          do (push-data (ontology tutor) 'concepts (make-instance 'clg-concept :id (intern (upcase concept)))))
     tutor))
+
 
 
 (defun make-clevr-learning-learner (experiment)
@@ -85,6 +89,8 @@
 
     (push-data (ontology learner) 'booleans (make-instance 'boolean-category :id 'yes :bool t))
     (push-data (ontology learner) 'booleans (make-instance 'boolean-category :id 'no :bool nil))
+
+    
 
     ;; setup pretrained-concepts or not
     (if (get-configuration experiment :pretrained-concepts)
@@ -190,14 +196,14 @@
     ;; add the concept to its attribute class table
     ;(setf (gethash (id clg-concept) (get-data ontology attribute-class)) clg-concept)
     ;; create lexical constructions for the concepts
-    (loop for synonym in (get-synonyms form)
+    #|(loop for synonym in (get-synonyms form)
           for clg-concept = (make-instance attribute-class
                                             :id (intern (upcase synonym))
                                             :meaning (copy-object concept))
           do (setf (gethash (intern (upcase synonym) ) table) clg-concept)
           do (setf (id (meaning clg-concept)) (intern (upcase synonym)))
           ;do (setf (gethash (id clg-concept) (get-data ontology attribute-class)) clg-concept)
-          do (add-lex-cxn-for-concept agent grammar clg-concept synonym sem-class category-type attribute-class table ontology :add-plural add-plural))
+          do (add-lex-cxn-for-concept agent grammar clg-concept synonym sem-class category-type attribute-class table ontology :add-plural add-plural))|#
     (add-lex-cxn-for-concept agent grammar clg-concept form sem-class category-type attribute-class table ontology :add-plural add-plural)))
 
 
