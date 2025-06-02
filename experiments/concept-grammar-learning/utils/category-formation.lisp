@@ -33,6 +33,23 @@
         when (> (cdr entry) threshold)
           collect entry))
 
+(defun make-categories (agent)
+  (let* ((ontology (ontology agent))
+         (similarity-table (calculate-all-similarities-of-concepts agent))
+         (nr-of-cats (get-configuration (experiment agent) :nr-of-categories))
+         (all-combinations (loop for concepts-and-similarities in (hash-values similarity-table)
+                                 for possible-concepts = (loop for (concept-id . similarity) in concepts-and-similarities
+                                                               for concept = (gethash concept-id (get-data ontology 'concepts))
+                                                               when (> similarity (get-configuration (experiment agent) :category-strategy-threshold))
+                                                                 collect concept)
+                                 collect possible-concepts))
+         (all-relevant-combinations (mapcar #'(lambda (x) (when (> (length x) 1) x)) all-combinations))
+         (all-relevant-combinations-no-duplicates (remove nil (remove-duplicates all-relevant-combinations :test #'equal)))
+         (categories (loop for cat from 1 to nr-of-cats
+                           for concepts in all-relevant-combinations-no-duplicates 
+                           collect (make-instance 'category :concepts concepts))))
+    categories))
+
 (in-package :graph-utils)
 
 (defun my-similar-nodes-weighted-cosine (node graph)
@@ -89,19 +106,78 @@
 
 ;; utilities
 
-(defun make-categories (agent)
-  (let* ((ontology (ontology agent))
-         (similarity-table (calculate-all-similarities-of-concepts agent))
-         (nr-of-cats (get-configuration (experiment agent) :nr-of-categories))
-         (all-combinations (loop for concepts-and-similarities in (hash-values similarity-table)
-                                 for possible-concepts = (loop for (concept-id . similarity) in concepts-and-similarities
-                                                               for concept = (gethash concept-id (get-data ontology 'concepts))
-                                                               when (> similarity (get-configuration (experiment agent) :category-strategy-threshold))
-                                                                 collect concept)
-                                 collect possible-concepts))
-         (all-relevant-combinations (mapcar #'(lambda (x) (when (> (length x) 1) x)) all-combinations))
-         (all-relevant-combinations-no-duplicates (remove nil (remove-duplicates all-relevant-combinations :test #'equal)))
-         (categories (loop for cat from 1 to nr-of-cats
-                           for concepts in all-relevant-combinations-no-duplicates 
-                           collect (make-instance 'category :concepts concepts))))
-    categories))
+
+
+(in-package :fcg)
+
+(defmethod categorial-network-based-on-neighbours-of-node ((categorial-network categorial-network)
+                                                           &key nodes included-nodes)
+  (let* ((new-categorial-network (make-instance 'categorial-network
+                                                :graph (graph-utils:make-undirected-typed-graph)))
+         (new-graph (graph new-categorial-network))
+         (graph (graph categorial-network)))
+    (loop for node in nodes
+          do (let* ((neighbours (graph-utils::neighbors graph node :return-ids? nil))
+                    (neighbour-ids (loop for neighbour in neighbours
+                                         for id = (gethash neighbour (graph-utils::nodes graph))
+                                         collect id))
+                    (all-edges (graph-utils::list-edges graph :nodes-as-ids t)))
+               (graph-utils:add-node new-graph node)
+               (loop for neighbour in neighbours
+                     for neighbour-id = (gethash neighbour (graph-utils::nodes graph)) 
+                     for edges-of-neighbour = (loop for edge in all-edges
+                                                    when (= (first edge) neighbour-id)
+                                                      collect (second edge))
+                       when (if included-nodes
+                              (find neighbour included-nodes)
+                              t)
+                       do (graph-utils:add-node new-graph neighbour)
+                        and do (graph-utils:add-edge new-graph node neighbour)
+                        and do (loop for edge-for-neighbour in edges-of-neighbour
+                                    for edge-name = (graph-utils:lookup-node graph edge-for-neighbour)
+                                    when (find edge-name neighbours)
+                                      do (graph-utils:add-edge new-graph edge-name neighbour)))))
+    new-categorial-network))
+
+(defun draw-categorial-network-node-and-neighbours (cxn-inventory lexicals &key (included nil) (render-program "dot"))
+  (let* ((categorial-network (categorial-network cxn-inventory))
+         (small-categorial-network (categorial-network-based-on-neighbours-of-node categorial-network
+                                                                                   :nodes lexicals
+                                                                                   :included-nodes included)))
+    (add-element (make-html small-categorial-network :render-program render-program))))
+
+
+
+
+#|
+(fcg::draw-categorial-network-node-and-neighbours
+ (clg::grammar (clg::learner clg::*experiment*))
+ (list 'FCG::red-2
+       'FCG::purple-2
+       'FCG::gray-2
+       'FCG::yellow-2
+       'FCG::green-2
+       'FCG::blue-2
+       'FCG::metal-2
+       'FCG::rubber-2
+       'FCG::large-2
+       'FCG::small-2
+       'FCG::cubes-2
+       'FCG::spheres-2
+       'FCG::cylinders-2)
+ :included (list 'fcg::how-many-?a-?z-?y-?x-are-there-\(?a\)-1
+       'fcg::how-many-?a-?z-?y-?x-are-there-\(?x\)-1
+       'fcg::how-many-?a-?z-?y-?x-are-there-\(?z\)-1
+       'fcg::how-many-?a-?z-?y-?x-are-there-\(?y\)-1
+       'fcg::how-many-?z-?y-?x-are-there-\(?y\)-1
+       'fcg::how-many-?z-?y-?x-are-there-\(?z\)-1
+       'fcg::how-many-?z-?y-?x-are-there-\(?x\)-1
+       'fcg::how-many-?y-?x-are-there-\(?y\)-1
+       'fcg::how-many-?y-?x-are-there-\(?x\)-1)
+
+ :render-program "fdp"
+ )
+
+
+
+  |#
