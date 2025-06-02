@@ -26,17 +26,18 @@
 
     ;; todo: move to more sensible spot (i.e. in a repair)
     (when (and success (not (get-configuration-from-ontology ontology :pretrained-concepts)))
-      (loop for predicate in irl-program
-            when (equal (first predicate) 'bind)
-              do (let* ((concept-id (fourth predicate))
-                        (candidate-concept (find concept-id
-                                                 (find-data ontology 'candidate-concepts)
-                                                 :test #'eq
-                                                 :key #'id)))
-                   (when candidate-concept
-                     (let ((concept-table (get-data ontology 'concepts)))
-                       (setf (gethash (id candidate-concept) concept-table) candidate-concept))
-                     (remove-data ontology 'candidate-concepts)))))
+      (progn
+        (loop for predicate in irl-program
+              when (equal (first predicate) 'bind)
+                do (let* ((concept-id (fourth predicate))
+                          (candidate-concept (find concept-id
+                                                   (find-data ontology 'candidate-concepts)
+                                                   :test #'eq
+                                                   :key #'id)))
+                     (when candidate-concept
+                       (let ((concept-table (get-data ontology 'concepts)))
+                         (setf (gethash (id candidate-concept) concept-table) candidate-concept)))))
+        (remove-data ontology 'candidate-concepts)))
 
     (set-data (goal-test-data node) :bindings (first all-irl-solutions))
     (set-data (goal-test-data node) :irl-program irl-program)
