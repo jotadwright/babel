@@ -45,8 +45,7 @@
                                  collect possible-concepts))
          (all-relevant-combinations (mapcar #'(lambda (x) (when (> (length x) 1) x)) all-combinations))
          (all-relevant-combinations-no-duplicates (remove nil (remove-duplicates all-relevant-combinations :test #'equal)))
-         (categories (loop for cat from 1 to nr-of-cats
-                           for concepts in all-relevant-combinations-no-duplicates 
+         (categories (loop for concepts in all-relevant-combinations-no-duplicates 
                            collect (make-instance 'category :concepts concepts))))
     categories))
 
