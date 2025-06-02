@@ -32,7 +32,8 @@
                                                               :objects target-objects
                                                               :similarities nil)
                     
-                    for candidate-concept-and-iteration = (multiple-value-list (create-initial-concept-hypothesis ontology source-set candidate-target-set))
+                    for candidate-concept-and-iteration = (multiple-value-list
+                                                           (create-initial-concept-hypothesis ontology source-set candidate-target-set))
                     for candidate-concept = (first candidate-concept-and-iteration)
                     for iteration = (second candidate-concept-and-iteration)
                     for similarity = (sum (second (find candidate-concept (third candidate-concept-and-iteration) :key #'first)))
@@ -101,6 +102,8 @@
         collect (cons (id entity) similarity) into similarities
         finally (return (list entities similarities))))
 
+
+
 (defun find-best-concept (concepts entity)
   (loop with best-concept = nil
         with best-similarity = nil
@@ -120,7 +123,8 @@
 ;; + case 2: filter (source) - invention +
 ;; ---------------------------------------
 (defun create-initial-concept-hypothesis (ontology source-set target-set)
-  (loop with clg-concept = (make-instance 'clg-concept :meaning (concept-representations::create-concept-representation (objects target-set) :weighted-multivariate-distribution))
+  (loop with clg-concept = (make-instance 'clg-concept :meaning
+                                          (concept-representations::create-concept-representation (objects target-set) :weighted-multivariate-distribution))
         ;; todo return iterations required as heuristic for target-set binding score
         with max-iterations = (get-configuration-from-ontology ontology :max-concept-update-iterations)
         with current-iteration = 0
@@ -268,7 +272,7 @@
          (hash-values (get-data ontology 'concepts)))))
 
 (defmethod get-competing-concepts (ontology category (mode (eql :use-categorial-network)))
-  (let ((threshold (get-configuration-from-ontology ontology :category-strategy-threshold)))
+  #|(let ((threshold (get-configuration-from-ontology ontology :category-strategy-threshold)))
     (let* ((agent (get-data ontology 'owner))
            (concept-id (id category))
            (construction-category (find-category-given-concept ontology concept-id)))
@@ -281,4 +285,7 @@
           (format t "These are the competing concepts ~a of concept ~a ~%" concepts category)
 
           
-          concepts)))))
+          concepts))))|#
+  (list category)
+
+  )
