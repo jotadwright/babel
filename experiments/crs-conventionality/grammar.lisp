@@ -56,10 +56,7 @@
                                                         ;(:consolidate-repairs . t)
                                                         ;(:use-meta-layer . t)
                                                         ))))
-    (set-data (blackboard (grammar agent)) :primitive-inventory *naming-game-primitives*)
-    (set-data (blackboard *naming-game-primitives*) :ontology ontology)
-    (set-data (blackboard (grammar agent)) :ontology ontology)
-    (set-data (get-data (blackboard (grammar agent)) :ontology) :entities (entities (world (experiment (population agent)))))))
+    (set-data (blackboard (grammar agent)) :primitive-inventory *naming-game-primitives*)))
 
 
 
@@ -110,12 +107,8 @@
                                      :visualization-configurations ((:with-search-debug-data . t)
                                                                     (:hide-features . nil)
                                                                     (:show-constructional-dependencies . nil)))))
-    ;; ontology is necessary in both irl and fcg
-    ;; ONTOLOGY SHOULD BE SPECIFIC TO THE AGENT
-    (set-data (blackboard (grammar agent)) :primitive-inventory *concept-emergence-game-primitives*)
-    (set-data (blackboard *concept-emergence-game-primitives*) :ontology ontology)
-    (set-data (blackboard (grammar agent)) :ontology ontology)
-    (set-data (get-data (blackboard (grammar agent)) :ontology) :entities (entities (world (experiment (population agent)))))))
+
+    (set-data (blackboard (grammar agent)) :primitive-inventory *concept-emergence-game-primitives*)))
 
 (defmethod unify-objects ((concept concept-representations::concept) (entity-set crs-conventionality-entity-set) bindings-list &key cxn-inventory)
   "Standard method for unifying objects: unify slot values."

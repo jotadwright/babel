@@ -35,7 +35,9 @@
   (initialize-social-network experiment)
   ;; Set initial Q-values
   (loop for agent in (agents (population experiment))
-        do (initialise-neighbor-q-values agent)))
+        do (initialise-neighbor-q-values agent))
+  (set-data (blackboard *naming-game-primitives*) :ontology (make-blackboard))
+  (set-data (get-data (blackboard *naming-game-primitives*) :ontology) :entities (entities (world experiment))))
 
 (defmethod initialize-instance :after ((experiment concept-emergence-game-experiment) &key &allow-other-keys)
   "Creates the population and world of the experiment."
@@ -48,7 +50,8 @@
   (initialize-social-network experiment)
   ;; Set initial Q-values
   (loop for agent in (agents (population experiment))
-        do (initialise-neighbor-q-values agent)))
+        do (initialise-neighbor-q-values agent))
+  (set-data (blackboard *concept-emergence-game-primitives*) :ontology (make-blackboard)))
 
 
 ;; Populations and Agents ;;
