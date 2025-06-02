@@ -2,6 +2,10 @@
 
 # see README.md for usage
 
+# we recommende to first compile the code (once in the login node)
+#   $ bash slurm/compile.sh
+# this avoids that different jobs in the job array try to compile the code at the same time
+
 expand_range() {
     input="$1"
     result=()
@@ -26,11 +30,12 @@ expand_range() {
     echo "${result[@]}"
 }
 
-mkdir -p "/user/brussel/101/vsc10156/concept-emergence2/batch/slurm/logs/${1}/${8}"
+USER_PATH="${VSC_HOME}/concept-emergence2/batch/slurm/logs"
+mkdir -p "${USER_PATH}/${1}/${8}"
 
 for i in $(expand_range "$4");
 do
-    epath="/user/brussel/101/vsc10156/concept-emergence2/batch/slurm/logs/${1}/${8}/${2}_%a_seed${i}_%A_e.txt"
-    opath="/user/brussel/101/vsc10156/concept-emergence2/batch/slurm/logs/${1}/${8}/${2}_%a_seed${i}_%A_o.txt"
+    epath="${USER_PATH}/${1}/${8}/${2}_%a_seed${i}_%A_e.txt"
+    opath="${USER_PATH}/${1}/${8}/${2}_%a_seed${i}_%A_o.txt"
     sbatch --error $epath --output $opath --job-name "${8}-seed${i}-${1}" --array $3 --time $5 --mem $6  --ntasks 1 --cpus-per-task 1 --export=seed=$i,name=$2,space=$7,exp_top_dir=$8 slurm/$1.sh
 done
