@@ -5,4 +5,4 @@ id,exp_name,nr_of_series,nr_of_interactions,population_size,dataset_loader,datas
 4,clevr-100-2m,1,2000000,100,:precomputed,:shared-views,nil,nil,clevr,train,clevr,:none,0,:none,0.0,:none,0.0,:random,:random,t,0.1,-0.1,-0.02,:j-interpolation,0,1,-5,:paper,:none,0,nil,:hearer
 5,clevr-100-3m,1,3000000,100,:precomputed,:shared-views,nil,nil,clevr,train,clevr,:none,0,:none,0.0,:none,0.0,:random,:random,t,0.1,-0.1,-0.02,:j-interpolation,0,1,-5,:paper,:none,0,nil,:hearer
 6,clevr-100-5m,1,5000000,100,:precomputed,:shared-views,nil,nil,clevr,train,clevr,:none,0,:none,0.0,:none,0.0,:random,:random,t,0.1,-0.1,-0.02,:j-interpolation,0,1,-5,:paper,:none,0,nil,:hearer
-8,smcl2-14-50-3m,1,3000000,50,:runtime,:shared-views,10,10,indian,train,indian,:none,0,:none,0.0,:none,0.0,:random,:random,t,0.1,-0.1,-0.02,:j-interpolation,0,1,-5,:paper,:none,0,nil,:hearer
+7,smcl2-14-50-3m,1,3000000,50,:runtime,:shared-views,10,10,indian,train,indian,:none,0,:none,0.0,:none,0.0,:random,:random,t,0.1,-0.1,-0.02,:j-interpolation,0,1,-5,:paper,:none,0,nil,:hearer
