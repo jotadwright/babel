@@ -3,6 +3,13 @@
 
 #+sbcl (sb-int:set-floating-point-modes :traps '(:INVALID :DIVIDE-BY-ZERO))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;; Set configurations ;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;; !!! everything on stage 1 data without synonyms!
+
 (defparameter *configuration* (utils::make-configuration
                                :entries `((:determine-interacting-agents-mode . :tutor-learner)
                                           (:question-sample-mode . :all)
@@ -87,9 +94,10 @@
                                           
                                           )))
 
-;; (ontology (second (agents *experiment*)))
-;; (question-data  *experiment*)
-(reset-id-counters)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;; Make experiment  + set population    ;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defparameter *experiment* (make-instance 'clevr-learning-experiment :configuration *configuration*))
 
@@ -106,9 +114,10 @@
   (setf (population *experiment*) (list (make-clevr-learning-tutor *experiment*)
                                         (make-clevr-learning-learner *experiment*))))
 
-;  (add-element (make-html (categorial-network (grammar (learner *experiment*)))))
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; First phase of the experiment: all count questions ;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;; First phase of the experiment: all count questions
 (progn
   ;; reset monitors
   (deactivate-all-monitors)
@@ -135,74 +144,38 @@
                    *experiment*)
   (activate-monitor export-type-hierarchy-to-json)
 
-  (run-series *experiment* 1000)
-
-  )
-#|(fcg::draw-categorial-network-node-and-neighbours
- (clg::grammar (clg::learner clg::*experiment*))
- (list 'FCG::red-2
-       'FCG::purple-2
-       'FCG::gray-2
-       'FCG::yellow-2
-       'FCG::green-2
-       'FCG::blue-2
-       'FCG::metal-2
-       'FCG::rubber-2
-       'FCG::large-2
-       'FCG::small-2
-       'FCG::cubes-2
-       'FCG::spheres-2
-       'FCG::cylinders-2)
- :included (list 'FCG::red-2
-       'FCG::purple-2
-       'FCG::gray-2
-       'FCG::yellow-2
-       'FCG::green-2
-       'FCG::blue-2
-       'FCG::metal-2
-       'FCG::rubber-2
-       'FCG::large-2
-       'FCG::small-2
-       'FCG::cubes-2
-       'FCG::spheres-2
-       'FCG::cylinders-2)
- :render-program "fdp"
- )|#
+  (run-series *experiment* 5000)
+)
 
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Second phase of the experiment: all exist questions ;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-#|(fcg::draw-categorial-network-node-and-neighbours
- (clg::grammar (clg::learner clg::*experiment*))
- (list 'FCG::red-2
-       'FCG::purple-2
-       'FCG::gray-2
-       'FCG::yellow-2
-       'FCG::green-2
-       'FCG::blue-2
-       'FCG::metal-2
-       'FCG::rubber-2
-       'FCG::large-2
-       'FCG::small-2
-       'FCG::cubes-2
-       'FCG::spheres-2
-       'FCG::cylinders-2)
- :included (list 'fcg::how-many-?a-?z-?y-?x-are-there-\(?a\)-1
-                 'fcg::how-many-?a-?z-?y-?x-are-there-\(?x\)-1
-                 'fcg::how-many-?a-?z-?y-?x-are-there-\(?z\)-1
-                 'fcg::how-many-?a-?z-?y-?x-are-there-\(?y\)-1
-                 'fcg::how-many-?z-?y-?x-are-there-\(?y\)-1
-                 'fcg::how-many-?z-?y-?x-are-there-\(?z\)-1
-                 'fcg::how-many-?z-?y-?x-are-there-\(?x\)-1
-                 'fcg::how-many-?y-?x-are-there-\(?y\)-1
-                 'fcg::how-many-?y-?x-are-there-\(?x\)-1)
 
- :render-program "fdp"
- )|#
-;; Second phase of the experiment: query questions
-
-;; Setup categories
+;; load in the correct data (first set configurations of the experiment and then load questions):
 (progn
-  (set-configuration *experiment* :category-strategy-threshold 0.8)
+  (set-configuration *experiment* :questions-type :exist)
+  (set-configuration *experiment* :nr-of-filters :all)
+  
+  (load-questions-for-current-challenge-level *experiment* :all)
+  )
+
+
+;; Run experiment in second phase
+(run-series *experiment* 5000)
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Third phase of the experiment: all query questions ;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+;; Third phase of the experiment: query questions
+
+;; Setup categories + load in correct data
+(progn
+  (set-configuration *experiment* :category-strategy-threshold 0.7) 
   
   (setf *categories* (make-categories (second (agents *experiment*))))
   
@@ -214,11 +187,16 @@
   (set-data (ontology (second (agents *experiment*))) 'categories  *categories*))
 
 
-;; Run experiment in second phase
+;; Run experiment in third phase
+
+(run-series *experiment* 5000)
 
 
-(run-series *experiment* 1000)
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Notify that series are finished ;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (notify run-series-finished *experiment*)
 (notify series-finished 1)
@@ -226,39 +204,7 @@
   
 
 
-#|(fcg::draw-categorial-network-node-and-neighbours
- (clg::grammar (clg::learner clg::*experiment*))
- (list 'FCG::red-2
-       'FCG::purple-2
-       'FCG::gray-2
-       'FCG::yellow-2
-       'FCG::green-2
-       'FCG::blue-2
-       'FCG::metal-2
-       'FCG::rubber-2
-       'FCG::large-2
-       'FCG::small-2
-       'FCG::cubes-2
-       'FCG::spheres-2
-       'FCG::cylinders-2)
- :included (list 'fcg::how-many-?a-?z-?y-?x-are-there-\(?a\)-1
-                 'fcg::how-many-?a-?z-?y-?x-are-there-\(?x\)-1
-                 'fcg::how-many-?a-?z-?y-?x-are-there-\(?z\)-1
-                 'fcg::how-many-?a-?z-?y-?x-are-there-\(?y\)-1
-                 'fcg::how-many-?z-?y-?x-are-there-\(?y\)-1
-                 'fcg::how-many-?z-?y-?x-are-there-\(?z\)-1
-                 'fcg::how-many-?z-?y-?x-are-there-\(?x\)-1
-                 'fcg::how-many-?y-?x-are-there-\(?y\)-1
-                 'fcg::how-many-?y-?x-are-there-\(?x\)-1
-                 'fcg::what-color-is-the-?x-1
-                 'fcg::what-color-is-the-?x-?y-\(?y\)-1
-                 'fcg::what-color-is-the-?x-?y-\(?x\)-1
-                 'fcg::what-color-is-the-?z-?x-?y-\(?x\)-1
-                 'fcg::what-color-is-the-?z-?x-?y-\(?y\)-1
-                 'fcg::what-color-is-the-?z-?x-?y-\(?z\)-1
-                 )
- :render-program "fdp"
- )|#
+
 
 
  
