@@ -40,7 +40,7 @@
                (= (length remaining-strings-in-root) 1)
                (= (item-based-number-of-slots applied-item-based-cxn)
                   (1+ (length applied-lex-cxns))))
-      (let* ((meaning-predicates-observed (mapcan #'extract-meaning-predicates applied-cxns))
+      (let* ((meaning-predicates-observed (mapcan #'fcg::extract-meaning-predicates applied-cxns))
              (composer-strategy (get-configuration agent :composer-strategy))
              (composer-solution (compose-program agent (topic agent) utterance composer-strategy :partial-program meaning-predicates-observed)))
         (if composer-solution

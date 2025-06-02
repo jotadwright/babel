@@ -141,9 +141,9 @@
     (loop for cxn in applicable-cxns
           for cxn-form
           = (form-predicates-with-variables
-             (extract-form-predicates cxn))
+             (fcg::extract-form-predicates cxn))
           for cxn-meaning
-          = (extract-meaning-predicates cxn)
+          = (fcg::extract-meaning-predicates cxn)
           for unified-form-elem
           = (loop for elem in remaining-form
                   when (unify-irl-programs cxn-form (list elem))

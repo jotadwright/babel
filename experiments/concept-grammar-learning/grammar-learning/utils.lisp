@@ -4,8 +4,8 @@
 (defun find-cxn-by-form-and-meaning (form meaning cxn-inventory)
   "returns a cxn with the same meaning and form if it's in the cxn-inventory"
   (loop for cxn in (constructions cxn-inventory)
-        when (and (irl:equivalent-irl-programs? form (extract-form-predicates cxn))
-                  (irl:equivalent-irl-programs? meaning (extract-meaning-predicates cxn)))
+        when (and (irl:equivalent-irl-programs? form (fcg::extract-form-predicates cxn))
+                  (irl:equivalent-irl-programs? meaning (fcg::extract-meaning-predicates cxn)))
         return cxn))
 
 (defun meaning-predicates-with-variables (meaning)
@@ -103,35 +103,35 @@
   (let ((remaining-form (form-predicates-with-variables observed-form)))
     (sort (loop for cxn in (constructions cxn-inventory)
                 when (and (eql (phrase-type cxn) 'lexical) 
-                          (irl:unify-irl-programs (extract-form-predicates cxn) remaining-form)
-                          (setf remaining-form (set-difference remaining-form (extract-form-predicates cxn) :test #'irl:unify-irl-programs))
-                          (irl:unify-irl-programs (extract-meaning-predicates cxn) gold-standard-meaning)
+                          (irl:unify-irl-programs (fcg::extract-form-predicates cxn) remaining-form)
+                          (setf remaining-form (set-difference remaining-form (fcg::extract-form-predicates cxn) :test #'irl:unify-irl-programs))
+                          (irl:unify-irl-programs (fcg::extract-meaning-predicates cxn) gold-standard-meaning)
                           ;;we need to check if a cxn could match twice based on the meaning and discard these cases,
                           ;; if it matches multiple times, the size of the set diff will be larger than 1
                           (= 1 (- (length gold-standard-meaning)
-                                  (length (set-difference gold-standard-meaning (extract-meaning-predicates cxn) :test #'irl:unify-irl-programs)))))   
+                                  (length (set-difference gold-standard-meaning (fcg::extract-meaning-predicates cxn) :test #'irl:unify-irl-programs)))))   
                 collect cxn)
           #'(lambda (x y)
               (<
-               (search (third (first (extract-form-predicates x))) utterance)
-               (search (third (first (extract-form-predicates y))) utterance))))))
+               (search (third (first (fcg::extract-form-predicates x))) utterance)
+               (search (third (first (fcg::extract-form-predicates y))) utterance))))))
 
 (defun find-matching-lex-cxns-in-root (cxn-inventory root-strings)
   (remove nil (loop for remaining-form in root-strings
         for root-string = (third remaining-form)
         collect (loop for cxn in (constructions cxn-inventory)
                       when (and (eql (phrase-type cxn) 'lexical)
-                                (string= (third (first (extract-form-predicates cxn))) root-string))
+                                (string= (third (first (fcg::extract-form-predicates cxn))) root-string))
                       return cxn))))
 
 (defun subtract-lex-cxn-meanings (lex-cxns gold-standard-meaning)
-  (let ((lex-cxn-meanings (map 'list #'extract-meaning-predicates lex-cxns)))
+  (let ((lex-cxn-meanings (map 'list #'fcg::extract-meaning-predicates lex-cxns)))
     (loop for lex-cxn-meaning in lex-cxn-meanings
           do (setf gold-standard-meaning (set-difference gold-standard-meaning lex-cxn-meaning :test #'irl:unify-irl-programs)))
     gold-standard-meaning))
 
 (defun subtract-lex-cxn-forms (lex-cxns string-predicates-in-root)
     (loop for lex-cxn in lex-cxns
-          for lex-form = (extract-form-predicates lex-cxn)
+          for lex-form = (fcg::extract-form-predicates lex-cxn)
           do (setf string-predicates-in-root (set-difference string-predicates-in-root lex-form :test #'irl:unify-irl-programs)))
     string-predicates-in-root)

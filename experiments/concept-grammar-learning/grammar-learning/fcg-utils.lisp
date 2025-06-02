@@ -1,6 +1,6 @@
 (in-package :fcg)
 
-
+(export '(extract-meaning-predicates))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Extracting form and meaning from fcg-constructions ;;
@@ -10,37 +10,37 @@
 
 (defgeneric extract-meaning-predicates (object))
 
-(defmethod extract-meaning-predicates ((cxn fcg-construction))
+(defmethod fcg::extract-meaning-predicates ((cxn fcg-construction))
   (append (mappend #'extract-meaning-predicates (conditional-part cxn))
           (mappend #'extract-meaning-predicates (contributing-part cxn))))
 
-(defmethod extract-meaning-predicates ((unit conditional-unit))
+(defmethod fcg::extract-meaning-predicates ((unit conditional-unit))
   (append (extract-meaning-predicates (comprehension-lock unit))
           (extract-meaning-predicates (formulation-lock unit))))
 
-(defmethod extract-meaning-predicates ((unit contributing-unit))
+(defmethod fcg::extract-meaning-predicates ((unit contributing-unit))
   (extract-meaning-predicates (unit-structure unit)))
 
-(defmethod extract-meaning-predicates ((unit-body list))
+(defmethod fcg::extract-meaning-predicates ((unit-body list))
   (append (find-feature-value 'meaning unit-body)
           (find-hashed-feature-value 'meaning unit-body)))
 
 ;; (extract-meaning-predicates (first (constructions *fcg-constructions*)))
 
-(defgeneric extract-form-predicates (object))
+(defgeneric fcg::extract-form-predicates (object))
 
-(defmethod extract-form-predicates ((cxn fcg-construction))
-  (append (mappend #'extract-form-predicates (conditional-part cxn))
-          (mappend #'extract-form-predicates (contributing-part cxn))))
+(defmethod fcg::extract-form-predicates ((cxn fcg-construction))
+  (append (mappend #'fcg::extract-form-predicates (conditional-part cxn))
+          (mappend #'fcg::extract-form-predicates (contributing-part cxn))))
 
-(defmethod extract-form-predicates ((unit conditional-unit))
-  (append (extract-form-predicates (comprehension-lock unit))
-          (extract-form-predicates (formulation-lock unit))))
+(defmethod fcg::extract-form-predicates ((unit conditional-unit))
+  (append (fcg::extract-form-predicates (comprehension-lock unit))
+          (fcg::extract-form-predicates (formulation-lock unit))))
 
-(defmethod extract-form-predicates ((unit contributing-unit))
-  (extract-form-predicates (unit-structure unit)))
+(defmethod fcg::extract-form-predicates ((unit contributing-unit))
+  (fcg::extract-form-predicates (unit-structure unit)))
 
-(defmethod extract-form-predicates ((unit-body list))
+(defmethod fcg::extract-form-predicates ((unit-body list))
   (append (find-feature-value 'form unit-body)
           (find-hashed-feature-value 'form unit-body)))
 

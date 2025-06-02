@@ -60,10 +60,10 @@
                                           utterance)
       (when superset-holophrase-cxn
         (let* ((overlapping-form
-                (set-difference (extract-form-predicates superset-holophrase-cxn)
+                (set-difference (fcg::extract-form-predicates superset-holophrase-cxn)
                                 non-overlapping-form :test #'equal))
                (overlapping-meaning
-                (set-difference (extract-meaning-predicates superset-holophrase-cxn)
+                (set-difference (fcg::extract-meaning-predicates superset-holophrase-cxn)
                                 non-overlapping-meaning :test #'equal))
                (existing-lex-cxn
                 (find-cxn-by-type-form-and-meaning 'lexical non-overlapping-form

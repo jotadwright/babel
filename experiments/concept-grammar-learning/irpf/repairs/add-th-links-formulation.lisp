@@ -95,7 +95,7 @@
             for applied-lex-cxns = (find-all 'lexical applied-cxns :key #'get-cxn-type)
             for applied-item-based-cxn = (find 'item-based applied-cxns :key #'get-cxn-type)
             for meaning-in-root = (get-meaning-from-root-first-merge-failed fmf-node)
-            for meaning-in-cxn = (extract-meaning-predicates (first applied-cxns))                        
+            for meaning-in-cxn = (fcg::extract-meaning-predicates (first applied-cxns))                        
             when (and (not (null applied-lex-cxns))
                       (not (null applied-item-based-cxn))
                       (= (length applied-lex-cxns)

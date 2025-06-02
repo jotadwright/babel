@@ -158,7 +158,7 @@
 (defun non-overlapping-meaning (meaning cxn &key (nom-cxn nil) (nom-observation nil))
   (when (and nom-cxn nom-observation) (error "only nom-cxn or nom-observeration can be true"))
   (multiple-value-bind (non-overlapping-meaning-observation non-overlapping-meaning-cxn)
-      (non-overlapping-predicates meaning (extract-meaning-predicates cxn))
+      (non-overlapping-predicates meaning (fcg::extract-meaning-predicates cxn))
       (cond (nom-cxn non-overlapping-meaning-cxn)
             (nom-observation non-overlapping-meaning-observation))))
 
@@ -166,7 +166,7 @@
   (when (and nof-cxn nof-observation) (error "only nof-cxn or nof-observeration can be true"))
   (multiple-value-bind (non-overlapping-form-observation non-overlapping-form-cxn)
       (non-overlapping-predicates (form-constraints-with-variables utterance (get-configuration (cxn-inventory cxn) :de-render-mode))
-                                  (extract-form-predicates cxn))
+                                  (fcg::extract-form-predicates cxn))
       (cond (nof-cxn non-overlapping-form-cxn)
             (nof-observation non-overlapping-form-observation))))
 
@@ -290,7 +290,7 @@
 
 ;; holophrase addition
 (defun diff-superset-subset-form (superset-cxn utterance)
-  (set-difference (extract-form-predicates superset-cxn)
+  (set-difference (fcg::extract-form-predicates superset-cxn)
                   (form-constraints-with-variables utterance (get-configuration (cxn-inventory superset-cxn) :de-render-mode))
                   :test #'irl:unify-irl-programs))
 
@@ -304,11 +304,11 @@
   ;; todo: there could also be more than one superset cxn!
   (loop with ts-form-constraints = (transient-structure-form-constraints transient-structure)
         for cxn in (constructions cxn-inventory)
-        for cxn-form-constraints = (extract-form-predicates cxn)
-        for cxn-meaning-constraints = (extract-meaning-predicates cxn)
+        for cxn-form-constraints = (fcg::extract-form-predicates cxn)
+        for cxn-meaning-constraints = (fcg::extract-meaning-predicates cxn)
         for cxn-type =  (phrase-type cxn)
         for non-overlapping-form = (diff-superset-subset-form cxn utterance)
-        for non-overlapping-meaning = (set-difference (extract-meaning-predicates cxn) gold-standard-meaning :test #'irl:unify-irl-programs)
+        for non-overlapping-meaning = (set-difference (fcg::extract-meaning-predicates cxn) gold-standard-meaning :test #'irl:unify-irl-programs)
         when (and (eql cxn-type 'holophrase)
                   (equal 1 (length non-overlapping-meaning))
                   (equal 1 (length non-overlapping-form))
@@ -329,10 +329,10 @@
         do (when (eql (phrase-type cxn) 'holophrase)
              (let* ((non-overlapping-meaning-observation (non-overlapping-meaning meaning cxn :nom-observation t))
                     (non-overlapping-meaning-cxn (non-overlapping-meaning meaning cxn :nom-cxn t))
-                    (overlapping-meaning-cxn (set-difference (extract-meaning-predicates cxn) non-overlapping-meaning-cxn :test #'equal))
+                    (overlapping-meaning-cxn (set-difference (fcg::extract-meaning-predicates cxn) non-overlapping-meaning-cxn :test #'equal))
                     (non-overlapping-form-observation (non-overlapping-form utterance cxn :nof-observation t))
                     (non-overlapping-form-cxn (non-overlapping-form utterance cxn :nof-cxn t))
-                    (overlapping-form-cxn (set-difference (extract-form-predicates cxn) non-overlapping-form-cxn :test #'equal)))
+                    (overlapping-form-cxn (set-difference (fcg::extract-form-predicates cxn) non-overlapping-form-cxn :test #'equal)))
         (when (and
               (= 1 (length non-overlapping-meaning-observation))
               (= 1 (length non-overlapping-meaning-cxn))
@@ -432,17 +432,17 @@
 (defun diff-subset-superset-form (subset-cxn superset-form)
   (set-difference 
    superset-form
-   (extract-form-predicates subset-cxn)
+   (fcg::extract-form-predicates subset-cxn)
    :test #'irl:unify-irl-programs))
 
 (defun find-subset-holophrase-cxn (transient-structure cxn-inventory gold-standard-meaning utterance)
   (loop with ts-form-constraints = (transient-structure-form-constraints transient-structure)
         for cxn in (constructions cxn-inventory)
-        for cxn-form-constraints = (extract-form-predicates cxn)
-        for cxn-meaning-constraints = (extract-meaning-predicates cxn)
+        for cxn-form-constraints = (fcg::extract-form-predicates cxn)
+        for cxn-meaning-constraints = (fcg::extract-meaning-predicates cxn)
         for superset-form = (form-constraints-with-variables utterance (get-configuration (cxn-inventory cxn) :de-render-mode))
         for non-overlapping-form = (diff-subset-superset-form cxn superset-form)
-        for non-overlapping-meaning = (set-difference gold-standard-meaning (extract-meaning-predicates cxn) :test #'irl:unify-irl-programs)
+        for non-overlapping-meaning = (set-difference gold-standard-meaning (fcg::extract-meaning-predicates cxn) :test #'irl:unify-irl-programs)
         for cxn-type =  (phrase-type cxn)
         when (and (eql cxn-type 'holophrase)
                   (equal 1 (length non-overlapping-meaning))
@@ -478,6 +478,6 @@
 
 (defun subunit-names-for-lex-cxns (lex-cxns)
   (loop for lex-cxn in lex-cxns
-        for lex-cxn-form = (extract-form-predicates lex-cxn)
+        for lex-cxn-form = (fcg::extract-form-predicates lex-cxn)
         for lex-cxn-unit-name = (second (find 'string lex-cxn-form :key #'first))
         collect lex-cxn-unit-name))
