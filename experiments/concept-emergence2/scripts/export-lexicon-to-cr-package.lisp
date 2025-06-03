@@ -1,9 +1,9 @@
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;                                                              ;;
-;; Script for running a demo of the concept-learning experiment ;;
-;;                                                              ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;                                          ;;
+;; PHASE 1: LEARNING GROUNDED CONSTRUCTIONS ;;
+;;                                          ;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; load the package
 (ql:quickload :cle)
@@ -26,13 +26,13 @@
      :entries `(
                 ;; monitoring
                 (:log-every-x-interactions . 100) ;; integer, frequence of when to log measures to standard output
-                (:usage-table-window . 100) ;; integer, window size of the construction inventory usage table
+                (:usage-table-window . 5000) ;; integer, window size of the construction inventory usage table
                 (:save-distribution-history . nil) ;; t or nil, whether to save the history of updates to the distribution (very memory-intensive!)
                 ;; setup environment
                 (:dataset-loader . :precomputed) ;; keyword, :precomputed or :runtime, load data in by scene (:precomputed) or by objects (:runtime)
                 (:dataset-view . :shared-views) ;; keyword, :shared-views or :exclusive-views, all views are shared or is each agent assigned a view?
-                (:dataset "clevr") ;; list of strings, each string represents a view over a dataset
-                (:feature-set "clevr") ;; list of strings, each string represents a feature set (stored in Corpora/concept-emergence2/-feature-sets), every feature-set is associated to a coressponding element in :dataset
+                (:dataset "clevr-simulated") ;; list of strings, each string represents a view over a dataset
+                (:feature-set "clevr-simulated") ;; list of strings, each string represents a feature set (stored in Corpora/concept-emergence2/-feature-sets), every feature-set is associated to a coressponding element in :dataset
                 (:dataset-split . "train") ;; string, "train" or "test", which split of the data to use?
                 ;; population
                 (:population-size . 2) ;; integer, size of the population
@@ -79,9 +79,9 @@
                 ;; measures
                 (:coherence-perspective . :hearer) ;; :hearer or :speaker, determines how conventionalisation is measured
                 ;; paths for exporting data to disk
-                (:exp-top-dir . "a")  ;; directory name that groups a set of related of experiments together (e.g. logging/train/<exp-top-dir>)
-                (:exp-name . "b")     ;; directory name that groups different runs of an experiment (i.e. logging/train/<exp-top-dir>/<exp-name>)
-                (:log-dir-name . "c") ;; directory name for a single run (i.e. logging/train/<exp-top-dir>/<exp-name>/<log-dir-name>)
+                (:exp-top-dir . "cxn-nlp")  ;; directory name that groups a set of related of experiments together (e.g. logging/train/<exp-top-dir>)
+                (:exp-name . "clevr-simulated")     ;; directory name that groups different runs of an experiment (i.e. logging/train/<exp-top-dir>/<exp-name>)
+                (:log-dir-name . "phase-1") ;; directory name for a single run (i.e. logging/train/<exp-top-dir>/<exp-name>/<log-dir-name>)
                 )))
   ;; instantiate the concept learning experiment
   (setf *experiment* (make-instance 'cle-experiment :configuration *concept-learning-game*)))
@@ -107,21 +107,24 @@
 
   (set-up-monitors (list "log-every-x-interactions-in-output-browser"
                          "record-communicative-success"
-                         "record-conventionalisation"
-                         "record-construction-inventory-usage"
+                         "record-construction-inventory-size"
                          "export-communicative-success"
-                         "export-conventionalisation"
-                         "export-construction-inventory-usage")
+                         "export-construction-inventory-size"
+                         )
                    (list "train" "val")
                    *experiment*)
 
   (format t "~% --> Running a new serie of interactions.~%")
-  (let ((nr-of-interactions 100000))
+  (let ((nr-of-interactions 5000))
     (set-configuration *experiment* :nr-of-interactions nr-of-interactions)
     (run-interaction *experiment*)
     (while (< (interaction-number (current-interaction *experiment*)) nr-of-interactions)
-           do (run-interaction *experiment*))
-    (notify run-series-finished *experiment*)))
+      do (run-interaction *experiment*)))
+
+  (notify run-series-finished *experiment*)
+  (notify series-finished 1)
+  (notify batch-finished (class-string *experiment*))
+  )
 
 (defun display-success ()
   (loop for key being the hash-keys of *success-per-concept*
@@ -177,53 +180,19 @@
                (babel-pathname
                 :directory `("experiments" 
                              "concept-emergence2" 
-                             "storage"
-                             "cle4-grammar")
-                :name (format nil "inventory-simulated")
+                             "logging"
+                             ,(get-configuration cle::*experiment* :exp-top-dir)
+                             "train"
+                             ,(get-configuration cle::*experiment* :exp-name)
+                             ,(get-configuration cle::*experiment* :log-dir-name))
+                :name (format nil "inventory")
                 :type "store"))
 
 
-(setf inventory2 (cl-store::restore (babel-pathname
-                                     :directory `("experiments" 
-                                                  "concept-emergence2" 
-                                                  "storage"
-                                                  "cle4-grammar")
-                                     :name (format nil "inventory")
-                                     :type "store")))
-
-
-
-;; Option 2: run experiment and trace interactons in the web interface ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(progn
-  (wi::reset)
-  (deactivate-all-monitors)
-  (activate-monitor trace-interaction-in-web-interface)
-  (set-configuration *experiment* :nr-of-interactions 100000)
-  (run-series *experiment* 1))
 
 
 ;; Helper functions ;;
 ;;;;;;;;;;;;;;;;;;;;;;
 
 ;; display the lexicon of an agent
-(display-lexicon (second (agents *experiment*)) :weight-threshold 0.1 :sort t)
-
-;; restore an experiment (.store) and initialise the world
-(let ((fdir (babel-pathname :directory '("experiments"
-                                          "concept-emergence2"
-                                          "logging"
-                                          "..."           ;; to update
-                                          "stores"))))
-  (setf *experiment* (load-experiment fdir "seed-?"))     ;; to update
-
-  (test-stored-experiment *experiment*)
-  ;; changes the dataset split
-  ;(set-configuration *experiment* :dataset-split "test")
-  
-  ;; set alignment on (t) or off (nil)
-  ;(set-configuration *experiment* :align nil)
-  
-  ;; initialise the world
-  (initialise-world *experiment*))
+(cle::display-lexicon (second (cle::agents cle::*experiment*)) :weight-threshold 0.1 :sort t)

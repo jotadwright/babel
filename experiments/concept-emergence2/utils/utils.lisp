@@ -131,6 +131,7 @@
         with split-dependent = nil
         for monitor-name in monitors
         if (or (search "communicative-success" monitor-name)
+               (search "construction-inventory-size" monitor-name)
                (search "conventionalisation" monitor-name)
                (search "construction-inventory-usage" monitor-name))
           do (progn

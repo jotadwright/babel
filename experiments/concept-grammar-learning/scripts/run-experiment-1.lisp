@@ -3,10 +3,17 @@
 
 #+sbcl (sb-int:set-floating-point-modes :traps '(:INVALID :DIVIDE-BY-ZERO))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;; Set configurations ;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; --------------------------------------------
+;; + PHASE 1: LEARNING GROUNDED CONSTRUCTIONS +
+;; --------------------------------------------
 
+;; step 1: navigate to concept-emergence2/scripts/export-lexicons-to-cr-package.lisp
+;; step 2: compile file
+
+
+;; -----------------------------------------------
+;; + PHASE 2: LEARNING GRAMMATICAL CONSTRUCTIONS +
+;; -----------------------------------------------
 
 ;; !!! everything on stage 1 data without synonyms!
 
@@ -38,7 +45,7 @@
 
                                           ;; logging and monitors
                                           (:log-every-x-interactions . 100)
-                                          (:experiment-group . "clevr")
+                                          (:experiment-group . "cxn-nlp")
                                           (:dataset-split . "val")
                                           (:experiment-name . "clevr-simulated")
                                           

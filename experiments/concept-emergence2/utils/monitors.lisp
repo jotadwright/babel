@@ -107,6 +107,70 @@
 (define-event-handler (record-communicative-success-test interaction-finished)
   (record-communicative-success experiment interaction))
 
+;; -------------------------------
+;; + Construction Inventory Size +
+;; -------------------------------
+
+(defun record-construction-inventory-size (experiment interaction)
+  (let ((monitor (retrieve-monitor experiment "record-construction-inventory-size")))
+    (record-value monitor (let* ((agent (second (agents (experiment interaction))))
+                                 (fast-inventory (get-inventory (lexicon agent) :fast))
+                                 (trash-inventory (get-inventory (lexicon agent) :trash))
+                                 (total (+ (hash-table-count fast-inventory)
+                                           (hash-table-count trash-inventory))))
+                            total))))
+
+;; train
+(define-monitor record-construction-inventory-size-train
+                :class 'data-recorder
+                :average-window 1000
+                :documentation "Records the average construction inventory size.")
+
+(define-monitor export-construction-inventory-size-train
+                :class 'csv-data-file-writer
+                :documentation "Exports construction inventory size."
+                :data-sources '(record-construction-inventory-size-train)
+                :file-name (babel-pathname :name "construction-inventory-size-train" :type "csv"
+                                           :directory '("experiments" "concept-emergence2" "logging"))
+                :add-time-and-experiment-to-file-name nil)
+
+(define-event-handler (record-construction-inventory-size-train interaction-finished)
+  (record-construction-inventory-size experiment interaction))
+
+;; val
+(define-monitor record-construction-inventory-size-val
+                :class 'data-recorder
+                :average-window 1000
+                :documentation "Records the average construction inventory size.")
+
+(define-monitor export-construction-inventory-size-val
+                :class 'csv-data-file-writer
+                :documentation "Exports construction inventory size."
+                :data-sources '(record-construction-inventory-size-val)
+                :file-name (babel-pathname :name "construction-inventory-size-val" :type "csv"
+                                           :directory '("experiments" "concept-emergence2" "logging"))
+                :add-time-and-experiment-to-file-name nil)
+
+(define-event-handler (record-construction-inventory-size-val interaction-finished)
+  (record-construction-inventory-size experiment interaction))
+
+;; test
+(define-monitor record-construction-inventory-size-test
+                :class 'data-recorder
+                :average-window 1000
+                :documentation "Records the average construction inventory size.")
+
+(define-monitor export-construction-inventory-size-test
+                :class 'csv-data-file-writer
+                :documentation "Exports construction inventory size."
+                :data-sources '(record-construction-inventory-size-test)
+                :file-name (babel-pathname :name "train" :type "csv"
+                                           :directory '("experiments" "concept-emergence2" "logging"))
+                :add-time-and-experiment-to-file-name nil)
+
+(define-event-handler (record-construction-inventory-size-test interaction-finished)
+  (record-construction-inventory-size experiment interaction))
+
 ;; ---------------------------------
 ;; + Degree of conventionalisation +
 ;; ---------------------------------

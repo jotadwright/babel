@@ -132,8 +132,11 @@
                       :directory `("experiments" 
                                    "concept-emergence2" 
                                    "storage"
-                                   "cle4-grammar")
-                      :name (format nil "inventory-~a" (get-configuration agent :data-source))
+                                   "cxn-nlp"
+                                   "train"
+                                   ,(format nil "clevr-~a" (get-configuration agent :data-source))
+                                   "phase-1")
+                      :name "inventory"
                       :type "store")))
 
 
