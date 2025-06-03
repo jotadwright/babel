@@ -155,53 +155,6 @@
                                                                   ,(assqv :datasplit config)
                                                                   ,(assqv :exp-name config))))))))
 
-(defun reset-primitive-inventory (agents)
-  (cond ((equal (type-of (first agents)) 'CRS-CONVENTIONALITY::NAMING-GAME-AGENT)
-         (loop for agent in agents
-               do (set-data (blackboard (grammar agent)) :primitive-inventory *naming-game-primitives*)
-                  (set-data (blackboard *naming-game-primitives*) :ontology (get-data (blackboard (grammar agent)) :ontology))))
-          
-        ((equal (type-of (first agents)) 'CRS-CONVENTIONALITY::CONCEPT-EMERGENCE-GAME-AGENT)
-         (loop for agent in agents 
-               do (set-data (blackboard (grammar agent)) :primitive-inventory *concept-emergence-game-primitives*)
-                  (set-data (blackboard *concept-emergence-game-primitives*) :ontology (get-data (blackboard (grammar agent)) :ontology))))))
-
-(defun store-experiment (experiment interaction)
-  
-  (let* ((exp-top-dir (get-configuration experiment :exp-top-dir))
-         (log-dir-name (get-configuration experiment :log-dir-name))
-         (exp-name (get-configuration experiment :exp-name))
-         (datasplit (get-configuration experiment :datasplit))
-         (current-interaction (interaction-number interaction))
-         (filename (format nil "seed-~a-interaction-~a" (get-configuration experiment :seed) current-interaction))
-         (path (babel-pathname
-                :directory `("experiments"
-                            "crs-conventionality"
-                            "logging"
-                             ,exp-top-dir
-                             ,datasplit
-                             ,exp-name
-                             "stores")
-                :name filename
-                :type #+lispworks "lw.store" #+ccl "ccl.store" #+sbcl "sbcl.store")))
-    
-    (ensure-directories-exist path)
-
-    ;; clear primitive inventory   
-    (loop for agent in (agents (population experiment))
-            do (set-data (blackboard (grammar agent)) :primitive-inventory nil))
-    (cl-store:store experiment path)
-    (format t "Stored experiment: ~a~%" path)
-    
-    ;; reset primitive inventory
-    (reset-primitive-inventory (agents (population experiment)))))
-
-(defun restore-experiment (path)
-  (let ((experiment (cl-store:restore path)))   
-    ;; reset primitive inventory
-    (reset-primitive-inventory (agents (population experiment)))   
-    experiment))
-
 
 (defun merge-batch (measure-names exp-top-dir datasplit exp-name)
   (let ((batch-directory (babel-pathname :directory `("experiments"
