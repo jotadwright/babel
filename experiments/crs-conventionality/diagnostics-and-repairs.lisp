@@ -119,6 +119,7 @@
                     collect predicate))
              (bind-statements (irl::bind-statements (first composition-result)))
              (meaning (append irl-program-without-initial-program-with-scene bind-statements))
+             (agent (get-data (blackboard (construction-inventory cipn)) :agent))
 
 
              ;; invent a form
@@ -128,6 +129,10 @@
              (cxn (crs-conventionality::make-naming-game-cxn topic meaning cxn-inventory-copy form 0.5)))
 
         ;; add the cxn to the cxn-inventory
+        (when (and (equal (get-configuration (crs-conventionality::experiment (crs-conventionality::population agent)) :cognitive-economy) :replace)
+                 (>= (length (constructions-list (construction-inventory cipn)))
+                     (get-configuration (crs-conventionality::experiment (crs-conventionality::population agent)) :threshold-cognitive-economy)))
+          (remove-least-entrenched-cxn (construction-inventory cipn)))
         (add-cxn cxn cxn-inventory-copy)
         ;; add the cxn to the fix
         (make-instance 'invention-fix :restart-data cxn)))))
@@ -207,9 +212,14 @@
            (form (first (utterance (get-data (blackboard (construction-inventory cipn)) :agent))))
 
            ;; make the construction based on the form, meaning and topic
-           (cxn (crs-conventionality::make-naming-game-cxn topic meaning cxn-inventory-copy form 0.5)))
+           (cxn (crs-conventionality::make-naming-game-cxn topic meaning cxn-inventory-copy form 0.5))
+           (agent (get-data (blackboard (construction-inventory cipn)) :agent)))
 
       ;; add cxn to the cxn-inventory
+      (when (and (equal (get-configuration (crs-conventionality::experiment (crs-conventionality::population agent)) :cognitive-economy) :replace)
+                 (>= (length (constructions-list (construction-inventory cipn)))
+                     (get-configuration (crs-conventionality::experiment (crs-conventionality::population agent)) :threshold-cognitive-economy)))
+        (remove-least-entrenched-cxn (construction-inventory cipn)))
       (add-cxn cxn cxn-inventory-copy)
       (make-instance 'adoption-fix :restart-data cxn))))
 
@@ -263,9 +273,14 @@
                             return concept))
 
            ;; make the construction based on the form, meaning and topic
-           (cxn (crs-conventionality::make-concept-emergence-game-cxn concept meaning cxn-inventory-copy form 0.5)))
+           (cxn (crs-conventionality::make-concept-emergence-game-cxn concept meaning cxn-inventory-copy form 0.5))
+           (agent (get-data (blackboard (construction-inventory cipn)) :agent)))
 
       ;; add cxn to the cxn-inventory
+      (when (and (equal (get-configuration (crs-conventionality::experiment (crs-conventionality::population agent)) :cognitive-economy) :replace)
+                 (>= (length (constructions-list (construction-inventory cipn)))
+                     (get-configuration (crs-conventionality::experiment (crs-conventionality::population agent)) :threshold-cognitive-economy)))
+        (remove-least-entrenched-cxn (construction-inventory cipn)))
       (add-cxn cxn cxn-inventory-copy)
       (make-instance 'adoption-fix :restart-data cxn)
       )))
@@ -317,9 +332,14 @@
              (form (make-word))
 
              ;; make a cxn based on the topic, meaning and form
-             (cxn (crs-conventionality::make-concept-emergence-game-cxn concept meaning cxn-inventory-copy form 0.5)))
+             (cxn (crs-conventionality::make-concept-emergence-game-cxn concept meaning cxn-inventory-copy form 0.5))
+             (agent (get-data (blackboard (construction-inventory cipn)) :agent)))
 
         ;; add the cxn to the cxn-inventory
+        (when (and (equal (get-configuration (crs-conventionality::experiment (crs-conventionality::population agent)) :cognitive-economy) :replace)
+                   (>= (length (constructions-list (construction-inventory cipn)))
+                       (get-configuration (crs-conventionality::experiment (crs-conventionality::population agent)) :threshold-cognitive-economy)))
+        (remove-least-entrenched-cxn (construction-inventory cipn)))
         (add-cxn cxn cxn-inventory-copy)
         ;; add the cxn to the fix
         (make-instance 'invention-fix :restart-data cxn)))))
@@ -412,6 +432,16 @@
                          :configuration (configuration (construction-inventory node))
                          :cxn-inventory (construction-inventory node)))))
 
+(defun remove-least-entrenched-cxn (cxn-inventory)
+  (let* ((least-entrenched (all-smallest #'(lambda (cxn) (attr-val cxn :score)) (constructions-list cxn-inventory)))
+         ;(least-entrenched-original (all-smallest #'(lambda (cxn) (attr-val cxn :score)) (constructions-list (original-cxn-set cxn-inventory))))
+         (cxn-to-remove (random-elt least-entrenched))
+         (cxn-to-remove-original (original-cxn cxn-to-remove)))
+    (delete-cxn cxn-to-remove cxn-inventory)
+    (delete-cxn cxn-to-remove-original (original-cxn-set cxn-inventory))))
+
+
+
 (in-package :crs-conventionality)
 
 (defun make-naming-game-cxn (topic meaning cxn-inventory form initial-score)
@@ -469,4 +499,6 @@
                    :attributes `((:score . ,initial-score)
                                  
                                  (:form . ,form)))))
+
+
  
