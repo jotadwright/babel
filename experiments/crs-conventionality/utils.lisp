@@ -82,6 +82,25 @@
                    evo-plot-keyword-args)))
   (format t "~%Graphs have been created."))
 
+(defun create-graph-for-single-measure-from-batch (measure-name exp-top-dir datasplit exp-names &rest evo-plot-keyword-args)
+  "Creates a plot for a single measure from several batch experiments (using exported data)."
+  (format t "~%Creating graph for measure ~a from experiments ~a" measure-name exp-names)
+  (let* ((raw-file-paths
+          (loop for exp-name in exp-names
+                collect `("experiments" "crs-conventionality" "logging" ,exp-top-dir ,datasplit ,exp-name "merged-data" ,measure-name))) 
+         (default-plot-file-name
+          (reduce #'(lambda (str1 str2) (string-append str1 "+" str2)) 
+                  raw-file-paths :key #'(lambda (path) (first (last path)))))
+         (plot-file-name
+          (when (find :plot-file-name evo-plot-keyword-args)
+            (nth (1+ (position :plot-file-name evo-plot-keyword-args)) evo-plot-keyword-args))))
+    (apply #'raw-files->evo-plot
+           (append `(:raw-file-paths ,raw-file-paths
+                     :plot-directory ("experiments" "crs-conventionality" "logging" ,exp-top-dir ,datasplit "plots-by-measure")
+                     :plot-file-name ,(if plot-file-name plot-file-name default-plot-file-name))
+                   evo-plot-keyword-args)))
+  (format t "~%Graphs have been created."))
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                     ;;
