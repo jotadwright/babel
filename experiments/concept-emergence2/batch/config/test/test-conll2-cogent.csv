@@ -1,4 +1,4 @@
 id,exp_name,nr_of_interactions,dataset_loader,min_context_size,max_context_size,dataset,dataset_split,feature_set,scene_sampling,topic_sampling
-1,clevr,100000,:precomputed,nil,nil,clevr,test,clevr,:random,:random
-2,cogenta,100000,:precomputed,nil,nil,cogent,testa,clevr,:random,:random
-3,cogentb,100000,:precomputed,nil,nil,cogent,testb,clevr,:random,:random
+1,clevr,500000,:precomputed,nil,nil,clevr,test,clevr,:random,:random
+2,cogenta,500000,:precomputed,nil,nil,cogent,testa,clevr,:random,:random
+3,cogentb,500000,:precomputed,nil,nil,cogent,testb,clevr,:random,:random
