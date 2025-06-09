@@ -1,6 +1,6 @@
 # Guessing games at scale
 
-Codebase for the paper 'Decentralised Emergence of Robust and Adaptive Linguistic Conventions in Populations of Autonomous Agents Grounded in Continuous Worlds' by Botoko Ekila et al.
+Codebase for the paper 'Emergent Communication in Continuous Worlds: Self-Organisation of Conceptually Grounded Vocabularies at Scale' by Botoko Ekila et al.
 
 ## Installation & Dependencies
 
