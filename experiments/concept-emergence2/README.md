@@ -56,11 +56,11 @@ Afterwards, setup a PNRG seed bank file by executing:
 
 All data is expected to be stored under `~/Corpora/concept-emergence2/`.
 
-To generate the data required for this project, please refer to the [ehai/tabular-dataset-gen](https://gitlab.ai.vub.ac.be/ehai/tabular-dataset-gen) project.
+To generate the data required for this project, please refer to the [ehai/conll-tabular-datasets](https://gitlab.ai.vub.ac.be/ehai/conll-tabular-datasets) project.
 
 We provide two ways to load data in.
 
-1. split-by-entities: a `.jsonl` file containing all entities.
+1. split-by-entities: a `.jsonl` file containing all entities (e.g. for tabular datasets).
 2. split-by-scenes: a separate `.jsonl` file for each scene, where scenes are precomputed (e.g. for datasets like CLEVR)
 
 ```
@@ -69,7 +69,7 @@ We provide two ways to load data in.
         air.csv
         clevr.csv
         ...
-    split-objects
+    split-by-entities
         air/
             air-test.jsonl
             air-train.jsonl
