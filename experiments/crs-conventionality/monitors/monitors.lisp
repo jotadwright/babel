@@ -26,10 +26,11 @@
                  (get-configuration experiment :log-every-x-interactions))
             0)
          (let ((comm-success (caaar (monitors::get-average-values (monitors::get-monitor 'record-communicative-success))))
-               (coherence (caaar (monitors::get-average-values (monitors::get-monitor 'record-conventionalisation)))))
+               (coherence (caaar (monitors::get-average-values (monitors::get-monitor 'record-conventionalisation))))
+               (construction-inventory-size (monitors::current-value (monitors::get-monitor 'record-construction-inventory-size))))
            (multiple-value-bind (h m s) (seconds-to-hours-minutes-seconds (- (get-universal-time) *start-time*))
              (format t
-                     ". (~a / ~a / ~a / ~ah ~am ~as)~%"
+                     ". (~a / ~a / ~a / ~a / ~ah ~am ~as)~%"
                      (interaction-number interaction)
                      (if comm-success
                        (format nil "~,vf% Comm. success" 1 (* 100 (float comm-success)))
@@ -37,6 +38,8 @@
                      (if coherence
                        (format nil "~,vf% Conven." 1 (* 100 (float coherence)))
                        "NIL")
+                     (if construction-inventory-size
+                       (format nil "~a Construction inventory size" construction-inventory-size))
                      h m s)))
          ;; reset the timer
          (setf *start-time* (get-universal-time)))))
