@@ -65,6 +65,8 @@
             (when (find-data (blackboard (grammar agent)) :discriminative-power)
               (set-data (blackboard (grammar agent)) :discriminative-power nil))
             ))
+  (when (equalp (type-of (experiment interaction)) 'concept-emergence-game-experiment)
+    (set-data (get-data (blackboard *concept-emergence-game-primitives*) :ontology) :concepts nil))
   (setf (communicated-successfully interaction) nil
         (interacting-agents interaction) nil))
 
