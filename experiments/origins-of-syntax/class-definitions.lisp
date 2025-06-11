@@ -8,14 +8,10 @@
   ()
   (:documentation "Experiment class for origins of syntax experiment."))
 
-(defclass syntax-grammar (fcg-construction-set)
-  ()
-  (:documentation "class for syntax grammar"))
-
 (defclass syntax-agent (agent object-w-learning)
   ((grammar 
     :documentation "The construction inventory of the agent."
-    :type (or nil syntax-grammar)
+    :type (or nil fcg-construction-set)
     :initform nil :initarg :grammar :accessor grammar))
   (:documentation "Syntax agents have a syntax grammar."))
 

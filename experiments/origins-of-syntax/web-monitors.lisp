@@ -27,13 +27,13 @@
 
 (define-event construction-rewarded (agent syntax-agent) (cxn fcg-construction))
 
-(define-event type-hierarchy-rewarded (agent syntax-agent) (th-links list))
+(define-event categorial-network-rewarded (agent syntax-agent) (th-links list))
 
-(define-event type-hierarchy-punished (agent syntax-agent) (th-links list))
+(define-event categorial-network-punished (agent syntax-agent) (th-links list))
 
 (define-event construction-punished (agent syntax-agent) (cxn fcg-construction))
 
-(define-event type-hierarchy-updated (type-hierarchy type-hierarchy))
+(define-event categorial-network-updated (categorial-network categorial-network))
 
 ;;;;;;;;;;;;;;;;;;;;;;;
 ;; Trace-Interaction ;;
@@ -101,22 +101,22 @@
   (add-element '((p) "Rewarded: "))
   (add-element (make-html cxn)))
 
-(define-event-handler (trace-interaction type-hierarchy-rewarded)
+(define-event-handler (trace-interaction categorial-network-rewarded)
   (add-element '((p) "Rewarded: "))
-  (loop with th = (make-instance 'type-hierarchy)
+  (loop with th = (make-instance 'categorial-network)
         for (lex-cat . gramm-cat) in th-links
         do
         (add-categories (list lex-cat gramm-cat) th)
-        (add-link lex-cat gramm-cat th :weight (link-weight lex-cat gramm-cat (get-type-hierarchy (grammar agent))))
+        (add-link lex-cat gramm-cat th :weight (link-weight lex-cat gramm-cat (categorial-network (grammar agent))))
         finally (add-element (make-html th :weights? t))))
 
-(define-event-handler (trace-interaction type-hierarchy-punished)
+(define-event-handler (trace-interaction categorial-network-punished)
   (add-element '((p) "Punished: "))
-  (loop with th = (make-instance 'type-hierarchy)
+  (loop with th = (make-instance 'categorial-network)
         for (lex-cat . gramm-cat) in th-links
         do
         (add-categories (list lex-cat gramm-cat) th)
-        (add-link lex-cat gramm-cat th :weight (link-weight lex-cat gramm-cat (get-type-hierarchy (grammar agent))))
+        (add-link lex-cat gramm-cat th :weight (link-weight lex-cat gramm-cat (categorial-network (grammar agent))))
         finally (add-element (make-html th :weights? t))))
 
 (define-event-handler (trace-interaction construction-punished)
@@ -130,7 +130,7 @@
         `((b :style "color:green") "succeeded")
         `((b :style "color:red") "failed")))))
 
-(define-event-handler (trace-interaction type-hierarchy-updated)
+(define-event-handler (trace-interaction categorial-network-updated)
  (add-element '((p) "Updated Type Hierarchy: "))
- (add-element (make-html type-hierarchy :weights? t)))
+ (add-element (make-html categorial-network :weights? t)))
 
