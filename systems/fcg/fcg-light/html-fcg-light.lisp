@@ -213,7 +213,7 @@ is replaced with replacement."
 (defun fcg-light-sequence-feature-type (feature-values)
   "returns the html for the feature-values of type sequence"
   (let ((elements-to-add (collect-highlighted-elements feature-values)))
-    `((tr)
+    `((div)
       ,(format nil " &#91;")
       ,@(loop for (element . rest) on elements-to-add
               collect element
@@ -265,7 +265,7 @@ is replaced with replacement."
   (let ((elements-to-add (loop for element in feature-values
                                collect
                                (get-highlighted-element element))))
-    `((tr)
+    `((div)
       ,(car elements-to-add)
       ,(format nil " &#40;")
       ,@(loop for (element . rest) on (cdr elements-to-add)
@@ -346,7 +346,7 @@ is replaced with replacement."
                         (progn
                           `((br))
                           `((div :class "fcg-light-unit-default-feature-value")
-                            ((tr)
+                            ((div)
                              ,(format nil "[")
                              ,@(loop for (element . rest) on (car feature-values)
                                      collect (fcg-light-set-of-predicates-feature-type element :rest rest)
@@ -369,7 +369,7 @@ is replaced with replacement."
                        (progn
                          `((br))
                          `((div :class "fcg-light-unit-default-feature-value")
-                           ((tr)
+                           ((div)
                             ,(format nil "{")
                             ,@(loop for (element . rest) on (car feature-values)
                                     collect (fcg-light-set-of-predicates-feature-type element :rest rest)
@@ -392,7 +392,7 @@ is replaced with replacement."
                        (progn
                          `((br))
                          `((div :class "fcg-light-unit-default-feature-value")
-                           ((tr)
+                           ((div)
                             ,(format nil "{")
                             ,@(loop for (element . rest) on (car feature-values)
                                     collect `((div)
@@ -492,7 +492,7 @@ is replaced with replacement."
                 (progn
                   `((br))
                   `((div :class "fcg-light-unit-default-feature-value")
-                    ((tr)
+                    ((div)
                      ,(format nil "[")
                      ,@(loop for (element . rest) on (caar feature-values)
                              collect (fcg-light-set-of-predicates-feature-type element :rest rest)
@@ -508,7 +508,7 @@ is replaced with replacement."
                 (progn
                   `((br))
                   `((div :class "fcg-light-unit-default-feature-value")
-                    ((tr)
+                    ((div)
                      ,(format nil "{")
                      ,@(loop for (element . rest) on (car feature-values)
                              collect (fcg-light-set-of-predicates-feature-type element :rest rest)
@@ -524,7 +524,7 @@ is replaced with replacement."
                 (progn
                   `((br))
                   `((div :class "fcg-light-unit-default-feature-value")
-                    ((tr)
+                    ((div)
                      ((div) "{")
                      ,@(loop for element in (car feature-values)
                              collect
