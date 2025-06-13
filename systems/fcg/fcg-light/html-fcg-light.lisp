@@ -223,7 +223,7 @@ is replaced with replacement."
 (defun fcg-light-set-feature-type (feature-values)
   "returns the html for the feature-values of type set"
   (let (not-to-add)
-    `((tr)
+    `((div)
       ,(format nil " &#123;")
       ,@(loop for (element . rest) on feature-values
               collect (if (string= element 'NOT)
@@ -590,14 +590,14 @@ is replaced with replacement."
                                                         (configuration *default-visualization-configuration*))
   "function that returns the html code for the feature value of transient structures"
   (if (not (listp feature-value))
-    `((tr)
+    `((div)
       ,(get-highlighted-element (first feature-value)))
     (if (not (listp (first feature-value)))
-      `((tr)
+      `((div)
         ,(get-highlighted-element (first feature-value))
         ,@(loop for fv in (cdr feature-value)
                 collect (fcg-light-unit-feature->html fv feature-types :configuration configuration)))
-      `((tr)
+      `((div)
         ,@(loop for fv in feature-value
                 collect (fcg-light-unit-feature->html fv feature-types :configuration configuration))))))
 
