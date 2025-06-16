@@ -49,26 +49,50 @@
 	       (listp (cdr element)))
     (let ((*print-escape* t) (*print-pretty* t) (*print-lines* 10) (*print-case* :downcase))
       (error (format nil "Wrong element format in (render-xml).~%expected: ((element :attribute-1 \"value 1\" :attribute-2 \"value 2\" ...) ...),~%provided:~%~s" (write element :stream nil)))))
+  (let ((tag-name (caar element))
+        (attributes (cdar element))
+        (vals (cddar element)))
+    (if (self-closing-tag-p tag-name)
+      (render-opening-tag tag-name attributes vals stream t)
+      (progn
+        (render-opening-tag tag-name attributes vals stream)
+        (loop for e in (cdr element)
+              do (render-xml-aux e stream))
+        (render-closing-tag tag-name stream)))))
 
+
+(defun render-opening-tag (tag-name attributes vals stream &optional self-closing)
+  "Writes an opening XHTML tag with name ,tag-name to ,stream. (e.g. <div>)
+   If :self-closing is t, the tag will be rendered with a slash before the last angle bracket
+   to signify this is a void element. (e.g. <br />)"
   (write-char #\< stream)
-  (write (caar element) :stream stream :case :downcase)
-  (loop for attribute in (cdar element) by #'cddr
-     for value in (cddar element) by #'cddr
+  (write tag-name :stream stream :case :downcase)
+  (loop for attribute in attributes by #'cddr
+     for value in vals by #'cddr
      do (write-char #\space stream)
-       (write attribute :stream stream :case :downcase)
-       (write-char #\= stream)
-       (write value :stream stream :escape t))
-  
-  (write-char #\> stream)
-  (loop for e in (cdr element)
-     do (render-xml-aux e stream))
+        (write attribute :stream stream :case :downcase)
+        (write-char #\= stream)
+        (write value :stream stream :escape t))
+  (when self-closing
+    (write-char #\space stream)
+    (write-char #\/ stream))
+  (write-char #\> stream))
+
+
+(defun render-closing-tag (tag-name stream)
+  "Writes a closing XHTML tag with name ,tag-name to ,stream. (e.g. </div>)"
   (write-char #\< stream)
   (write-char #\/ stream)
-  (write (caar element) :stream stream :case :downcase)
+  (write tag-name :stream stream :case :downcase)
   (write-char #\> stream))
+
 
 (defun render-xml (element)
   (let ((stream (make-string-output-stream :element-type 'character))
 	(*print-escape* nil))
     (render-xml-aux element stream)
     (get-output-stream-string stream)))
+
+
+(defun self-closing-tag-p (tag-name)
+  (string= (string tag-name) "BR"))
