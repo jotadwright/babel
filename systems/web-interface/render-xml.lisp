@@ -95,4 +95,7 @@
 
 
 (defun self-closing-tag-p (tag-name)
-  (string= (string tag-name) "BR"))
+  "Returns t if ,tag-name is the name of a void HTML element."
+  (let ((void-elements '("AREA" "BASE" "BR" "COL" "EMBED" "HR" "IMG" "INPUT" "LINK" "META" "PARAM" "SOURCE" "TRACK" "WBR")))
+    (member (string tag-name) void-elements :test #'string=)))
+
