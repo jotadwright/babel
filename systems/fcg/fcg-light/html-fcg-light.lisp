@@ -1130,6 +1130,47 @@ is replaced with replacement."
        expanded-version)
      :expand-initially expand-initially)))
 
+
+(defmethod make-notebook-html ((construction fcg-construction)
+                               &key
+                               (direction nil)
+                               (configuration nil))
+  (let* ((configuration (or configuration (visualization-configuration (cxn-inventory construction))))
+	 (construction-title (make-html-construction-title construction))
+         (feature-types (feature-types construction))
+         (construction-id (make-id (name construction))))
+    (store-wi-object construction construction-id)
+    (let ((construction (if (get-configuration configuration :remove-empty-units)
+                          (remove-empty-units construction)
+                          construction)))
+    
+    `((div :class "cxn_cfs construction")
+      ((div :class "title") ((a) ,construction-title))
+      ((table :class "cxn_cfs construction")
+       ((tbody)
+        ((tr)
+         ; Contributing Pole
+         ((td) ,(make-html-for-contributing-part (contributing-part construction)
+                                                 feature-types
+                                                 :expanded-units t
+                                                 :expand/collapse-all-id 0
+                                                 :configuration configuration))
+         ; Arrow
+         ((td)
+          ((div :style "position:relative;" :class "arrow")
+           ((div :class "domain" :style "left:0px;")
+            ((svg :xmlns "http://www.w3.org/2000/svg" :width "55" :height "10")
+             ((line :stroke "#000060" :stroke-width "0.9px" :x1 "2" :y1 "5" :x2 "53" :y2 "5"))
+                ((polygon :points "0,5 8,0 8,10" :fill "#000060"))))))
+         ; Conditional Pole
+         ((td) ,(make-html-for-conditional-part (conditional-part construction)
+                                                feature-types
+                                                :expanded-units t
+                                                :expand/collapse-all-id 0
+                                                :direction direction
+                                                :configuration configuration)))))))))
+
+
 ;; #########################################################
 ;; construction-inventory
 ;; ---------------------------------------------------------

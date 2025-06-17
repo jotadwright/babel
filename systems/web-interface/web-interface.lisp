@@ -25,6 +25,7 @@
 (in-package :web-interface)
 
 (export '(make-html
+          make-notebook-html
           clear-page *no-reset-button*
           define-wi-data
           define-css define-css-link 
