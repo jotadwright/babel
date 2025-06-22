@@ -38,7 +38,7 @@
   ;; assumption that we know how many categories there are + that we have learned them in a previous phase of the game.
   (if (get-configuration-from-ontology ontology :nr-of-categories)
     (let* ((agent (find-data ontology 'owner))
-           (categories (get-data ontology 'categories)))
+           (categories (find-data ontology 'categories)))
     #|(let* ((agent (find-data ontology 'owner))
            (categorial-network (categorial-network (grammar agent)))
            (similarities-hash-table (calculate-all-similarities-of-concepts agent)))

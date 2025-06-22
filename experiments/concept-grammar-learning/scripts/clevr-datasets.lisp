@@ -50,7 +50,55 @@
             and do (push question exist-questions))))
 
 
-(defun write-to-file (content dir subdir file &key (length-subdirs t))
+(defun order-files-in-folders (dir &key
+                                   (objects-and-things t)
+                                   (length-subdirs t))
+  (let ((query-questions nil)
+        (exist-questions nil)
+        (count-questions nil))
+    
+    (loop with lexicals = (append '("blue" "brown" "cyan" "gray" "green" "purple" "red" "yellow")
+                                  '("metal" "rubber")
+                                  '("small" "large")
+                                  '("cube" "cylinder" "sphere"))
+          with synonyms = (remove nil (loop for form in lexicals append (get-synonyms form)))
+
+          with file-dir = (directory (merge-pathnames
+                                      (merge-pathnames "all/" "/Users/lara/Projects/babel/../corpora/CLEVR-intention-reading-data/val/stage-1/")
+                                      "*.lisp"))
+            
+          for file in file-dir
+          for file-data = (with-open-file (stream file :direction :input) (read stream))
+          for count-question-p = (find 'count! (second file-data) :key #'first)
+          for query-question-p = (find 'query (second file-data) :key #'first)
+          for exist-question-p = (find 'exist (second file-data) :key #'first)
+          for question = (first file-data)
+          for synonyms-p = (loop for synonym in synonyms
+                                 when (search synonym question)
+                                   collect synonym)
+          if (and (not synonyms-p) count-question-p
+                  (not (find question count-questions :test #'string=)))
+              
+            do (write-to-file file-data dir "count/all/" file :length-subdirs length-subdirs)
+                 
+             do (push question count-questions)
+            
+          if (and (not synonyms-p) query-question-p
+                  (not (find question query-questions :test #'string=)))
+              
+            do (write-to-file file-data dir "query/all/" file :length-subdirs length-subdirs)
+                 
+             do (push question query-questions)
+            
+          if (and (not synonyms-p) exist-question-p
+                  (not (find question exist-questions :test #'string=)))
+              
+            do (write-to-file file-data dir "exist/all/" file :length-subdirs length-subdirs)
+                 
+          do (push question exist-questions))))
+
+
+#|(defun write-to-file (content dir subdir file &key (length-subdirs t))
   (when (not (string= (file-namestring file) ".DS_store"))
     (let* ((subsubdir (format nil "~a~a/" subdir (first (split-string
                                                          (last-elt (split-string (file-namestring file) "_"))
@@ -59,27 +107,21 @@
       (with-open-file (stream path :direction :output
                               :if-exists :overwrite
                               :if-does-not-exist :create)
+        (write content :stream stream)))))|#
+
+
+
+(defun write-to-file (content dir subdir file &key (length-subdirs t))
+  (when (not (string= (file-namestring file) ".DS_store"))
+    (let* ((path (merge-pathnames (file-namestring file) (merge-pathnames  subdir dir))))
+      (with-open-file (stream path :direction :output
+                              :if-exists :overwrite
+                              :if-does-not-exist :create)
         (write content :stream stream)))))
 
 
 
 
+(order-files-in-folders "/Users/lara/Projects/babel/../corpora/CLEVR-intention-reading-data/val/stage-1/")
+                           
 
-(order-files-in-folders "/Users/lara/Projects/babel/../corpora/CLEVR-intention-reading-data/val/stage-1/"
-                            :objects-and-things t
-                            :length-subdirs t)
-
-(order-files-in-folders "/Users/lara/Projects/babel/../corpora/CLEVR-intention-reading-data/val/stage-1/"
-                            :objects-and-things nil
-                            :length-subdirs nil)
-
-(progn
-  (order-files-in-folders "/Users/lara/Projects/babel/../corpora/CLEVR-intention-reading-data/val/stage-1/"
-                          :objects-and-things nil
-                          :length-subdirs t)
-  (order-files-in-folders "/Users/lara/Projects/babel/../corpora/CLEVR-intention-reading-data/val/stage-1/"
-                          :objects-and-things nil
-                          :length-subdirs nil))
-
-
-(first (with-open-file (stream (first (directory (merge-pathnames "/Users/lara/Projects/babel/../corpora/CLEVR-intention-reading-data/val/stage-1-all/count/" "*.lisp"))) :direction :input) (read stream)))
