@@ -42,21 +42,22 @@
        Add-th-links is an exception here, as this repair will not set
        repair-applied-p to true! When this repair has applied, also default
        lateral inhibition is used."
-  (let* ((success (find-data process-input 'success))
-         (applied-cxns (find-data process-input 'applied-cxns))
-         (cipn (find-data process-input 'cipn))
-         (repair-applied-p (find-data process-input 'repair-applied))
-         (failed-interpretation-p (find-data process-input 'failed-interpretation)))
-    (if repair-applied-p
-      (cond (failed-interpretation-p
-             (let ((other-applied-cxns (collect-failed-interpretation-cxns cipn applied-cxns)))
-               (when other-applied-cxns
-                 (punish-cxns agent other-applied-cxns))))
-            (t
-             (let ((failed-repair-cxns (collect-failed-repair-cxns cipn applied-cxns)))
-               (when failed-repair-cxns
-                 (punish-cxns agent failed-repair-cxns)))))
-      (hearer-lateral-inhibition agent cipn applied-cxns success))))
+  (when (eq (get-configuration (experiment agent) :current-split) :train)
+    (let* ((success (find-data process-input 'success))
+           (applied-cxns (find-data process-input 'applied-cxns))
+           (cipn (find-data process-input 'cipn))
+           (repair-applied-p (find-data process-input 'repair-applied))
+           (failed-interpretation-p (find-data process-input 'failed-interpretation)))
+      (if repair-applied-p
+        (cond (failed-interpretation-p
+               (let ((other-applied-cxns (collect-failed-interpretation-cxns cipn applied-cxns)))
+                 (when other-applied-cxns
+                   (punish-cxns agent other-applied-cxns))))
+              (t
+               (let ((failed-repair-cxns (collect-failed-repair-cxns cipn applied-cxns)))
+                 (when failed-repair-cxns
+                   (punish-cxns agent failed-repair-cxns)))))
+        (hearer-lateral-inhibition agent cipn applied-cxns success)))))
 
 ;; ----------------------------------------
 ;; + Utils to find specific constructions +

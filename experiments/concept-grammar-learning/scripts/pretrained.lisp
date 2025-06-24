@@ -12,9 +12,6 @@
 ;; -----------------------------
 
 ;; Finding the data
-
-(progn
-
 (defparameter *configuration* (utils::make-configuration
                                :entries `((:determine-interacting-agents-mode . :tutor-learner)
                                           (:question-sample-mode . :all)
@@ -23,7 +20,7 @@
                                           ;(:questions-type . :query)
                                           ;(:nr-of-filters . :all)
                                           ;(:questions-per-challenge . 1000)
-                                          (:scenes-per-question . 50)
+                                          (:scenes-per-question . 15000)
                                           (:confidence-threshold . 1.1)
                                           (:tutor-sample-mode . :random) ;; or :random
                                           (:cxn-incf-score . 0.1)
@@ -106,6 +103,7 @@
 (defparameter *experiment* (make-instance 'clevr-learning-experiment :configuration *configuration*))
 
 (progn
+(progn
   (format t "~% Starting a new experiment.~%")
   ;; reset the seed
   (set-seed (get-configuration *experiment* :seed))
@@ -127,7 +125,7 @@
   (activate-monitor print-a-dot-for-each-interaction)
   (activate-monitor display-metrics)
 
-  (run-series *experiment* 1000))
+  (run-series *experiment* 5000))
 
 ;; Option 2: run experiment with real-time tracing in the web-interface
 (progn
@@ -168,7 +166,7 @@
   (activate-monitor print-a-dot-for-each-interaction)
   (activate-monitor display-metrics)
 
-  (run-series *experiment* 1000))
+  (run-series *experiment* 5000))
 
 
 )

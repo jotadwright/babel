@@ -112,11 +112,27 @@
 
 
 ;; Utility functions
+(defun clevr-val-number (s)
+  (let* ((parts (split-sequence:split-sequence #\_ s))
+         (num-part (car (last parts))))
+    (parse-integer num-part)))
+
+(defun load-clevr-scene-and-answer-by-split (agent scenes-and-answers)
+  (let ((current-split (get-configuration (experiment agent) :current-split))
+        (split-on-index (get-configuration (experiment agent) :scenes-train-test-split-index)))
+    (loop for scene-and-answer = (random-elt scenes-and-answers)
+          for scene-fname = (first scene-and-answer)
+          for val-id = (clevr-val-number scene-fname)
+          when (or (and (eq current-split :train) (> val-id split-on-index))
+                   (and (eq current-split :test)  (< val-id split-on-index)))
+            return scene-and-answer)))
+
 (defun load-clevr-scene-and-answer (agent question-scenes-answers-cons)
   (let* ((question (first question-scenes-answers-cons))
          (program (second question-scenes-answers-cons))
          (scenes-and-answers (third question-scenes-answers-cons))
-         (random-scene-and-answer (random-elt scenes-and-answers))
+         ;(random-scene-and-answer (random-elt scenes-and-answers))
+         (random-scene-and-answer (load-clevr-scene-and-answer-by-split agent scenes-and-answers))
          (answer-entity (find-clevr-entity (cdr random-scene-and-answer) (ontology agent)))
          (clevr-scene (find-scene-by-name (car random-scene-and-answer) (world (experiment agent)))))
     (if clevr-scene

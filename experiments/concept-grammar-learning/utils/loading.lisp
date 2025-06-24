@@ -17,6 +17,7 @@
                                        (get-configuration experiment :challenge-files-root)))
          (questions-type-dir (merge-pathnames
                                        (case (get-configuration experiment :questions-type)
+                                         (:count-exist-query-all "count-exist-query-all/")
                                          (:count "count/")
                                          (:query "query/")
                                          (:exist "exist/")

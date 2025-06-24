@@ -135,10 +135,9 @@
                                    "cxn-nlp"
                                    "train"
                                    ,(format nil "clevr-~a" (get-configuration agent :data-source))
-                                   "phase-1")
+                                   ,(format nil "phase-1-seed-~a" (get-configuration agent :seed)))
                       :name "inventory"
                       :type "store")))
-
 
 (defun find-concept-given-category (ontology category)
   (gethash category (gethash 'category-to-concept (get-data ontology 'category-concept-map))))
