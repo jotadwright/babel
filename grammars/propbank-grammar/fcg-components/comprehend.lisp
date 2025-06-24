@@ -25,6 +25,22 @@
           (wi:add-element (make-html frames  :expand-initially t)))
         (values solution cipn frames)))))
 
+(defun comprehend-and-extract-frames-with-error (utterance
+                                                &key (cxn-inventory *fcg-constructions*)
+                                                (silent nil)
+                                                (syntactic-analysis nil)
+                                                (selected-rolesets nil)
+                                                (timeout 60))
+  "Comprehends an utterance and visualises the extracted frames."
+  (set-data (blackboard cxn-inventory) :matched-categorial-links nil)
+  (multiple-value-bind (solution cipn)
+      (propbank-comprehend-with-error utterance :cxn-inventory cxn-inventory :silent silent
+                                      :syntactic-analysis syntactic-analysis :selected-rolesets selected-rolesets :timeout timeout)
+    (let ((frames (propbank-grammar::extract-frames (car-resulting-cfs (cipn-car cipn)))))
+      (unless silent
+        (wi:add-element `((h3 :style "margin-bottom:3px;") "Frame representation:"))
+        (wi:add-element (make-html frames  :expand-initially t)))
+      (values solution cipn frames))))
 
 (defgeneric propbank-comprehend (utterance &key cxn-inventory silent selected-rolesets timeout)
   (:documentation "Methods for PropBank comprehension, specialising on conll-sentences or strings."))
