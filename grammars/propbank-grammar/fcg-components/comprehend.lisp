@@ -94,7 +94,11 @@
   (:documentation "Methods for PropBank comprehension, specialising on conll-sentences or strings."))
 
 (defmethod propbank-comprehend-with-error ((utterance conll-sentence) &key (cxn-inventory *fcg-constructions*) (silent nil) (selected-rolesets nil) (timeout 60) &allow-other-keys)
-  (let ((initial-cfs (de-render utterance (get-configuration cxn-inventory :de-render-mode) :cxn-inventory cxn-inventory)))
+  (let ((initial-cfs (handler-case (trivial-timeout:with-timeout (timeout)
+                                     (de-render utterance (get-configuration cxn-inventory :de-render-mode) :cxn-inventory cxn-inventory))
+                       (trivial-timeout:timeout-error (error)
+                         (error 'propbank-grammar::timeout-error
+                                :message (format nil "Utterance could not be de-rendered within a time frame of ~d seconds." timeout))))))
     (set-data initial-cfs :annotation (propbank-frames utterance))
     (unless silent (monitors:notify parse-started (listify (sentence-string utterance)) initial-cfs))
     (multiple-value-bind (meaning cip-node cip)
