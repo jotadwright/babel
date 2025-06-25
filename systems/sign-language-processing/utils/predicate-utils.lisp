@@ -141,17 +141,18 @@ left-handed articulation into one two-handed hamnosys representation"
           (when left-hand-cell
             (hamnosys left-hand-cell))
         for rh-sorted-hamnosys =
-          (sort-by-type rh-hamnosys)
+          (when rh-hamnosys (sort-by-type rh-hamnosys))
         for lh-sorted-hamnosys =
           (when lh-hamnosys
             (sort-by-type lh-hamnosys))
         do (cond
-            ((string=
-              (find-hamnosys-character-type
-               (char
-                rh-hamnosys
-                0))
-              "symmetry")
+            ((when rh-hamnosys
+               (string=
+                (find-hamnosys-character-type
+                 (char
+                  rh-hamnosys
+                  0))
+              "symmetry"))
              (push rh-hamnosys output))
             (left-hand-cell
              (when
@@ -166,7 +167,7 @@ left-handed articulation into one two-handed hamnosys representation"
                lh-sorted-hamnosys)
               output))
             (t
-             (push rh-hamnosys output)))
+             (when rh-hamnosys (push rh-hamnosys output))))
            (setf previous-lh-hamnosys lh-hamnosys)
         finally (return (reverse output))))
 

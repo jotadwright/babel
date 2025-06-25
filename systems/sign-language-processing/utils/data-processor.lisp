@@ -36,7 +36,7 @@
    (loop for child in (xmls:node-children lsfb-node)
          collect
            (loop with counter = 0
-                 for li in (xmls:node-children child)
+                 for li in (xmls:node-children (first (xmls:node-children child)))
                  for value = (first (xmls:node-children li))
                  when (or (= counter 0)
                           (find #\- value))

@@ -26,7 +26,8 @@
     (:w "")
     (:x "")
     (:y "")
-    (:z "")))
+    (:z "")
+    (:- "")))
 
 (defun make-fingerspelling (string)
   "takes a string as input (roman alphabet) and returns another string (fingerspelled form in hamnosys)"

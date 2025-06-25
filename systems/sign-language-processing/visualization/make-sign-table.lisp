@@ -396,6 +396,47 @@
                arg-2-fcg-tags))
           collect (fcg-tag predicate)))
 
+(defun get-all-dummy-coincides-predicates (rh-lh-adjacent-predicates lh-argument dummy-argument)
+  (loop for rh-lh-adjacent-predicate in rh-lh-adjacent-predicates
+        when (eql (arg-1 rh-lh-adjacent-predicate) lh-argument)
+          collect (make-instance 'coincides-predicate
+                                 :coincides-type (coincides-type rh-lh-adjacent-predicate)
+                                 :arg-1 dummy-argument
+                                 :arg-2 (arg-1 rh-lh-adjacent-predicate))
+        when (eql (arg-2 rh-lh-adjacent-predicate) lh-argument)
+          collect (make-instance 'coincides-predicate
+                                 :coincides-type (coincides-type rh-lh-adjacent-predicate)
+                                 :arg-1 (arg-1 rh-lh-adjacent-predicate)
+                                 :arg-2 dummy-argument)))
+
+(defun find-equal-start-predicate (rh-lh-adjacent-predicates lh-var start-argument)
+  (loop for predicate in rh-lh-adjacent-predicates
+        when (and (eql (arg-1 predicate) start-argument)
+                  (eql lh-var (arg-2 predicate)))
+          return t))
+
+(defun find-equal-end-predicate (rh-lh-adjacent-predicates lh-var end-argument)
+  (loop for predicate in rh-lh-adjacent-predicates
+        when (and (eql (arg-2 predicate) end-argument)
+                  (eql lh-var (arg-1 predicate)))
+          return t))
+  
+
+(defun equal-boundaries? (dummy-var lh-var rh-rh-adjacent-predicates rh-lh-adjacent-predicates)
+  (loop with equal-start = nil
+        with equal-end = nil
+        for predicate in rh-rh-adjacent-predicates
+        when (and (eql (arg-1 predicate) dummy-var)
+                  (find-equal-end-predicate rh-lh-adjacent-predicates lh-var (arg-2 predicate)))
+          do (setf equal-end t)
+        when (and (eql (arg-2 predicate) dummy-var)
+                  (find-equal-start-predicate rh-lh-adjacent-predicates lh-var (arg-1 predicate)))
+          do (setf equal-start t)
+        when (and equal-start equal-end)
+          return t))
+
+        
+
 (defun complete-chain-and-return-first-fcg-tag (first-fcg-tag-candidates sign-table)
   "adds a dummy fcg-tag and new coincides predicates that link this dummy tag to the existing fcg-tags,
    completing the chain of fcg-tags. Afterwards, it returns the first tag in this chain."
@@ -426,12 +467,36 @@
                          ((eql
                            (arg-2 rh-lh-adjacent-predicate)
                            candidate)
-                          (push
-                           (make-instance 'coincides-predicate
-                                          :coincides-type 'adjacent
-                                          :arg-1 dummy-var
-                                          :arg-2 candidate)
-                           (rh-rh-adjacent-predicates sign-table)))))
+                            (push
+                             (make-instance 'coincides-predicate
+                                            :coincides-type 'adjacent
+                                            :arg-1 dummy-var
+                                            :arg-2 candidate)
+                             (rh-rh-adjacent-predicates sign-table))
+                            (setf
+                             (rh-rh-adjacent-predicates sign-table)
+                             (append (rh-rh-adjacent-predicates sign-table)
+                                     (get-all-dummy-coincides-predicates
+                                      (remove rh-lh-adjacent-predicate (rh-lh-adjacent-predicates sign-table))
+                                      (arg-1 rh-lh-adjacent-predicate)
+                                      dummy-var)))
+                            (when (equal-boundaries?
+                                   dummy-var
+                                   (arg-1 rh-lh-adjacent-predicate)
+                                   (rh-rh-adjacent-predicates sign-table)
+                                   (rh-lh-adjacent-predicates sign-table))
+                              (push
+                               (make-instance 'coincides-predicate
+                                              :coincides-type 'start-coincides
+                                              :arg-1 dummy-var
+                                              :arg-2 (arg-1 rh-lh-adjacent-predicate))
+                               (start-coincides-predicates sign-table))
+                              (push
+                               (make-instance 'coincides-predicate
+                                              :coincides-type 'end-coincides
+                                              :arg-1 dummy-var
+                                              :arg-2 (arg-1 rh-lh-adjacent-predicate))
+                               (end-coincides-predicates sign-table))))))
                (loop for during-predicate in (during-predicates sign-table)
                      when (eql
                            (arg-1 during-predicate)
@@ -443,7 +508,7 @@
                                   do (push
                                       (make-instance 'coincides-predicate
                                                      :coincides-type 'adjacent
-                                                     :arg-1 (arg-2 rh-lh-adjacent-predicate)
+                                                     :arg-1 (arg-1 rh-lh-adjacent-predicate)
                                                      :arg-2 dummy-var)
                                       (rh-rh-adjacent-predicates sign-table))
                                      (push
@@ -503,7 +568,7 @@
            arg-2-fcg-tags)))
     (if (> (length
             first-fcg-tag-candidates)
-           0)
+           1)
       (complete-chain-and-return-first-fcg-tag
        first-fcg-tag-candidates
        sign-table)

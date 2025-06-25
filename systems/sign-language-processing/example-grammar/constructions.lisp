@@ -141,7 +141,7 @@
                (subunits (?figure-unit ?ground-unit ?palm-up-unit ?dans-unit ?il-y-a-unit))
                (args ((target ?b)
                       (scope ?e)))
-               (sentence-type declarative)
+               (phrase-type theme)
                (boundaries ((rh-left-boundary ?palm-up-unit)
                             (rh-right-boundary ?figure-unit))))
               (?ground-unit
@@ -216,7 +216,7 @@
                (args ((target ?b)
                       (scope ?e)))
                (subunits (?pronoun-unit ?property-unit ?quoi-unit))
-               (sentence-type interrogative)
+               (phrase-type question)
                (boundaries ((rh-left-boundary ?pronoun-unit)
                             (rh-right-boundary ?quoi-unit))))
               (?pronoun-unit
@@ -247,7 +247,7 @@
                (subunits (?figure-unit ?ground-unit ?dans-unit-1 ?pt-unit-1 ?il-y-a-unit ?dans-unit-2 ?pt-unit-2))
                (args ((target ?a)
                       (scope ?d)))
-               (sentence-type declarative)
+               (phrase-type theme)
                (boundaries ((rh-left-boundary ?dans-unit-1)
                             (rh-right-boundary ?pt-unit-2))))
               <-
@@ -293,7 +293,7 @@
                (subunits (?figure-unit ?ground-unit ?dans-unit-1 ?dans-unit-2 ?il-y-a-unit))
                (args ((target ?a)
                       (scope ?d)))
-               (sentence-type declarative)
+               (phrase-type theme)
                (boundaries ((rh-left-boundary ?dans-unit-1)
                             (rh-right-boundary ?figure-unit))))
               (?ground-unit
@@ -341,7 +341,7 @@
                (args ((target ?a)
                       (scope ?e)))
                (subunits (?quoi-unit-1 ?me-dire-unit ?nom-unit ?quoi-unit-2))
-               (sentence-type interrogative)
+               (phrase-type question)
                (boundaries ((rh-left-boundary ?quoi-unit-1)
                             (rh-right-boundary ?quoi-unit-2))))
               <-
@@ -368,7 +368,7 @@
              ((?question-unit
                (args ((target ?a)
                       (scope ?e)))
-               (sentence-type interrogative)
+               (phrase-type question)
                (subunits (?quoi-unit-1 ?palm-up-unit ?me-dire-unit))
                (boundaries ((rh-left-boundary ?quoi-unit-1)
                             (rh-right-boundary ?me-dire-unit))))
@@ -402,16 +402,16 @@
               (?theme-unit
                (args ((target ?a)
                       (scope ?e)))
-               (sentence-type declarative)
+               (phrase-type theme)
                --
-               (sentence-type declarative)
+               (phrase-type theme)
                (boundaries ((rh-right-boundary ?theme-rightmost-unit))))
               (?question-unit
                (args ((target ?a)
                       (scope ?e)))
-               (sentence-type interrogative)
+               (phrase-type question)
                --
-               (sentence-type interrogative)
+               (phrase-type question)
                (boundaries ((rh-left-boundary ?question-leftmost-unit))))))
 
 ;;--------------------;;
