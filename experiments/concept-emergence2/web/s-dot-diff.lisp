@@ -52,33 +52,33 @@
      g)
 
     ;; feature-channels nodes
-    (loop with prototypes = (sort (get-prototypes (meaning cxn))
-                                  (lambda (x y) (string< (symbol-name (channel x))
-                                                         (symbol-name (channel y)))))
-          for prototype in prototypes
-          for previous-prototype = (gethash (channel prototype) (prototypes (meaning previous-copy)))
-          for record = (prototype->s-dot-diff prototype previous-prototype)
+    (loop with wds = (sort (concept-representations::get-weighted-distributions (meaning cxn))
+                                  (lambda (x y) (string< (symbol-name (feature-name x))
+                                                         (symbol-name (feature-name y)))))
+          for wd in wds
+          for previous-wd = (gethash (feature-name wd) (concept-representations::representation (meaning previous-copy)))
+          for record = (wd->s-dot-diff wd previous-wd)
           when (and (if disabled-channels
-                      (not (gethash (channel prototype) disabled-channels))
+                      (not (gethash (feature-name wd) disabled-channels))
                       t)
-                    (>= (weight previous-prototype) weight-threshold))
+                    (>= (weight previous-wd) weight-threshold))
             do (push record g))
     ;; edges between cxn node and feature-channels
-    (loop with prototypes = (sort (get-prototypes (meaning cxn))
-                                  (lambda (x y) (string< (symbol-name (channel x))
-                                                         (symbol-name (channel y)))))
-          for prototype in prototypes and weight-idx from 1
-          for previous-prototype = (gethash (channel prototype) (prototypes (meaning previous-copy)))
-          for delta = (- (weight prototype) (weight previous-prototype))
+    (loop with wds = (sort (concept-representations::get-weighted-distributions (meaning cxn))
+                           (lambda (x y) (string< (symbol-name (feature-name x))
+                                                  (symbol-name (feature-name y)))))
+          for wd in wds and weight-idx from 1
+          for previous-wd = (gethash (feature-name wd) (concept-representations::representation (meaning previous-copy)))
+          for delta = (- (weight wd) (weight previous-wd))
           when (and (if disabled-channels
-                      (not (gethash (channel prototype) disabled-channels))
+                      (not (gethash (feature-name wd) disabled-channels))
                       t)
-                    (>= (weight previous-prototype) weight-threshold))
+                    (>= (weight previous-wd) weight-threshold))
             do (push
                 `(s-dot::edge
                   ((s-dot::from ,(mkdotstr (id (meaning cxn))))
-                   (s-dot::to ,(mkdotstr (downcase (channel prototype))))
-                   (s-dot::label ,(format nil "w~a = ~,2f" weight-idx (float (weight prototype))
+                   (s-dot::to ,(mkdotstr (downcase (feature-name wd))))
+                   (s-dot::label ,(format nil "w~a = ~,2f" weight-idx (float (weight wd))
                                           (cond ((> delta 0) (format nil " (+~,2f)" (float delta)))
                                                 ((< delta 0) (format nil " (~,2f)" (float delta))))))
                    (s-dot::labelfontname #+(or :win32 :windows) "Sans"
@@ -90,7 +90,7 @@
                    (s-dot::fontsize "8.5")
                    (s-dot::arrowsize "0.5")
                    (s-dot::color ,*black*)
-                   (s-dot::style ,(if (>= (weight prototype) 0.99) "solid" "dashed"))))
+                   (s-dot::style ,(if (>= (weight wd) 0.99) "solid" "dashed"))))
                 g))
     ;; edge between form node and cxn node
     (push `(s-dot::edge
@@ -115,17 +115,17 @@
     ;; return
     (reverse g)))
 
-(defgeneric prototype->s-dot-diff (prototype previous-prototype &key)
-  (:documentation "Display a prototype using s-dot."))
+(defgeneric wd->s-dot-diff (wd previous-wd &key)
+  (:documentation "Display a weighted-distribution using s-dot."))
 
-(defmethod prototype->s-dot-diff ((prototype prototype) (previous-prototype prototype) &key)
-  (if (eq 'categorical (type-of (distribution prototype)))
-    (categorical->s-dot-diff prototype previous-prototype)
-    (continuous->s-dot-diff prototype previous-prototype)))
+(defmethod wd->s-dot-diff ((wd concept-representations::weighted-distribution) (previous-wd concept-representations::weighted-distribution) &key)
+  (if (eq 'categorical (type-of (distribution wd)))
+    (categorical->s-dot-diff wd previous-wd)
+    (continuous->s-dot-diff wd previous-wd)))
 
-(defmethod continuous->s-dot-diff ((prototype prototype) (previous-prototype prototype) &key)
-  (let* ((st-dev (st-dev (distribution prototype)))
-         (prev-st-dev (st-dev (distribution previous-prototype))))
+(defmethod continuous->s-dot-diff ((wd concept-representations::weighted-distribution) (previous-wd concept-representations::weighted-distribution) &key)
+  (let* ((st-dev (st-dev (distribution wd)))
+         (prev-st-dev (st-dev (distribution previous-wd))))
     `(s-dot::record
       ((s-dot::style "rounded")
        (s-dot::fontsize "9.5")
@@ -135,12 +135,12 @@
        (s-dot::fontcolor ,(cond ((< st-dev prev-st-dev) *black*) ;; *green*
                                 ((> st-dev prev-st-dev) *black*)   ;; *red*
                                 (t *black*))))
-      (s-dot::node ((s-dot::id ,(downcase (mkdotstr (channel prototype))))
+      (s-dot::node ((s-dot::id ,(downcase (mkdotstr (feature-name wd))))
                     (s-dot::label ,(format nil "~a: ~,3f~a ~~ ~,3f~a"
-                                           (downcase (mkdotstr (channel prototype)))
-                                           (mean (distribution prototype))
-                                           (let ((delta (- (mean (distribution prototype))
-                                                           (mean (distribution previous-prototype)))))
+                                           (downcase (mkdotstr (feature-name wd)))
+                                           (mean (distribution wd))
+                                           (let ((delta (- (mean (distribution wd))
+                                                           (mean (distribution previous-wd)))))
                                              (cond ((> delta 0) (format nil " (+~,3f)" (float delta)))
                                                    ((< delta 0) (format nil " (~,3f)" (float delta)))
                                                    (t " (+0.000)")))
@@ -151,11 +151,11 @@
                                                    (t " (+0.000)")))
                                            )))))))
 
-(defmethod categorical->s-dot-diff ((prototype prototype) (previous-prototype prototype) &key)
-  (let* ((current-dist (loop for key being the hash-keys of (cat-table (distribution prototype))
+(defmethod categorical->s-dot-diff ((wd concept-representations::weighted-distribution) (previous-wd concept-representations::weighted-distribution) &key)
+  (let* ((current-dist (loop for key being the hash-keys of (cat-table (distribution wd))
                                using (hash-value value)
                              collect (cons key value)))
-         (prev-dist (loop for key being the hash-keys of (cat-table (distribution previous-prototype))
+         (prev-dist (loop for key being the hash-keys of (cat-table (distribution previous-wd))
                             using (hash-value value)
                           collect (cons key value)))
          )
@@ -166,9 +166,9 @@
                         #-(or :win32 :windows) "Arial")
        (s-dot::height "0.01")
        (s-dot::fontcolor ,*black*))
-      (s-dot::node ((s-dot::id ,(downcase (mkdotstr (channel prototype))))
+      (s-dot::node ((s-dot::id ,(downcase (mkdotstr (feature-name wd))))
                     (s-dot::label ,(format nil "~a: ~{~a~^, ~}"
-                                           (downcase (mkdotstr (channel prototype)))
+                                           (downcase (mkdotstr (feature-name wd)))
                                            (loop for (key . value) in current-dist
                                                  if (> value 0)
                                                    collect (format nil "(~a, ~a)" key value)))))))))

@@ -20,21 +20,21 @@
     :initarg :history :accessor history :initform '() :type list))
   (:documentation "A construction is a mapping between a form and a meaning."))
   
-(defmethod make-cxn (agent object form)
+(defmethod make-cxn (agent entity form)
   "Creates a new construction."
   (let ((scene-idx (index (find-data agent 'context)))
         (interaction-number (interaction-number (current-interaction (experiment agent)))))
     (make-instance 'cxn
                    :form form
-                   :meaning (make-concept agent object)
+                   :meaning (concept-representations::create-concept-representation (list entity) :weighted-multivariate-distribution)                  
                    :score (get-configuration (experiment agent) :initial-cxn-entrenchement)
                    :history (list (cons interaction-number scene-idx)))))
 
-(defmethod reset-cxn (agent cxn object)
+(defmethod reset-cxn (agent cxn entity)
   "Resets the meaning and score of a cxn."
   (let ((scene-idx (index (find-data agent 'context)))
         (interaction-number (interaction-number (current-interaction (experiment agent)))))
-    (setf (meaning cxn) (make-concept agent object))
+    (setf (meaning cxn) (make-concept agent entity))
     (setf (score cxn) (get-configuration (experiment agent) :initial-cxn-entrenchement))
     (setf (history cxn) (list (cons interaction-number scene-idx)))
     (update-lexicon-inventory (lexicon agent) cxn)))

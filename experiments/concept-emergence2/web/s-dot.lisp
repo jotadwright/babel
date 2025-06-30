@@ -43,38 +43,38 @@
                      (s-dot::fontcolor "#AA0000"))))
      g)
     ;; feature-channels nodes
-    (loop with prototypes = (sort (get-prototypes (meaning cxn))
+    (loop with wds = (sort (concept-representations::get-weighted-distributions (meaning cxn))
                                   (lambda (x y) (string< (symbol-name (channel x))
                                                          (symbol-name (channel y)))))
-          for prototype in prototypes and weight-idx from 1
-          for record = (prototype->s-dot prototype weight-idx)
+          for wd in wds and weight-idx from 1
+          for record = (wd->s-dot wd weight-idx)
           when (and (if disabled-channels
-                      (not (gethash (channel prototype) disabled-channels))
+                      (not (gethash (feature-name wd) disabled-channels))
                       t)
-                    (>= (weight prototype) weight-threshold))
+                    (>= (weight wd) weight-threshold))
             do (push record g))
     ;; edges between cxn node and feature-channels
-    (loop with prototypes = (sort (get-prototypes (meaning cxn))
+    (loop with wds = (sort (concept-representations::get-weighted-distributions (meaning cxn))
                                   (lambda (x y) (string< (symbol-name (channel x))
                                                          (symbol-name (channel y)))))
-          for prototype in prototypes and weight-idx from 1
+          for wd in wds and weight-idx from 1
           when (and (if disabled-channels
-                      (not (gethash (channel prototype) disabled-channels))
+                      (not (gethash (feature-name wd) disabled-channels))
                       t)
-                    (>= (weight prototype) weight-threshold))
+                    (>= (weight wd) weight-threshold))
             do (push
                 `(s-dot::edge
                   ((s-dot::from ,(mkdotstr (id (meaning cxn))))
-                   (s-dot::to ,(mkdotstr (downcase (channel prototype))))
+                   (s-dot::to ,(mkdotstr (downcase (feature-name wd))))
                    (s-dot::label ,(format nil "&omega;~a: ~,2f"
                                           (integer-to-subscript-html weight-idx)
-                                          (weight prototype)))
+                                          (weight wd)))
                    (s-dot::labelfontname #+(or :win32 :windows) "Sans"
                                          #-(or :win32 :windows) "Arial")
                    (s-dot::fontcolor ,*black*)
                    (s-dot::fontsize "8.5")
                    (s-dot::arrowsize "0.5")
-                   (s-dot::style ,(if (>= (weight prototype) 0.99) "solid" "dashed"))))
+                   (s-dot::style ,(if (>= (weight wd) 0.99) "solid" "dashed"))))
                 g))
     ;; edge between form node and cxn node
     (push `(s-dot::edge
@@ -93,16 +93,16 @@
     (reverse g)))
 
 
-(defgeneric prototype->s-dot (prototype weight-idx &key)
-  (:documentation "Display a prototype using s-dot."))
+(defgeneric wd->s-dot (wd weight-idx &key)
+  (:documentation "Display a weighted-distribution using s-dot."))
 
-(defmethod prototype->s-dot ((prototype prototype) weight-idx &key)
-  (if (eq 'categorical (type-of (distribution prototype)))
-    (categorical->s-dot prototype weight-idx)
-    (continuous->s-dot prototype weight-idx)))
+(defmethod wd->s-dot ((wd concept-representations::weighted-distribution) weight-idx &key)
+  (if (eq 'categorical (type-of (distribution wd)))
+    (categorical->s-dot wd weight-idx)
+    (continuous->s-dot wd weight-idx)))
 
-(defmethod continuous->s-dot ((prototype prototype) weight-idx &key)
-  (let* ((st-dev (st-dev (distribution prototype))))
+(defmethod continuous->s-dot ((wd concept-representations::weighted-distribution) weight-idx &key)
+  (let* ((st-dev (st-dev (distribution wd))))
     `(s-dot::record
       ((s-dot::style "rounded")
        (s-dot::fontsize "9.5")
@@ -110,15 +110,15 @@
                         #-(or :win32 :windows) "Arial")
        (s-dot::fontcolor "#000000")
        (s-dot::height "0.01"))
-      (s-dot::node ((s-dot::id ,(downcase (mkdotstr (channel prototype))))
+      (s-dot::node ((s-dot::id ,(downcase (mkdotstr (feature-name wd))))
                     (s-dot::label ,(format nil "~a\\n&mu;~a ~,3f ~~ &sigma;~a ~,3f"
-                                           (downcase (mkdotstr (channel prototype)))
+                                           (downcase (mkdotstr (feature-name wd)))
                                            (integer-to-subscript-html weight-idx)
-                                           (mean (distribution prototype))
+                                           (mean (distribution wd))
                                            (integer-to-subscript-html weight-idx)
                                            st-dev)))))))
 
-(defmethod categorical->s-dot ((prototype prototype) weight-idx &key)
+(defmethod categorical->s-dot ((wd concept-representations::weighted-distribution) weight-idx &key)
   `(s-dot::record
     ((s-dot::style "rounded")
      (s-dot::fontsize "9.5")
@@ -126,9 +126,9 @@
                       #-(or :win32 :windows) "Arial")
      (s-dot::fontcolor "#000000")
      (s-dot::height "0.01"))
-    (s-dot::node ((s-dot::id ,(downcase (mkdotstr (channel prototype))))
+    (s-dot::node ((s-dot::id ,(downcase (mkdotstr (feature-name wd))))
                   (s-dot::label ,(format nil "~a\\n&#123;~{~a~^, ~}&#125;"
-                                         (downcase (mkdotstr (channel prototype)))
+                                         (downcase (mkdotstr (feature-name wd)))
                                          (loop with tuples = (loop for key being the hash-keys of (cat-table (distribution prototype))
                                                                      using (hash-value value)
                                                                    if (> value 0)

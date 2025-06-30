@@ -1,15 +1,11 @@
 (in-package :cl-user)
 
-(defpackage :cle
-  (:documentation "Emergent concept learning")
+(defpackage :concept-representations
+  (:documentation "System for representing, updating, visualising and comparing concepts (and entities).")
   (:use :common-lisp
         :test-framework
         :utils
         :web-interface
         :monitors
-        :experiment-framework
-        :irl
-        :cl-store
-        :concept-representations
-        )
+        :irl)
   (:local-nicknames (:jzon :com.inuoe.jzon)))

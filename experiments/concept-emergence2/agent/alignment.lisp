@@ -23,6 +23,7 @@
 (defmethod speaker-alignment ((agent cle-agent))
   "Speaker alignment."
   (let* ((topic (find-data agent 'topic))
+         (context (get-data agent 'context))
          (applied-cxn (find-data agent 'applied-cxn))
          (previous-copy (copy-object applied-cxn)))
     (when (not (invented-or-adopted agent))
@@ -33,10 +34,10 @@
           ;;  1. entrench applied-cxn
           (update-score-cxn agent applied-cxn (get-configuration (experiment agent) :entrenchment-incf))
           ;;  2. shift concept of applied-cxn to topic
-          (shift-concept agent topic (meaning applied-cxn))
+          (concept-representations::update-concept (meaning applied-cxn) topic (entities context))
           ;;  3. punish competing similar cxns TODO: punishment is based on shifted concept
           (loop for other-cxn in (find-data agent 'meaning-competitors)
-                for similarity = (similar-concepts agent (meaning applied-cxn) (meaning other-cxn))
+                for similarity = (concept-representations::concept-similarity (meaning applied-cxn) (meaning other-cxn))
                 for delta = (* similarity (get-configuration (experiment agent) :entrenchment-li))
                 do (update-score-cxn agent other-cxn delta))
           ;; notify
@@ -52,6 +53,7 @@
 (defmethod hearer-alignment ((agent cle-agent))
   "Hearer alignment."
   (let* ((topic (get-data agent 'topic))
+         (context (get-data agent 'context))
          (applied-cxn (find-data agent 'applied-cxn))
          (previous-copy (copy-object applied-cxn)))
     (case applied-cxn
@@ -66,11 +68,11 @@
                 ;; 1. entrench applied-cxn
                 (update-score-cxn agent applied-cxn (get-configuration (experiment agent) :entrenchment-incf))
                 ;; 2. shift concept of applied-cxn to topic
-                (shift-concept agent topic (meaning applied-cxn))
+                (concept-representations::update-concept (meaning applied-cxn) topic (entities context))
                 ;; 3. find and punish meaning competitors TODO: punishment is based on shifted concept
                 (conceptualise agent)
                 (loop for other-cxn in (find-data agent 'meaning-competitors)
-                      for similarity = (similar-concepts agent (meaning applied-cxn) (meaning other-cxn))
+                      for similarity = (concept-representations::concept-similarity (meaning applied-cxn) (meaning other-cxn))
                       for delta = (* similarity (get-configuration (experiment agent) :entrenchment-li))
                       do (update-score-cxn agent other-cxn delta))
                 ;; notify
@@ -82,7 +84,7 @@
                 ;; 1. entrench applied-cxn negatively
                 (update-score-cxn agent applied-cxn (get-configuration (experiment agent) :entrenchment-decf))
                 ;; 2. shift concept of applied-cxn to topic
-                (shift-concept agent topic (meaning applied-cxn))
+                (concept-representations::update-concept (meaning applied-cxn) topic (entities context))
                 (notify event-align-cxn "Punish (due to failure) and shift" applied-cxn previous-copy)))
              ((eq (get-data agent 'interpreted-topic-reason) 'no-match)
               ;; CASE C: recognized but used concept is useless due to defects

@@ -10,26 +10,26 @@
 (defmethod interpret ((agent cle-agent))
   "Computes the weighted similarity between
      1. the parsed-meaning
-     2. each of the objects in the context.
-   The topic is the object for which this value is maximized."
+     2. each of the entities in the context.
+   The topic is the entity for which this value is maximized."
   (when (find-data agent 'applied-cxn)
-    (let* ((objects-with-similarity
+    (let* ((entities-with-similarity
             (loop with applied-cxn = (find-data agent 'applied-cxn)
-                  for object in (objects (get-data agent 'context))
-                  for sim = (concept-entity-similarity agent object (meaning applied-cxn))
-                  collect (cons object sim)))
-           ;; if two objects have exactly the same
+                  for entity in (entities (get-data agent 'context))
+                  for sim = (concept-representations::concept-entity-similarity (meaning applied-cxn) entity)
+                  collect (cons entity sim)))
+           ;; if two entities have exactly the same
            ;; maximum similarity, interpretation fails
-           (highest-pair (the-biggest #'cdr objects-with-similarity))
+           (highest-pair (the-biggest #'cdr entities-with-similarity))
            (maybe-topic (first highest-pair))
            (candidates-count (count (rest highest-pair)
-                                    objects-with-similarity
+                                    entities-with-similarity
                                     :key #'cdr :test #'=)))
       (cond ((eq candidates-count 1)
              (set-data agent 'interpreted-topic maybe-topic))
             ((and (> candidates-count 1)
-                  (zerop (sum (mapcar #'cdr objects-with-similarity))))
-             ;; concept matches 0% with all objects
+                  (zerop (sum (mapcar #'cdr entities-with-similarity))))
+             ;; concept matches 0% with all entities
              (set-data agent 'interpreted-topic nil)
              (set-data agent 'interpreted-topic-reason 'no-match))
             (t

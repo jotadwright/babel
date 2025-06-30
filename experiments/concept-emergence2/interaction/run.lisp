@@ -4,10 +4,10 @@
 ;; + Interaction flow +
 ;; --------------------
 
-(defmethod interact ((experiment cle-experiment) interaction &key scene topic agents)
+(defmethod interact ((experiment cle-experiment) interaction &key agents)
   (when (switch-condition-p experiment (get-configuration experiment :switch-condition))
     (setup-next-condition experiment))
-  (before-interaction experiment :scene scene :topic topic :agents agents)
+  (before-interaction experiment :agents agents)
   (do-interaction experiment)
   (after-interaction experiment))
 
@@ -31,7 +31,7 @@
     ;; 1. set new interaction as interaction
     (setf (interactions experiment) (list interaction))
     ;; 2. run interaction script
-    (interact experiment interaction :scene scene :topic topic :agents agents)
+    (interact experiment interaction :agents agents)
     ;; 3. determine outcome
     (setf (communicated-successfully interaction)
           (loop for agent in (interacting-agents interaction)

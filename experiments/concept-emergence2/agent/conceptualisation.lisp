@@ -26,7 +26,7 @@
   (if (empty-lexicon-p agent)
     nil
     (let* ((topic  (get-data agent 'topic))
-           (context (remove topic (objects (get-data agent 'context)))))
+           (context (remove topic (entities (get-data agent 'context)))))
       (destructuring-bind (applied-cxn . competitors) (find-best-concept agent topic context)
         ;; set competitors
         (set-data agent 'meaning-competitors competitors)
@@ -49,8 +49,8 @@
                       (:speaker (get-data speaker 'topic))
                       (:hearer (get-data hearer 'topic))))
              (context (case (get-configuration experiment :coherence-perspective)
-                        (:speaker (remove topic (objects (get-data speaker 'context))))
-                        (:hearer (remove topic (objects (get-data hearer 'context)))))))
+                        (:speaker (remove topic (entities (get-data speaker 'context))))
+                        (:hearer (remove topic (entities (get-data hearer 'context)))))))
         (destructuring-bind (hypothetical-cxn . competitors) (find-best-concept agent topic context)
           ;; hypothetical-cxn corresponds to the concept that hearer would have produces as a speaker
           (let* ((applied-cxn (find-data agent 'applied-cxn))
@@ -70,8 +70,8 @@
 (defun calculate-max-similarity-in-context (agent concept context topic-sim)
   """Calculates the maximim similarity between the given concept and all objects in the context."
   (loop named lazy-loop
-        for object in context
-        for other-sim = (concept-entity-similarity agent object concept)
+        for entity in context
+        for other-sim = (concept-representations::concept-entity-similarity concept entity)
         when (<= topic-sim other-sim)
           ;; lazy stopping
           do (return-from lazy-loop other-sim)
@@ -109,7 +109,7 @@
         ;; iterate
         for cxn being the hash-values of (get-inventory (lexicon agent) inventory-name)
         for concept = (meaning cxn)
-        for topic-sim = (concept-entity-similarity agent topic concept)
+        for topic-sim = (concept-representations::concept-entity-similarity concept topic)
         for best-other-sim = (calculate-max-similarity-in-context agent concept context topic-sim)
         for discriminative-power = (abs (- topic-sim best-other-sim))
         ;; trash inventory -> the score is irrelevant (so set score to 1), otherwise use score

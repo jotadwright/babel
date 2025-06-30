@@ -37,9 +37,9 @@
             when (and
                   ;; check entrenchment above threshold
                   (>= (score cxn) entrenchment-threshold)
-                  ;; check that the cxn has at least one prototype above threshold
-                  (loop for prototype in (get-prototypes (meaning cxn))
-                        thereis (>= (weight prototype) weight-threshold)))
+                  ;; check that the cxn has at least one weighted-distribution above threshold
+                  (loop for wd in (concept-representations::get-weighted-distributions (meaning cxn))
+                        thereis (>= (weight wd) weight-threshold)))
               do (progn
                    (add-element
                     `((h4) ,(format nil "Construction with entrenchment score ~,2f (appeared during interaction ~a)"

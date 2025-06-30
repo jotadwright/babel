@@ -4,31 +4,31 @@
 ;; + Make HTML functions +
 ;; -----------------------
 
-;; make html of cle-object
-(defmethod make-html-for-entity-details ((object cle-object) &key agent topic world)
-  (let ((title-font (if (equal topic (id object)) "font-weight:bold;" ""))
-        (attributes (sort (loop for channel being the hash-keys of (attributes object)
+;; make html of entity
+(defmethod make-html-for-entity-details ((entity entity) &key agent topic world)
+  (let ((title-font (if (equal topic (id entity)) "font-weight:bold;" ""))
+        (features (sort (loop for feature-name being the hash-keys of (features object)
                                   using (hash-value value)
-                                collect (cons channel value))
+                                collect (cons feature-name value))
                           (lambda (x y) (string< (symbol-name x) (symbol-name y)))
                           :key #'car)))
     (append
      ;; symbolic attributes
      (loop for attr being the hash-keys of (description object) 
            using (hash-value val)
-           if (is-channel-available world (current-view agent) attr (attributes object))
+           if (is-channel-available world (current-view agent) attr (features object))
              append `(((div :class "entity-detail" :style ,(format nil "~a" title-font))
                        ,(format nil "~a = ~,2f" attr val))))
      ;; continuous features
      `(((hr :style ,(format nil "margin: 0px;"))))
      `(((hr :style ,(format nil "margin: 0px;"))))
      ;; add border to the first key, val pair
-     (let* ((attr (caar attributes))
-            (val (cdar attributes)))
+     (let* ((attr (caar features))
+            (val (cdar features)))
        `(((div :class "entity-detail" :style ,(format nil "border-top: 0px dashed #563; ~a" title-font))
           ,(format nil "~a = ~,2f" attr val))))
      ;; then draw the rest
-     (loop for (attr . val) in (rest attributes)
+     (loop for (attr . val) in (rest features)
            append `(((div :class "entity-detail" :style ,(format nil "~a" title-font))
                      ,(format nil "~a = ~,2f" attr val)))))))
 
@@ -36,8 +36,8 @@
 ;; make html of object set
 (defmethod make-html-for-entity-details ((set cle-scene) &key agent topic world)
   `(((div :class "entity-detail")
-     ,@(loop for object in (objects set)
-             collect (make-html object :agent agent :topic topic :world world :expand-initially t)))))
+     ,@(loop for entity in (entities set)
+             collect (make-html entity :agent agent :topic topic :world world :expand-initially t)))))
 
 ;; make-html of cxn
 (defmethod make-html ((cxn cxn) &key)
@@ -46,21 +46,21 @@
       (cxn->s-dot cxn))))
 
 ;; make html of cle-category
-(defmethod make-html-for-entity-details ((prototype prototype) &key)
+(defmethod make-html-for-entity-details ((wd concept-representations::weighted-distribution) &key)
   `(((div :class "entity-detail")
-     ,(format nil "attribute: ~a" (channel prototype)))
+     ,(format nil "attribute: ~a" (feature-name wd)))
     ((div :class "entity-detail")
-     ,(format nil "prototype: ~,2f" (mean (distribution prototype))))
+     ,(format nil "mean: ~,2f" (mean (distribution wd))))
     ((div :class "entity-detail")
-     ,(format nil "variance: ~,2f" (st-dev (distribution prototype))))))
+     ,(format nil "variance: ~,2f" (st-dev (distribution wd))))))
 
 
 ;; -------------------------------------
 ;; Drawing object entities with colors +
 ;; -------------------------------------
 
-(defun get-hex-value-of-object-color (object)
-  (case (gethash :color (description object))
+(defun get-hex-value-of-object-color (entity)
+  (case (gethash :color (description entity))
     (gray   "#575757")
     (red    "#AD2223")
     (blue   "#2C4CD7")
@@ -100,7 +100,7 @@
                         "#000000"))
         (title-color (if (equal topic (id e))
                        (get-hex-value-of-object-color e)
-                       (if (equal 'cle-object (type-of e)) (get-hex-value-of-object-color e) "#562"))))
+                       (if (equal 'entity (type-of e)) (get-hex-value-of-object-color e) "#562"))))
   `((div :class "entity-box")
     ((div :class "entity-title" :style ,(format nil "background-color:~a; ~a" border-color title-color))
      ((a ,@(make-expand/collapse-link-parameters 
@@ -120,7 +120,7 @@
                         "#000000"))
         (title-color (if (equal topic (id e))
                        (get-hex-value-of-object-color e)
-                       (if (equal 'cle-object (type-of e)) (get-hex-value-of-object-color e) "#562")))
+                       (if (equal 'entity (type-of e)) (get-hex-value-of-object-color e) "#562")))
         (title-font (if (equal topic (id e))
                       "font-weight:bold;"
                       ""

@@ -35,7 +35,7 @@
    (view-name :type str :initform nil :initarg :view-name :accessor view-name)
    ;; train, val or test?
    (dataset-split :type string :initarg :dataset-split :accessor dataset-split)
-   ;; type of data: objects -> list, scenes-fpaths -> hash-table
+   ;; type of data: entities -> list, scenes-fpaths -> hash-table
    (data :type any :initform nil :accessor data)
    ;; information about the loaded the feature-set
    (feature-set :type list :initform nil :accessor feature-set)
@@ -137,7 +137,7 @@
            (format t "~% Completed loading.~%~%")))
 
 (defmethod load-data ((world runtime-world))
-  "Load the dataset which consists of a set of objects."
+  "Load the dataset which consists of a set of entities."
   (loop for view-name in (view-names world)
         for view = (gethash view-name (views world))
         for fpath = (merge-pathnames (make-pathname :directory `(:relative
@@ -153,11 +153,11 @@
         do (when (not (probe-file fpath))
              (error "Could not find a 'scenes' subdirectory in ~a~%" fpath))
            ;; load the dataset
-           (format t "~% Loading the objects... [~a]" fpath)
+           (format t "~% Loading the entities... [~a]" fpath)
            (time
-            (let* ((raw-data (read-jsonl fpath))
-                    (objects (data->cle-objects raw-data (feature-set view) (get-categorical-features world view-name))))
-              (setf (data view) objects)))
+            (let* ((raw-data (concept-representations::read-jsonl fpath))
+                    (entities (concept-representations::loaded-data->entities raw-data)))
+              (setf (data view) entities)))
            (format t "~% Completed loading.~%~%")))
 
 ;; ------------------------
@@ -176,10 +176,10 @@
     scene))
   
 (defmethod random-scene ((world runtime-world) view-name)
-  "Create a scene by randomly sampling objects"
+  "Create a scene by randomly sampling entities"
   (let* ((context-size (sample-context-size world))
-         (objects (random-elts (data (get-view world view-name)) context-size))
-         (scene (objects->cle-scene objects world view-name)))
+         (entities (random-elts (data (get-view world view-name)) context-size))
+         (scene (entities->cle-scene entities world view-name)))
     scene))
 
 (defun sample-context-size (world)
@@ -197,7 +197,6 @@
 
 (defmethod get-view ((world world) view-name)
   (gethash view-name (views world)))
-  
 
 (defmethod get-feature-set ((world world) view-name)
   (feature-set (get-view world view-name)))
@@ -219,11 +218,11 @@
                     symbolic-attribute)
           collect channel))
 
-(defmethod is-channel-available ((world world) view-name symbolic-attribute raw-attributes)
+(defmethod is-channel-available ((world world) view-name symbolic-attribute raw-features)
   (let* ((associated-channels (get-channels-with-symbolic-attribute world view-name symbolic-attribute))
-         (continuous-attributes (hash-keys raw-attributes)))
+         (continuous-features (hash-keys raw-features)))
     (loop for channel in associated-channels
-          if (member channel continuous-attributes)
+          if (member channel continuous-features)
             return t
           finally (return nil))))
 

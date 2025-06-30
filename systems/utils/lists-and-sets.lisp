@@ -1022,7 +1022,7 @@ element for which the sought value satisfies the test"
 ;; hash-table utilities:
 ;; ----------------------------------------------------------------------------
 
-(export '(copy-hash-table add-hash-table))
+(export '(copy-hash-table add-hash-table hash-keys hash-values))
 
 (defun copy-hash-table (source)
   (declare (type hash-table source))
@@ -1043,6 +1043,15 @@ element for which the sought value satisfies the test"
                          (null (nth-value 1 (gethash key table1))))
                  (setf (gethash key table1) val)))
            table2))
+
+(defun hash-keys (table)
+  (loop for key being the hash-keys of table
+        collect key))
+
+(defun hash-values (table)
+  (loop for value being the hash-values of table
+        collect value))
+
 
 ;; ############################################################################
 

@@ -16,6 +16,7 @@
                :cl-store
                :com.inuoe.jzon
                :distributions
+               :concept-representations
                )
   :serial t
   :components ((:file "package")
@@ -38,28 +39,11 @@
                              (:file "parsing")
                              (:file "production")
                              ))
-               (:module "prototype"
-                :serial t
-                :components ((:file "prototype")
-                             (:file "update")))
-               (:module "concept"
-                :serial t
-                :components ((:file "concept")
-                             (:file "shift")
-                             (:file "similarity")))
                (:module "construction"
                 :serial t
                 :components ((:file "construction")
                              (:file "lexicon")
                              (:file "update")))
-               (:module "distribution"
-                :serial t
-                :components ((:file "distribution")
-                             (:file "gaussian")
-                             (:file "categorical")
-                             (:file "welford")
-                             (:file "divergence")
-                             ))
                (:module "interaction"
                 :serial t
                 :components ((:file "experiment")

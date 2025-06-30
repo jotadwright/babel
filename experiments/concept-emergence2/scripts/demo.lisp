@@ -18,7 +18,7 @@
   (wi::reset)
   
   ;; deactivate all monitors (as a sanity check)
-  (deactivate-all-monitors)
+  (monitors::deactivate-all-monitors)
   ;; configure the game
   (defparameter *concept-learning-game*
     (make-configuration
@@ -30,8 +30,8 @@
                 ;; setup environment
                 (:dataset-loader . :runtime) ;; :precomputed or :runtime, load data in by scene (:precomputed) or by objects (:runtime)
                 (:dataset-view . :shared-views) ;; :shared-views or :exclusive-views, all views are shared or is each agent assigned a view?
-                (:dataset "air") ;; list of strings, each string represents a view over a dataset
-                (:feature-set "air") ;; list of strings, each string represents a feature set (stored in Corpora/concept-emergence2/-feature-sets), every feature-set is associated to a coressponding element in :dataset
+                (:dataset "winery") ;; list of strings, each string represents a view over a dataset
+                (:feature-set "winery") ;; list of strings, each string represents a feature set (stored in Corpora/concept-emergence2/-feature-sets), every feature-set is associated to a coressponding element in :dataset
                 (:dataset-split . "train") ;; string, "train" or "test", which split of the data to use?
                 ;; setup game
                 (:interacting-agents-strategy . :standard) ;; :standard [AT THE MOMENT, ONLY OPTION AVAILABLE]
@@ -110,6 +110,10 @@
 
 ;; display the lexicon of an agent
 (display-lexicon (first (agents *experiment*)) :weight-threshold 0.8 :sort t)
+
+(loop for cxn being the hash-values of (get-inventory (lexicon (first (agents *experiment*))) :fast)
+      do (concept-representations::add-concept-to-interface (meaning cxn) :weight-threshold 0.2))
+
 
 ;; restore an experiment (.store) and initialise the world
 (let ((fdir (babel-pathname :directory '("experiments"

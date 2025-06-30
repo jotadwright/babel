@@ -18,14 +18,6 @@
           else
             collect row)))
 
-(defun read-jsonl (path)
-  "Loads a .jsonl corpus."
-  (with-open-file (stream path)
-    (loop for line = (read-line stream nil)
-          for data = (when line (jzon::parse line :key-fn #'parse-keyword))
-          while data
-          collect data)))
-
 (defun get-current-date ()
   (multiple-value-bind
       (second minute hour day month year day-of-week dst-p tz)
@@ -94,14 +86,6 @@
         for el in lst
         do (setf (gethash (funcall key el) tbl) el)
         finally (return tbl)))
-
-(defun hash-keys (ht)
-  (loop for key being the hash-keys of ht
-        collect key))
-
-(defun hash-values (ht)
-  (loop for value being the hash-values of ht
-        collect value))
 
 (defun load-experiment (store-dir name)
   "Loads and returns the store object in the given directory." 

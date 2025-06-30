@@ -1,20 +1,5 @@
 (in-package :cle)
 
-;; ------------------------
-;; + Set a scene manually +
-;; ------------------------
-
-(defmethod set-scene (experiment scene-id)
-  "Set a scene manually."
-  (error "Code needs update.")
-  ;; (loop with world = (world experiment)
-  ;;       with view-name = (first (view-names (world))) ;; use the first view by default
-  ;;       with scene = (load-precomputed-scene world view-name scene-id)
-  ;;       for agent in (interacting-agents experiment)
-  ;;       do (setf (current-view agent) view-name)
-  ;;       do (set-data agent 'context scene))
-  )
-
 ;; -------------------------
 ;; + Random Scene sampling +
 ;; -------------------------
