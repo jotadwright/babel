@@ -1,4 +1,4 @@
-(in-package :slp)
+(in-package :geoquery-lsfb-grammar)
 
 (defun same-arguments (pred-1 pred-2)
   (when (and (eql (first pred-1)(first pred-2))
@@ -11,14 +11,18 @@
   (loop with output = '()
         with included-simultaneous-predicates = '()
         for predicate in (slp::predicates signed-form-predicates)
-        for during-predicate = `(slp::during ,(second predicate) ,(third predicate))
-        do (if (and (member (first predicate) '(slp::start-coincides slp::end-coincides slp::during))
-                    (not (member during-predicate included-simultaneous-predicates :test #'same-arguments)))
-             (progn (push during-predicate
-                          output)
-               (push during-predicate
-                     included-simultaneous-predicates))
-             (push predicate output))
+        for during-predicate = `(during ,(second predicate) ,(third predicate))
+        do (cond ((and (member (first predicate) '(slp::start-coincides slp::end-coincides slp::during))
+                        (not (member during-predicate included-simultaneous-predicates :test #'same-arguments)))
+                  (progn (push during-predicate
+                               output)
+                    (push during-predicate
+                          included-simultaneous-predicates)))
+                  ((and (member (first predicate) '(slp::start-coincides slp::end-coincides slp::during))
+                        (member during-predicate included-simultaneous-predicates :test #'same-arguments))
+                   nil)
+                  (t
+                   (push predicate output)))
         finally (return (make-instance 'slp::signed-form-predicates
                                        :predicates output))))
 
@@ -47,4 +51,16 @@
   (jsonl->list-of-json-alists
    (babel-pathname :directory '("systems" "sign-language-processing""sign-language-processing-requirements")
                    :name "states"
+                   :type "jsonl")))
+
+(defparameter *geoquery-states-naming-signs*
+  (jsonl->list-of-json-alists
+   (babel-pathname :directory '("systems" "sign-language-processing""sign-language-processing-requirements")
+                   :name "naming-signs"
+                   :type "jsonl")))
+
+(defparameter *geoquery-cities*
+  (jsonl->list-of-json-alists
+   (babel-pathname :directory '("systems" "sign-language-processing""sign-language-processing-requirements")
+                   :name "cities"
                    :type "jsonl")))

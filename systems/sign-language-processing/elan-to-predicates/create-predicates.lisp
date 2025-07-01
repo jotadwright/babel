@@ -1,5 +1,10 @@
 (in-package :slp)
 
+(export '(right-hand-articulation
+          left-hand-articulation
+          two-hand-articulation
+          during))
+
 (defun make-hamnosys-predicates (elan-intervals)
   "makes a set of hamnosys-predicates for elan-intervals"
   (loop with predicates = '()

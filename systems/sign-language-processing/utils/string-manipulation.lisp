@@ -13,9 +13,9 @@
     "(" "[")
    ")" "]"))
 
-(defun replace-spaces (string)
+(defun replace-spaces (string &key (replacer "-") )
   "replaces all occurrences of spaces in the string with dashes"
-  (string-replace string " " "-"))
+  (string-replace string " " replacer))
 
 (defun get-gloss-prefix (gloss)
   "returns the prefix of a gloss"

@@ -1,4 +1,4 @@
-(in-package :slp)
+(in-package :geoquery-lsfb-grammar)
 
 (def-fcg-constructions geoquery-lsfb
   :feature-types ((subunits set)
@@ -12,7 +12,7 @@
   :hierarchy-features (subunits)
   :diagnostics ()
   :repairs ()
-  :fcg-configurations ((:parse-goal-tests :no-applicable-cxns :connected-semantic-network)
+  :fcg-configurations ((:parse-goal-tests :no-applicable-cxns :connected-semantic-network :connected-structure)
                        (:production-goal-tests :no-applicable-cxns :no-meaning-in-root :connected-structure)
                        (:node-tests :check-duplicate :restrict-nr-of-nodes :restrict-search-depth)
                        (:max-number-of-nodes . 200)
