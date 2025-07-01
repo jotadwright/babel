@@ -16,7 +16,7 @@
      ;; symbolic attributes
      (loop for attr being the hash-keys of (description object) 
            using (hash-value val)
-           if (is-channel-available world (current-view agent) attr (features object))
+           if (is-feature-available world (current-view agent) attr (features object))
              append `(((div :class "entity-detail" :style ,(format nil "~a" title-font))
                        ,(format nil "~a = ~,2f" attr val))))
      ;; continuous features

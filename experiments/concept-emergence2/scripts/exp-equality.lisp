@@ -46,8 +46,8 @@ Example usage
                     (equal-window ag1 ag2))))
 
 (defmethod equal-window ((ag1 cle-agent) (ag2 cle-agent))
-  (equalp (window (usage-table ag1))
-          (window (usage-table ag2))))
+  (equalp (window (usage-tracker ag1))
+          (window (usage-tracker ag2))))
 
 (defun transform-to-ht (lex)
   (if (equalp (type-of lex) 'lexicon)

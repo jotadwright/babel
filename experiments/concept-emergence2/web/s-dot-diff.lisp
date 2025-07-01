@@ -9,13 +9,13 @@
 (defparameter *green* "#26AD26")
 (defparameter *black* "#000000")
 
-(defgeneric cxn->s-dot-diff (cxn delta &key weight-threshold disabled-channels)
+(defgeneric cxn->s-dot-diff (cxn delta &key weight-threshold disabled-features)
   (:documentation "Display a cxn using s-dot."))
 
 (defmethod cxn->s-dot-diff ((cxn cxn) (previous-copy cxn)
                             &key
                             (weight-threshold 0.1)
-                            (disabled-channels nil))
+                            (disabled-features nil))
   (let ((g '(((s-dot::ranksep "0.3")
               (s-dot::nodesep "0.5")
               (s-dot::margin "0")
@@ -51,27 +51,27 @@
                      (s-dot::fontcolor "#AA0000"))))
      g)
 
-    ;; feature-channels nodes
+    ;; feature-features nodes
     (loop with wds = (sort (concept-representations::get-weighted-distributions (meaning cxn))
                                   (lambda (x y) (string< (symbol-name (feature-name x))
                                                          (symbol-name (feature-name y)))))
           for wd in wds
           for previous-wd = (gethash (feature-name wd) (concept-representations::representation (meaning previous-copy)))
           for record = (wd->s-dot-diff wd previous-wd)
-          when (and (if disabled-channels
-                      (not (gethash (feature-name wd) disabled-channels))
+          when (and (if disabled-features
+                      (not (gethash (feature-name wd) disabled-features))
                       t)
                     (>= (weight previous-wd) weight-threshold))
             do (push record g))
-    ;; edges between cxn node and feature-channels
+    ;; edges between cxn node and feature-features
     (loop with wds = (sort (concept-representations::get-weighted-distributions (meaning cxn))
                            (lambda (x y) (string< (symbol-name (feature-name x))
                                                   (symbol-name (feature-name y)))))
           for wd in wds and weight-idx from 1
           for previous-wd = (gethash (feature-name wd) (concept-representations::representation (meaning previous-copy)))
           for delta = (- (weight wd) (weight previous-wd))
-          when (and (if disabled-channels
-                      (not (gethash (feature-name wd) disabled-channels))
+          when (and (if disabled-features
+                      (not (gethash (feature-name wd) disabled-features))
                       t)
                     (>= (weight previous-wd) weight-threshold))
             do (push

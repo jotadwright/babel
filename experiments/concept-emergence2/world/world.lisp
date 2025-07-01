@@ -10,11 +10,11 @@
 ;;    ~/Corpora/concept-emergence2/<dataset_name>/scenes/<train/test>/<dataset_name>_<train/test>_<scene_index>.json
 ;; Feature set information (which feature set to use in an experiment)
 ;;    ~/Corpora/concept-emergence2/-feature-sets/<feature-set-name>.csv
-;; A feature-set csv contains a header with columns: channel, type, symbolic-attribute
-;;    - channel: name of the feature channel
-;;    - type: continuous or categorical
+;; A feature-set csv contains a header with columns: feature-name, feature-type, symbolic-attribute
+;;    - feature-name: name of the feature
+;;    - feature-type: continuous or categorical
 ;;    - symbolic-attribute: name of the symbolic attribute
-;;       e.g. channels like 'width' and 'height' belong to the 'size' attribute
+;;       e.g. features like 'width' and 'height' belong to the 'size' attribute
 
 ;; ---------
 ;; + World +
@@ -38,7 +38,7 @@
    (data :type any :initform nil :accessor data)
    ;; information about the loaded the feature-set
    (feature-set :type list :initform nil :accessor feature-set)
-   (channel-type :type hash-table :initform (make-hash-table :test #'equalp) :accessor channel-type)
+   (feature-type :type hash-table :initform (make-hash-table :test #'equalp) :accessor feature-type)
    (symbolic-attribute :type hash-table :initform (make-hash-table :test #'equalp) :accessor symbolic-attribute)
    )
   (:documentation "A view over the dataset"))
@@ -98,14 +98,14 @@
                                          cl-user:*babel-corpora*)
         for csv = (read-csv info-path)
         do (loop for row in csv
-                 for channel = (parse-keyword (first row))
+                 for feature-name = (parse-keyword (first row))
                  for type = (parse-keyword (second row))
                  for symbolic-attribute = (parse-keyword (third row))
                  do (setf (feature-set view)
-                          (cons channel (feature-set view)))
-                 do (setf (gethash channel (channel-type view))
+                          (cons feature-name (feature-set view)))
+                 do (setf (gethash feature-name (feature-type view))
                           type)
-                 do (setf (gethash channel (symbolic-attribute view))
+                 do (setf (gethash feature-name (symbolic-attribute view))
                           symbolic-attribute))))
 
 ;; ---------------
@@ -245,37 +245,37 @@
 (defmethod get-feature-set ((world world) view-name)
   (feature-set (get-view world view-name)))
 
-(defmethod get-channel-type ((world world) channel view-name)
-  (gethash channel (channel-type (get-view world view-name))))
+(defmethod get-feature-type ((world world) feature-name view-name)
+  (gethash feature-name (feature-type (get-view world view-name))))
 
 (defmethod get-categorical-features ((world world) view-name)
-  (loop with feature-types =  (channel-type (get-view world view-name))
+  (loop with feature-types =  (feature-type (get-view world view-name))
         for feature being the hash-keys of feature-types
           using (hash-value type)
         when (equal type :categorical)
           collect feature))
 
-(defmethod get-channels-with-symbolic-attribute ((world world) view-name symbolic-attribute)
+(defmethod get-features-with-symbolic-attribute ((world world) view-name symbolic-attribute)
   (loop with view = (get-view world view-name)
-        for channel being the hash-keys of (symbolic-attribute view)
-        when (equal (gethash channel (symbolic-attribute view))
+        for feature-name being the hash-keys of (symbolic-attribute view)
+        when (equal (gethash feature-name (symbolic-attribute view))
                     symbolic-attribute)
-          collect channel))
+          collect feature-name))
 
-(defmethod is-channel-available ((world world) view-name symbolic-attribute raw-features)
-  (let* ((associated-channels (get-channels-with-symbolic-attribute world view-name symbolic-attribute))
+(defmethod is-feature-available ((world world) view-name symbolic-attribute raw-features)
+  (let* ((associated-features (get-features-with-symbolic-attribute world view-name symbolic-attribute))
          (continuous-features (hash-keys raw-features)))
-    (loop for channel in associated-channels
-          if (member channel continuous-features)
+    (loop for feature-name in associated-features
+          if (member feature-name continuous-features)
             return t
           finally (return nil))))
 
-(defmethod channel-continuous-p (world view-name channel)
-  (equalp (get-channel-type world channel view-name)
+(defmethod feature-continuous-p (world view-name feature-name)
+  (equalp (get-feature-type world feature-name view-name)
          :continuous))
 
-(defmethod channel-categorical-p (world view-name channel)
-  (equalp (get-channel-type world channel view-name)
+(defmethod feature-categorical-p (world view-name feature-name)
+  (equalp (get-feature-type world feature-name view-name)
          :categorical))
 
 (defmethod copy-object ((world world)) world)

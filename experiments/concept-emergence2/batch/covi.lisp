@@ -4,13 +4,25 @@
 (ql:quickload :cle)
 (in-package :cle)
 
+(defun fixed-config ()
+  `(;; fixed in stone
+    ;; --------------
+    (:log-every-x-interactions . 5000)
+    ;(:record-every-x-interactions . 100)
+    (:usage-tracker-window . 5000)
+    (:save-distribution-history . nil)
+    (:interacting-agents-strategy . :standard)
+    (:initial-cxn-entrenchement . 0.5)
+    ;; parameter for updating continuous distributions (gaussian-welford)
+    (:M2 . 0.0001)))
+
 ;; (progn
 ;;   (defparameter *concept-learning-game*
 ;;     (make-configuration
 ;;      :entries `(
 ;;                 ;; monitoring
 ;;                 (:log-every-x-interactions . 1000) ;; integer, frequence of when to log measures to standard output
-;;                 (:usage-table-window . 100) ;; integer, window size of the construction inventory usage table
+;;                 (:usage-tracker-window . 100) ;; integer, window size of the construction inventory usage table
 ;;                 (:save-distribution-history . nil) ;; t or nil, whether to save the history of updates to the distribution (very memory-intensive!)
 ;;                 ;; setup environment
 ;;                 (:dataset-loader . :precomputed) ;; :precomputed or :runtime, load data in by scene (:precomputed) or by objects (:runtime)
@@ -23,10 +35,10 @@
 ;;                 (:population-size . 10) ;; integer, size of the population
 ;;                 (:min-context-size . 10) ;; integer, minimum number of context elements
 ;;                 (:max-context-size . 10) ;; integer, maximum number of context elements
-;;                 ;; disable channels
-;;                 (:disable-channels . :none) ;; :none, :random. :fixed
-;;                 (:amount-disabled-channels . 0) ;; integer, amount of channels to disable
-;;                 ;; noised channels
+;;                 ;; disable features
+;;                 (:disable-features . :none) ;; :none, :random. :fixed
+;;                 (:amount-disabled-features . 0) ;; integer, amount of features to disable
+;;                 ;; noised features
 ;;                 (:sensor-noise . :none) ;; :none or :shift
 ;;                 (:sensor-std . 0.0) ;; float, corresponds to calibration noise
 ;;                 (:observation-noise . :none) ;; :none or :shift
@@ -42,17 +54,17 @@
 ;;                 (:entrenchment-li . -0.02) ;; lateral inhibition, hyperparameter for alignment (:align)
 ;;                 ;; concept representation parameters
 ;;                 (:M2 . 0.0001) ;; float, default initialisation for gaussian distributions
-;;                 ;; prototype weight inits
+;;                 ;; weighted-distribution inits
 ;;                 (:weight-update-strategy . :j-interpolation) ;; :standard or :j-interpolation
 ;;                 (:initial-weight . 0) ;; default weight
 ;;                 (:weight-incf . 1)    ;; :standard uses floats, j-interpolation uses int
 ;;                 (:weight-decf . -5)   ;; :standard uses floats, j-interpolation uses int
 ;;                 ;; experimental alternatives
-;;                 (:prototype-distance . :paper) ;; :paper or :paper-wo-ledger
+;;                 (:weighted-distribution-distance . :paper) ;; :paper or :paper-wo-ledger
 ;;                 ;; staging
 ;;                 (:switch-condition . :none) ; :none, :after-n-interactions
 ;;                 (:switch-conditions-after-n-interactions . 50000) ;;
-;;                 (:stage-parameters ((:switch-disable-channels-half . 10))) ;;
+;;                 (:stage-parameters ((:switch-disable-features-half . 10))) ;;
 ;;                 ;; measures
 ;;                 (:coherence-perspective . :hearer) ;; :hearer or :speaker, determines how conventionalisation is measured
 ;;                 ;; paths for exporting data to disk
@@ -75,9 +87,9 @@
     ;; lists of strings should also be downcase
     (loop for (key . val) in config
           when (find key (list :dataset :feature-set))
-          ;; loop through strings in val and downcase theme
-          do (rplacd (assoc key config)
-                     (mapcar #'string-downcase val)))
+            ;; loop through strings in val and downcase theme
+            do (rplacd (assoc key config)
+                       (mapcar #'string-downcase val)))
     (when (assoc :stage-parameters config)
       (let ((stage-params (assqv :stage-parameters config)))
         (loop for stage-param in stage-params
@@ -90,27 +102,17 @@
               do (when (assoc :switch-feature-set stage-param)
                    (rplacd (assoc :switch-feature-set stage-param)
                            (string-downcase (string (assqv :switch-feature-set stage-param))))))))
-    config))
+    ;; generate a unique log dir name
+    (setf config (append config (list (cons :log-dir-name (generate-log-dir-name (assqv :seed config))))))
+    ;; append to the fixed configuration
+    (setf config (append (fixed-config) config))
+    ;; finally create a configuration object
+    (make-configuration :entries config)))
 
-(defun fixed-config ()
-  `(;; fixed in stone
-    ;; --------------
-    (:log-every-x-interactions . 5000)
-    ;(:record-every-x-interactions . 100)
-    (:usage-table-window . 5000)
-    (:save-distribution-history . nil)
-    (:interacting-agents-strategy . :standard)
-    (:initial-cxn-entrenchement . 0.5)
-    ;; parameter for updating continuous distributions (gaussian-welford)
-    (:M2 . 0.0001)))
+
 
 (defun run-experiment (args)
-  (let* (;; parse command line arguments, append it to the fixed configuration
-         (config (append (fixed-config) (parse-config args)))
-         ;; generate a log-dir-name
-         (log-dir-name (generate-log-dir-name (assqv :seed config))))
-    ;; add log-dir-name to configuration
-    (setf config (append config (list (cons :log-dir-name log-dir-name))))
+  (let* ((configuration (parse-config args)))
     ;; adapt file-writing monitors so they output in the correct log-dir
     (set-up-monitors (list "export-communicative-success"
                            "export-conventionalisation"
@@ -122,13 +124,12 @@
 
     ;; Run experiment
     (format t "~%~% == Running the experiment, log at 'logging/~a/~a/~a'.~%"
-            (assqv :exp-top-dir config)
-            (assqv :exp-name config)
-            (assqv :log-dir-name config))
+            (get-configuration configuration :exp-top-dir)
+            (get-configuration configuration :exp-name)
+            (get-configuration configuration :log-dir-name))
     (time
-     (loop with *configuration* = (make-configuration :entries config)
-           with *experiment* = (make-instance 'cle-experiment :configuration *configuration*)
-           with timestep-log2 =  (list
+     (loop with *experiment* = (make-instance 'cle-experiment :configuration configuration)
+           with timestep-log =  (list
                                   1 2 3 4 5 6 7 8 9
                                   10     20     30     50     70
                                   100    200    300    500    700
@@ -142,7 +143,7 @@
                              (first (get-configuration *experiment* :dataset)))
            for i from 0 to 1000000
             ;when (eq (mod i timestep-log) 0)
-           when (member i timestep-log2)
+           when (member i timestep-log)
              do (progn
                   (format t "~%------> Logging ~a <---------~%" i)
                   (loop for agent in (agents *experiment*)

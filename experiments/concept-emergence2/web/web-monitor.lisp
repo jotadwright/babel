@@ -5,13 +5,13 @@
 ;; --------------------------
 
 ;; Add cxn to wi
-(defun add-cxn-to-interface (cxn &key (weight-threshold 0.1) disabled-channels)
+(defun add-cxn-to-interface (cxn &key (weight-threshold 0.1) disabled-features)
   (add-element
    `((div :style ,(format nil "margin-left: 50px;"))
      ,(s-dot->svg
        (cxn->s-dot cxn
                    :weight-threshold weight-threshold
-                   :disabled-channels disabled-channels)))))
+                   :disabled-features disabled-features)))))
 
 (defun add-cxn-diff-to-interface (cxn previous-copy &key (weight-threshold 0.1))
   (add-element
@@ -45,7 +45,7 @@
                     `((h4) ,(format nil "Construction with entrenchment score ~,2f (appeared during interaction ~a)"
                                     (score cxn)
                                     (first (first (history cxn))))))
-                   (add-cxn-to-interface cxn :weight-threshold weight-threshold :disabled-channels (disabled-channels agent)))))))
+                   (add-cxn-to-interface cxn :weight-threshold weight-threshold :disabled-features (disabled-features agent)))))))
 
 ;; helper function to add some text to the web interface
 (defun show-in-wi (args)
@@ -180,7 +180,7 @@
   (if (utterance agent)
     (progn
       (add-element `((h2) ,(format nil "Step 2: SPEAKER produced an utterance: \"~a\" " (utterance agent))))
-      (add-cxn-to-interface (find-data agent 'applied-cxn) :disabled-channels (disabled-channels agent))
+      (add-cxn-to-interface (find-data agent 'applied-cxn) :disabled-features (disabled-features agent))
       )
     (add-element `((h2) ,(format nil "Step 2: SPEAKER could not produce an utterance")))))
 
@@ -192,7 +192,7 @@
     (if (find-data agent 'applied-cxn)
       (progn
         (add-element '((h2) "Step 3: HEARER knows the utterance"))
-        (add-cxn-to-interface (find-data agent 'applied-cxn) :disabled-channels (disabled-channels agent)))
+        (add-cxn-to-interface (find-data agent 'applied-cxn) :disabled-features (disabled-features agent)))
       (progn
         (add-element
          `((h2) ,(format nil "Step 3: HEARER does not know the utterance  \"~a\"" (utterance agent))))

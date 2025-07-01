@@ -64,10 +64,10 @@
       ;; CASE A: hearer did not recognize the word
       ((nil)
        (adopt agent topic (utterance agent)))
-      ;; CASE B: hearer did recognize the word
       (otherwise 
-       (cond ((communicated-successfully agent)
-              ;; CASE A: recognized + communication was successful!
+      ;; CASE B: hearer did recognize the word
+       (cond (;; CASE A: recognized + communication was successful!
+              (communicated-successfully agent)
               (progn
                 ;; 1. entrench applied-cxn
                 (update-score-cxn agent applied-cxn (get-configuration (experiment agent) :entrenchment-incf))
@@ -85,9 +85,9 @@
                       do (update-score-cxn agent other-cxn delta))
                 ;; notify
                 (notify event-align-cxn "Entrench and shift" applied-cxn previous-copy)))
+             ;; CASE B: recognized but did not point to correct word
              ((or (get-data agent 'interpreted-topic)
                   (eq (get-data agent 'interpreted-topic-reason) 'more-candidates))
-              ;; CASE B: recognized but did not point to correct word
               (progn
                 ;; 1. entrench applied-cxn negatively
                 (update-score-cxn agent applied-cxn (get-configuration (experiment agent) :entrenchment-decf))
@@ -98,8 +98,8 @@
                                                          :weight-incf (get-configuration (experiment agent) :weight-incf)
                                                          :weight-decf (get-configuration (experiment agent) :weight-decf))
                 (notify event-align-cxn "Punish (due to failure) and shift" applied-cxn previous-copy)))
+             ;; CASE C: recognized but used concept is useless due to defects
              ((eq (get-data agent 'interpreted-topic-reason) 'no-match)
-              ;; CASE C: recognized but used concept is useless due to defects
               (progn
                 (reset-adopt agent applied-cxn topic)
                 (notify event-align-cxn "Concept is useless, shifting" applied-cxn previous-copy))))))))

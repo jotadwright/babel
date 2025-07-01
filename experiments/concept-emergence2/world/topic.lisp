@@ -49,10 +49,10 @@
 ;;         collect entity))
 
 ;; (defun is-discriminative (world entity other-entities &key (attribute nil))
-;;   "Checks if the entity has a single channel dimension that is different from all other entities."
+;;   "Checks if the entity has a single feature dimension that is different from all other entities."
 ;;   (loop for attr being the hash-keys of (description entity) 
 ;;         using (hash-value val)
-;;         do (when (is-channel-available world attr (features entity))
+;;         do (when (is-feature-available world attr (features entity))
 ;;              (let ((discriminative (cond ((and attribute (not (eq attr attribute))) ;; eq?
 ;;                                           nil)
 ;;                                          (t
@@ -68,7 +68,7 @@
 ;;   (let ((other-entities (remove topic (entities context))))
 ;;     (loop for attr being the hash-keys of (description topic) 
 ;;           using (hash-value val)
-;;           for available = (is-channel-available world attr (features topic))
+;;           for available = (is-feature-available world attr (features topic))
 ;;           for discriminative = (loop for other-entity in other-entities
 ;;                                      for other-val = (gethash attr (description other-entity))
 ;;                                      always (not (equal val other-val)))

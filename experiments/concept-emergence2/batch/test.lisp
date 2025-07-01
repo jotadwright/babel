@@ -4,6 +4,14 @@
 (ql:quickload :cle)
 (in-package :cle)
 
+(defun fixed-config ()
+  `(;; fixed in stone
+    ;; --------------
+    (:align . nil) ;; disable alignment
+    (:usage-tracker-window . nil) ;; use full usage table
+    ))
+
+
 (defun parse-config (args)
   (let ((config (loop for (a b) on args by #'cddr
                       collect (cons (parse-keyword a) (read-from-string b)))))
@@ -13,56 +21,52 @@
                        (string-downcase (string (assqv key config)))))
     (loop for (key . val) in config
           when (find key (list :dataset :feature-set))
-          ;; loop through strings in val and downcase theme
-          do (rplacd (assoc key config)
-                     (mapcar #'string-downcase val)))
+            ;; loop through strings in val and downcase theme
+            do (rplacd (assoc key config)
+                       (mapcar #'string-downcase val)))
 
-    config))
-
-(defun fixed-config ()
-  `(;; fixed in stone
-    ;; --------------
-    (:align . nil) ;; disable alignment
-    (:usage-table-window . nil) ;; use full usage table
-    ))
+    ;; append the to the fixed configuration
+    (setf config (append (fixed-config) config))
+    ;; finally create a configuration object
+    (make-configuration :entries config)))
 
 (defun test-experiment (args)
-  (let* ((config (append (fixed-config)
-                         (parse-config args)))
-         (fname (format nil "seed-~a" (assqv :seed config)))
+  (let* ((configuration (parse-config args))
+         (fname (format nil "seed-~a" (get-configuration configuration :seed)))
          (experiment (cl-store:restore
                       (babel-pathname :directory `("experiments"
                                                    "concept-emergence2"
                                                    "storage"
-                                                   ,(assqv :exp-top-dir config)
+                                                   ,(get-configuration configuration :exp-top-dir)
                                                    "stores"
-                                                   ,(assqv :exp-name config)
+                                                   ,(get-configuration configuration :exp-name)
                                                    )
                                       :name fname
                                       :type "store"))))
     (format t "~% EXP-NAME = ~a w/ seed ~a"
-            (assqv :exp-name config)
-            (assqv :seed config)) ;; log exp-name
+            (get-configuration configuration :exp-name)
+            (get-configuration configuration :seed)) ;; log exp-name
     
     ;; set random seed
     (set-seed (get-configuration experiment :seed)) ;; set random state
     ;; set-up experiment
-    (set-configuration experiment :scene-sampling (assqv :scene-sampling config))
-    (set-configuration experiment :topic-sampling (assqv :topic-sampling config))
-    (set-configuration experiment :dataset (assqv :dataset config))
-    (set-configuration experiment :dataset-split (assqv :dataset-split config))
-    (set-configuration experiment :feature-set (assqv :feature-set config))
-    (set-configuration experiment :dataset-loader (assqv :dataset-loader config))
-    (set-configuration experiment :min-context-size (assqv :min-context-size config))
-    (set-configuration experiment :max-context-size (assqv :max-context-size config))
+    (set-configuration experiment :scene-sampling (get-configuration configuration :scene-sampling))
+    (set-configuration experiment :topic-sampling (get-configuration configuration :topic-sampling))
+    (set-configuration experiment :dataset (get-configuration configuration :dataset))
+    (set-configuration experiment :dataset-split (get-configuration configuration :dataset-split))
+    (set-configuration experiment :feature-set (get-configuration configuration :feature-set))
+    (set-configuration experiment :dataset-loader (get-configuration configuration :dataset-loader))
+    (set-configuration experiment :min-context-size (get-configuration configuration :min-context-size))
+    (set-configuration experiment :max-context-size (get-configuration configuration :max-context-size))
     ;; update experiment config for correct logging
-    (set-configuration experiment :usage-table-window (assqv :usage-table-window config))
-    (set-configuration experiment :align (assqv :align config))
-    (set-configuration experiment :nr-of-interactions (assqv :nr-of-interactions config))
+    (set-configuration experiment :usage-tracker-window (get-configuration configuration :usage-tracker-window))
+    (set-configuration experiment :align (get-configuration configuration :align))
+    (set-configuration experiment :nr-of-interactions (get-configuration configuration :nr-of-interactions))
 
     ;; reset usage tables
     (loop for agent in (agents experiment)
-          do (setf (usage-table agent) (create-usage-table (assqv :usage-table-window config))))
+          do (setf (usage-tracker agent) (create-usage-tracker (get-configuration configuration :usage-tracker-window))))
+    
     ;; initialise the world
     (initialise-world experiment)
 
@@ -76,10 +80,12 @@
 
     ;; run experiment
     (time
-      (progn
-      (notify reset-monitors)
-      (run-series experiment (+ 1 (assqv :nr-of-interactions config)))
-      (notify series-finished 1)
-      (notify batch-finished (class-string experiment))))))
+     (progn
+       (notify reset-monitors)
+       (run-series experiment (+ 1 (get-configuration configuration :nr-of-interactions)))
+       (notify series-finished 1)
+       (notify batch-finished (class-string experiment))))
+    (format t "~%~% == Completed experiment.~%~%")))
+
       
 (test-experiment #+sbcl (rest sb-ext:*posix-argv*))

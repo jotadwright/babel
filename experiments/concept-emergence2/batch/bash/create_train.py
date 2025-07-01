@@ -29,8 +29,8 @@ sbcl --dynamic-space-size 16000 --non-interactive --load run.lisp \\
     dataset-view {dataset_view} \\
     dataset-split {dataset_split} \\
     feature-set "({feature_set})" \\
-    disable-channels {disable_channels} \\
-    amount-disabled-channels {amount_disabled_channels} \\
+    disable-features {disable_features} \\
+    amount-disabled-features {amount_disabled_features} \\
     sensor-noise {sensor_noise} \\
     sensor-std {sensor_std} \\
     observation-noise {observation_noise} \\
@@ -45,7 +45,7 @@ sbcl --dynamic-space-size 16000 --non-interactive --load run.lisp \\
     initial-weight {initial_weight} \\
     weight-incf {weight_incf} \\
     weight-decf {weight_decf} \\
-    prototype-distance {prototype_distance} \\
+    weighted-distribution-distance {weighted_distribution_distance} \\
     switch-condition {switch_condition} \\
     switch-conditions-after-n-interactions {switch_conditions_after_n_interactions} \\
     stage-parameters "{stage_parameters}" \\

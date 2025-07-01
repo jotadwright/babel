@@ -4,6 +4,17 @@
 (ql:quickload :cle)
 (in-package :cle)
 
+(defun fixed-config ()
+  `(;; fixed in stone
+    ;; --------------
+    (:log-every-x-interactions . 5000)
+    ;(:record-every-x-interactions . 100)
+    (:usage-tracker-window . 5000)
+    (:save-distribution-history . nil)
+    (:initial-cxn-entrenchement . 0.5)
+    ;; parameter for updating continuous distributions (gaussian-welford)
+    (:M2 . 0.0001)))
+
 (defun parse-config (args)
   (let ((config (loop for (a b) on args by #'cddr
                       collect (cons (parse-keyword a) (read-from-string b)))))
@@ -15,9 +26,9 @@
     ;; lists of strings should also be downcase
     (loop for (key . val) in config
           when (find key (list :dataset :feature-set))
-          ;; loop through strings in val and downcase theme
-          do (rplacd (assoc key config)
-                     (mapcar #'string-downcase val)))
+            ;; loop through strings in val and downcase theme
+            do (rplacd (assoc key config)
+                       (mapcar #'string-downcase val)))
     (when (assoc :stage-parameters config)
       (let ((stage-params (assqv :stage-parameters config)))
         (loop for stage-param in stage-params
@@ -30,27 +41,16 @@
               do (when (assoc :switch-feature-set stage-param)
                    (rplacd (assoc :switch-feature-set stage-param)
                            (string-downcase (string (assqv :switch-feature-set stage-param))))))))
-    config))
-
-(defun fixed-config ()
-  `(;; fixed in stone
-    ;; --------------
-    (:log-every-x-interactions . 5000)
-    ;(:record-every-x-interactions . 100)
-    (:usage-table-window . 5000)
-    (:save-distribution-history . nil)
-    (:interacting-agents-strategy . :standard)
-    (:initial-cxn-entrenchement . 0.5)
-    ;; parameter for updating continuous distributions (gaussian-welford)
-    (:M2 . 0.0001)))
+    
+    ;; generate a unique log dir name
+    (setf config (append config (list (cons :log-dir-name (generate-log-dir-name (assqv :seed config))))))
+    ;; append to the fixed configuration
+    (setf config (append (fixed-config) config))
+    ;; finally create a configuration object
+    (make-configuration :entries config)))
 
 (defun run-experiment (args)
-  (let* (;; parse command line arguments, append it to the fixed configuration
-         (config (append (fixed-config) (parse-config args)))
-         ;; generate a log-dir-name
-         (log-dir-name (generate-log-dir-name (assqv :seed config))))
-    ;; add log-dir-name to configuration
-    (setf config (append config (list (cons :log-dir-name log-dir-name))))
+  (let* ((configuration (parse-config args)))
     ;; adapt file-writing monitors so they output in the correct log-dir
     (set-up-monitors (list "export-communicative-success"
                            "export-conventionalisation"
@@ -62,13 +62,12 @@
 
     ;; Run experiment
     (format t "~%~% == Running the experiment, log at 'logging/~a/~a/~a'.~%"
-            (assqv :exp-top-dir config)
-            (assqv :exp-name config)
-            (assqv :log-dir-name config))
+            (get-configuration configuration :exp-top-dir)
+            (get-configuration configuration :exp-name)
+            (get-configuration configuration :log-dir-name))
     (time
-     (run-batch 'cle-experiment (assqv :nr-of-interactions config) 1
-                :configuration (make-configuration :entries config))
-     )
+     (run-batch 'cle-experiment (get-configuration configuration :nr-of-interactions) 1
+                :configuration configuration))
     (format t "~%~% == Completed experiment.~%~%")
     ))
 

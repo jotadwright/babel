@@ -17,6 +17,8 @@
                :com.inuoe.jzon
                :distributions
                :concept-representations
+               :social-network
+               :partner-selection
                )
   :serial t
   :components ((:file "package")
@@ -28,7 +30,7 @@
                              ))
                (:module "agent"
                 :serial t
-                :components ((:file "utils")
+                :components ((:file "usage-tracker")
                              (:file "agent")
                              (:file "adoption")
                              (:file "alignment")
@@ -37,6 +39,7 @@
                              (:file "interpretation")
                              (:file "parsing")
                              (:file "production")
+                             (:file "perception")
                              ))
                (:module "construction"
                 :serial t
@@ -54,11 +57,11 @@
                              (:file "switch")))
                (:module "utils"
                 :serial t
-                :components ((:file "utils")))
+                :components ((:file "utils")
+                             (:file "monitors")))
                (:module "web"
                 :serial t
                 :components ((:file "html")
                              (:file "s-dot")
                              (:file "s-dot-diff")
-                             (:file "web-monitor")
-                             (:file "monitors")))))
+                             (:file "web-monitor")))))

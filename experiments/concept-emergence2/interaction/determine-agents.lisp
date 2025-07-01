@@ -4,24 +4,41 @@
 ;; + Determine interacting agents +
 ;; --------------------------------
 
-(defmethod determine-interacting-agents (experiment (interaction interaction) (mode (eql :standard))
-                                                    &key (agents nil)
-                                                    &allow-other-keys)
-  "This default implementation randomly chooses two interacting agents
-   and adds the discourse roles speaker and hearer to them"
-  (declare (ignore mode))
-  ;; random or not?
-  (if (not agents)
-    ;; set two random interacting agents
-    (setf (interacting-agents interaction) (random-elts (agents experiment) 2))
-    ;; set the specified agents
-    (setf (interacting-agents interaction) agents))
-  
-  ;; set discourse-role
+(defmethod set-agents (experiment interaction agents)
+  "Set the agents of the experiment."
+  (setf (interacting-agents interaction) agents)
+
   (loop for a in (interacting-agents interaction)
         for d in '(speaker hearer)
         do (setf (discourse-role a) d))
+
   (notify interacting-agents-determined experiment interaction))
+
+(defmethod determine-interacting-agents (experiment (interaction interaction) (mode (eql :standard))
+                                                    &key &allow-other-keys)
+  "This default implementation randomly chooses two interacting agents
+   and adds the discourse roles speaker and hearer to them"
+  ;; set two random interacting agents
+  (let* ((agents (agents experiment))
+         (agent-1 (random-elt agents))
+         (agent-2 (random-elt (social-network::social-network agent-1)))
+         (interacting-agents (shuffle (list agent-1 agent-2))))
+    (set-agents experiment interaction interacting-agents)))
+
+(defmethod determine-interacting-agents (experiment (interaction interaction) (mode (eql :boltzmann-partner-selection))
+                                                    &key &allow-other-keys)
+  "This default implementation randomly chooses two interacting agents
+   and adds the discourse roles speaker and hearer to them"
+  
+  (let* (;; select a random agent
+         (agent-1 (random-elt (agents experiment)))
+         ;; select its partner based on its preferences
+         (agent-2 (partner-selection::choose-partner agent-1
+                                                     (social-network::social-network agent-1)
+                                                     (get-configuration experiment :boltzmann-tau)))
+         ;; shuffle the two agents around so that speaker/hearer role assignment is random
+         (interacting-agents (shuffle (list agent-1 agent-2))))
+    (set-agents experiment interaction interacting-agents)))
 
 ;; -------------------
 ;; + Determine views +
@@ -43,31 +60,30 @@
         collect (get-configuration experiment :dataset)))
 
 ;; -------------------------------
-;; + Determine disabled channels +
+;; + Determine disabled features +
 ;; -------------------------------
 
-(defmethod determine-disable-channels (experiment views amount (mode (eql :none)))
-  "Does not disable any channels."
+(defmethod determine-disable-features (experiment views amount (mode (eql :none)))
+  "Does not disable any features."
   (loop for i from 0 to (- amount 1)
         collect nil))
 
-(defmethod determine-disable-channels (experiment views amount (mode (eql :random)))
-  "For every agent, chooses randomly n channels to be disabled.
+(defmethod determine-disable-features (experiment views amount (mode (eql :random)))
+  "For every agent, chooses randomly n features to be disabled.
 
    Used in experiment: 'Applicability to heteromorphic agents'"
   (loop for i from 0 to (- amount 1)
         for view-name = (first (nth i views)) ;; assumes that agent has one view
         for disabled = (random-elts (get-feature-set (world experiment) view-name)
-                                    (get-configuration experiment :amount-disabled-channels))
+                                    (get-configuration experiment :amount-disabled-features))
         collect disabled))
 
-
-(defmethod determine-disable-channels (experiment views amount (mode (eql :fixed)))
-  "Chooses, for the entire population, randomly n channels to be disabled.
+(defmethod determine-disable-features (experiment views amount (mode (eql :fixed)))
+  "Chooses, for the entire population, randomly n features to be disabled.
 
    Used in experiment: 'Applicability to homomorphic agents'"
   (loop with view-name = (first (nth 0 views)) ;; assumes that agent has one view
         with disabled = (random-elts (get-feature-set (world experiment) view-name)
-                                     (get-configuration experiment :amount-disabled-channels))
+                                     (get-configuration experiment :amount-disabled-features))
         for i from 0 to (- amount 1)
         collect disabled))

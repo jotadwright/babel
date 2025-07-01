@@ -11,5 +11,7 @@
         :irl
         :cl-store
         :concept-representations
+        :social-network
+        :partner-selection
         )
   (:local-nicknames (:jzon :com.inuoe.jzon)))

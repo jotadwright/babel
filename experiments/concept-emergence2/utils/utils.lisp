@@ -132,18 +132,18 @@
         finally (return ht)))
 
 (defun cxn->ht (cxn)
-  (loop with ht-proto = (make-hash-table)
-        for prototype being the hash-values of (prototypes (meaning cxn))
-        for channel = (channel prototype)
-        for weight = (weight prototype)
-        for mean = (mean (distribution prototype))
-        for st-dev = (st-dev (distribution prototype))
-        do (setf (gethash (downcase (symbol-name channel)) ht-proto)
+  (loop with ht-wd = (make-hash-table)
+        for wd in (concept-representations::get-weighted-distributions (meaning cxn))
+        for feature-name = (feature-name wd)
+        for weight = (weight wd)
+        for mean = (mean (distribution wd))
+        for st-dev = (st-dev (distribution wd))
+        do (setf (gethash (downcase (symbol-name feature-name)) ht-wd)
                  (kv->ht (list "weight" "mean" "st-dev")
                          (list weight mean st-dev)))
         finally (return
-                 (kv->ht (list "form" "entrenchment" "prototypes")
-                         (list (form cxn) (score cxn) ht-proto)))))
+                 (kv->ht (list "form" "entrenchment" "wd")
+                         (list (form cxn) (score cxn) ht-wd)))))
 
 (defun store-to-json (fpath data)
   "Store stringified json"

@@ -76,7 +76,7 @@
 ;; --------------------------------------------------
 (define-monitor record-construction-inventory-usage-train
                 :class 'data-recorder
-                ;; the window is kept track manually in the `usage-table-window` of an agent
+                ;; the window is kept track manually in the `usage-tracker-window` of an agent
                 ;; when average-window is set to 0, the data-recorders skips the averaging step
                 :average-window 0
                 :documentation "Records the amount of unique forms observed in the past x interactions.")
@@ -91,7 +91,7 @@
 
 (define-event-handler (record-construction-inventory-usage-train interaction-finished)
   (record-value monitor (loop for agent in (agents (experiment interaction))
-                              sum (unique-forms-in-window agent) into total-sum
+                              sum (unique-forms-in-tracker agent) into total-sum
                               finally (return (round (/ total-sum (length (agents (experiment interaction)))))))))
 
 ;; -------------------------------------------------
@@ -121,7 +121,7 @@
                        for ht = (make-hash-table :test #'equalp)
                        do (setf (gethash "fast-inventory" ht) (hash-keys (get-inventory (lexicon agent) :fast)))
                        do (setf (gethash "trash-inventory" ht) (hash-keys (get-inventory (lexicon agent) :trash)))
-                       do (setf (gethash "usage-count" ht) (usage-counts (usage-table agent)))
+                       do (setf (gethash "usage-tracker" ht) (usage-tracker agent))
                        do (setf (gethash (id agent) agents-ht) ht)
                        finally (return agents-ht))))
     (ensure-directories-exist path)

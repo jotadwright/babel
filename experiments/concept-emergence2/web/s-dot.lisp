@@ -4,10 +4,10 @@
 ;; + cxn -> s-dot +
 ;; ----------------
 
-(defgeneric cxn->s-dot (cxn &key weight-threshold disabled-channels)
+(defgeneric cxn->s-dot (cxn &key weight-threshold disabled-features)
   (:documentation "Display a cxn using s-dot."))
 
-(defmethod cxn->s-dot ((cxn cxn) &key (weight-threshold 0.1) (disabled-channels nil))
+(defmethod cxn->s-dot ((cxn cxn) &key (weight-threshold 0.1) (disabled-features nil))
   (let ((g '(((s-dot::ranksep "0.3")
               (s-dot::nodesep "0.5")
               (s-dot::margin "0")
@@ -42,24 +42,24 @@
                      (s-dot::style "dashed")
                      (s-dot::fontcolor "#AA0000"))))
      g)
-    ;; feature-channels nodes
+    ;; feature-features nodes
     (loop with wds = (sort (concept-representations::get-weighted-distributions (meaning cxn))
-                                  (lambda (x y) (string< (symbol-name (channel x))
-                                                         (symbol-name (channel y)))))
+                                  (lambda (x y) (string< (symbol-name (feature x))
+                                                         (symbol-name (feature y)))))
           for wd in wds and weight-idx from 1
           for record = (wd->s-dot wd weight-idx)
-          when (and (if disabled-channels
-                      (not (gethash (feature-name wd) disabled-channels))
+          when (and (if disabled-features
+                      (not (gethash (feature-name wd) disabled-features))
                       t)
                     (>= (weight wd) weight-threshold))
             do (push record g))
-    ;; edges between cxn node and feature-channels
+    ;; edges between cxn node and feature-features
     (loop with wds = (sort (concept-representations::get-weighted-distributions (meaning cxn))
-                                  (lambda (x y) (string< (symbol-name (channel x))
-                                                         (symbol-name (channel y)))))
+                                  (lambda (x y) (string< (symbol-name (feature x))
+                                                         (symbol-name (feature y)))))
           for wd in wds and weight-idx from 1
-          when (and (if disabled-channels
-                      (not (gethash (feature-name wd) disabled-channels))
+          when (and (if disabled-features
+                      (not (gethash (feature-name wd) disabled-features))
                       t)
                     (>= (weight wd) weight-threshold))
             do (push
@@ -129,7 +129,7 @@
     (s-dot::node ((s-dot::id ,(downcase (mkdotstr (feature-name wd))))
                   (s-dot::label ,(format nil "~a\\n&#123;~{~a~^, ~}&#125;"
                                          (downcase (mkdotstr (feature-name wd)))
-                                         (loop with tuples = (loop for key being the hash-keys of (cat-table (distribution prototype))
+                                         (loop with tuples = (loop for key being the hash-keys of (cat-table (distribution wd))
                                                                      using (hash-value value)
                                                                    if (> value 0)
                                                                      collect (cons key value))

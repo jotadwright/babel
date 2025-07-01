@@ -40,10 +40,10 @@
     ;; PART 2: the possible switches
     ;; check if dataset changes
     (switch-dataset experiment params)
-    ;; check if channels need to be disabled
-    (switch-disable-channels experiment params)
-    ;; check if half of the population gets some channels disabled
-    (switch-disable-channels-half experiment params)
+    ;; check if features need to be disabled
+    (switch-disable-features experiment params)
+    ;; check if half of the population gets some features disabled
+    (switch-disable-features-half experiment params)
     ;; check if need to add agents
     (switch-add-agents experiment params)
     ;; check if need to change alignment
@@ -52,36 +52,36 @@
 ;; -----------------
 ;; + The switchers +
 ;; -----------------
-(defmethod switch-disable-channels ((experiment cle-experiment)
+(defmethod switch-disable-features ((experiment cle-experiment)
                                     (params list))
   "Disables a specified list of sensors (or a random amount of sensors) for the entire population."
-  (when (assoc :switch-disable-channels params)
-    (let* ((change (assqv :switch-disable-channels params)) ;; change is either a list or a number
-           (channels (if (numberp change)
+  (when (assoc :switch-disable-features params)
+    (let* ((change (assqv :switch-disable-features params)) ;; change is either a list or a number
+           (features (if (numberp change)
                        ;; disable n sensors
                        (random-elts (get-feature-set (world experiment)) change) ;; TODO needs view-name
                        ;; disable the given list of features
                        change)))
       (loop for agent in (agents experiment)
-            do (loop for channel in channels
-                     do (switch-channel-availability agent channel))))))
+            do (loop for feature in features
+                     do (switch-feature-availability agent feature))))))
 
-(defmethod switch-disable-channels-half ((experiment cle-experiment)
+(defmethod switch-disable-features-half ((experiment cle-experiment)
                                          (params list))
   "Disables a specified list of sensors (or a random amount of sensors) for the half of the population."
-  (when (assoc :switch-disable-channels-half params)
-    (let* ((change (assqv :switch-disable-channels-half params)) ;; change is either a list or a number
+  (when (assoc :switch-disable-features-half params)
+    (let* ((change (assqv :switch-disable-features-half params)) ;; change is either a list or a number
            (population-size (length (agents experiment)))
            (population-half (first-n (floor (/ population-size 2)) (agents experiment))))
       (loop for agent in population-half
             for view-name = (current-view agent)
-            for channels = (if (numberp change)
+            for features = (if (numberp change)
                              ;; disable n sensors
                              (random-elts (get-feature-set (world experiment) view-name) change)
                              ;; disable the given list of features
                              change)
-            do (loop for channel in channels
-                     do (switch-channel-availability agent channel))))))
+            do (loop for feature in features
+                     do (switch-feature-availability agent feature))))))
 
 (defmethod switch-dataset ((experiment cle-experiment)
                            (params list))
@@ -100,12 +100,12 @@
   "Adds brand new agents to the population."
   (when (assoc :switch-add-agents params)
     (let* ((amount-of-agents (assqv :switch-add-agents params))
-           (disabled-channels-list (determine-disable-channels experiment
+           (disabled-features-list (determine-disable-features experiment
                                                                amount-of-agents
-                                                               (get-configuration experiment :disable-channels)))
+                                                               (get-configuration experiment :disable-features)))
            (new-agents  (loop for i from 0 to (- amount-of-agents 1)
-                              for disabled-channels = (nth i disabled-channels-list)
-                              collect (initialise-agent experiment disabled-channels))))
+                              for disabled-features = (nth i disabled-features-list)
+                              collect (initialise-agent experiment disabled-features))))
       (set-configuration experiment :population-size (+ (get-configuration experiment :population-size)
                                                         amount-of-agents))
       (setf (agents experiment) (append (agents experiment) new-agents)))))

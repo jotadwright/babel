@@ -23,9 +23,11 @@
   (defparameter *concept-learning-game*
     (make-configuration
      :entries `(
+                ;; initial-seed
+                (:initial-seed . 42)
                 ;; monitoring
-                (:log-every-x-interactions . 10) ;; integer, frequence of when to log measures to standard output
-                (:usage-table-window . 100) ;; integer, window size of the construction inventory usage table
+                (:log-every-x-interactions . 100) ;; integer, frequence of when to log measures to standard output
+                (:usage-tracker-window . 100) ;; integer, window size of the construction inventory usage table
                 (:save-distribution-history . nil) ;; t or nil, whether to save the history of updates to the distribution (very memory-intensive!)
                 ;; setup environment
                 (:dataset-loader . :runtime) ;; :precomputed or :runtime, load data in by scene (:precomputed) or by objects (:runtime)
@@ -34,14 +36,19 @@
                 (:feature-set "winery") ;; list of strings, each string represents a feature set (stored in Corpora/concept-emergence2/-feature-sets), every feature-set is associated to a coressponding element in :dataset
                 (:dataset-split . "train") ;; string, "train" or "test", which split of the data to use?
                 ;; setup game
-                (:interacting-agents-strategy . :standard) ;; :standard [AT THE MOMENT, ONLY OPTION AVAILABLE]
+                (:network-topology . :fully-connected) ;; keyword, :fully-connected or :regular or :small-world
+                ;(:local-connectivity . 2) ;; integer, for :regular and :small-world
+                ;(:rewiring-probability . 0.3) ;; float, for :small-world
+                (:interacting-agents-strategy . :standard) ;; keyword, :standard or :boltzmann-partner-selection or :tutor-learner
+                (:boltzmann-tau . 0) ;; integer, for :boltzmann-partner-selection
+                (:boltzmann-lr . 0.05) ;; float, for :boltzmann-partner-selection
                 (:population-size . 10) ;; integer, size of the population
                 (:min-context-size . 10) ;; integer, minimum number of context elements
                 (:max-context-size . 10) ;; integer, maximum number of context elements
-                ;; disable channels
-                (:disable-channels . :none) ;; :none, :random. :fixed
-                (:amount-disabled-channels . 0) ;; integer, amount of channels to disable
-                ;; noised channels
+                ;; disable features
+                (:disable-features . :none) ;; :none, :random. :fixed
+                (:amount-disabled-features . 0) ;; integer, amount of features to disable
+                ;; noised features
                 (:sensor-noise . :none) ;; :none or :shift
                 (:sensor-std . 0.0) ;; float, corresponds to calibration noise
                 (:observation-noise . :none) ;; :none or :shift
@@ -57,17 +64,17 @@
                 (:entrenchment-li . -0.02) ;; lateral inhibition, hyperparameter for alignment (:align)
                 ;; concept representation parameters
                 (:M2 . 0.0001) ;; float, default initialisation for gaussian distributions
-                ;; prototype weight inits
+                ;; weighted-distribution inits
                 (:weight-update-strategy . :j-interpolation) ;; :standard or :j-interpolation
                 (:initial-weight . 0) ;; default weight
                 (:weight-incf . 1)    ;; :standard uses floats, j-interpolation uses int
                 (:weight-decf . -5)   ;; :standard uses floats, j-interpolation uses int
                 ;; experimental alternatives
-                (:prototype-distance . :paper) ;; :paper or :paper-wo-ledger
+                (:weighted-distribution-distance . :paper) ;; :paper or :paper-wo-ledger
                 ;; staging
                 (:switch-condition . :after-n-interactions) ; :none, :after-n-interactions
                 (:switch-conditions-after-n-interactions . 50000) ;;
-                (:stage-parameters ((:switch-disable-channels-half . 10))) ;;
+                (:stage-parameters ((:switch-disable-features-half . 10))) ;;
                 ;; measures
                 (:coherence-perspective . :hearer) ;; :hearer or :speaker, determines how conventionalisation is measured
                 ;; paths for exporting data to disk
@@ -84,6 +91,7 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (progn
+  (set-seed (get-configuration *experiment* :initial-seed))
   ;; reset the web interface
   (wi::reset)
   ;; deactivate `tracer` monitors
