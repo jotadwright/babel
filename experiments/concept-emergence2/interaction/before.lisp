@@ -16,7 +16,7 @@
   (loop for agent in (interacting-agents experiment)
         do (clear-agent agent))
   ;; 2. load a scene
-  (sample-scene experiment (get-configuration experiment :scene-sampling)))
+  (sample-scene experiment (get-configuration experiment :scene-sampling))
   ;; 3. pick a topic
   (sample-topic experiment (get-configuration experiment :topic-sampling))
   ;; notify

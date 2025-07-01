@@ -34,7 +34,11 @@
           ;;  1. entrench applied-cxn
           (update-score-cxn agent applied-cxn (get-configuration (experiment agent) :entrenchment-incf))
           ;;  2. shift concept of applied-cxn to topic
-          (concept-representations::update-concept (meaning applied-cxn) topic (entities context))
+          (concept-representations::update-concept (meaning applied-cxn)
+                                                   topic
+                                                   (entities context)
+                                                   :weight-incf (get-configuration (experiment agent) :weight-incf)
+                                                   :weight-decf (get-configuration (experiment agent) :weight-decf))
           ;;  3. punish competing similar cxns TODO: punishment is based on shifted concept
           (loop for other-cxn in (find-data agent 'meaning-competitors)
                 for similarity = (concept-representations::concept-similarity (meaning applied-cxn) (meaning other-cxn))
@@ -68,7 +72,11 @@
                 ;; 1. entrench applied-cxn
                 (update-score-cxn agent applied-cxn (get-configuration (experiment agent) :entrenchment-incf))
                 ;; 2. shift concept of applied-cxn to topic
-                (concept-representations::update-concept (meaning applied-cxn) topic (entities context))
+                (concept-representations::update-concept (meaning applied-cxn)
+                                                         topic
+                                                         (entities context)
+                                                         :weight-incf (get-configuration (experiment agent) :weight-incf)
+                                                         :weight-decf (get-configuration (experiment agent) :weight-decf))
                 ;; 3. find and punish meaning competitors TODO: punishment is based on shifted concept
                 (conceptualise agent)
                 (loop for other-cxn in (find-data agent 'meaning-competitors)
@@ -84,7 +92,11 @@
                 ;; 1. entrench applied-cxn negatively
                 (update-score-cxn agent applied-cxn (get-configuration (experiment agent) :entrenchment-decf))
                 ;; 2. shift concept of applied-cxn to topic
-                (concept-representations::update-concept (meaning applied-cxn) topic (entities context))
+                (concept-representations::update-concept (meaning applied-cxn)
+                                                         topic
+                                                         (entities context)
+                                                         :weight-incf (get-configuration (experiment agent) :weight-incf)
+                                                         :weight-decf (get-configuration (experiment agent) :weight-decf))
                 (notify event-align-cxn "Punish (due to failure) and shift" applied-cxn previous-copy)))
              ((eq (get-data agent 'interpreted-topic-reason) 'no-match)
               ;; CASE C: recognized but used concept is useless due to defects

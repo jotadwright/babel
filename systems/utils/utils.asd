@@ -4,7 +4,7 @@
 
 (defsystem :utils
   :description "Basic utilities"
-  :depends-on (:split-sequence :cl-ppcre :closer-mop :s-dot :cl-who :test-framework)
+  :depends-on (:split-sequence :cl-ppcre :closer-mop :s-dot :cl-who :test-framework :cl-store)
   :components 
   ((:file "package")
    (:file "pop" :depends-on ("package"))
@@ -34,6 +34,7 @@
    (:file "make-file-name-with")
    (:file "progress-bar")
    (:file "arrays")
+   (:file "seed")
    (:module tests
     :depends-on ("lists-and-sets" "configuration" "tree" "relation")
     :components 

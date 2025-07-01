@@ -34,7 +34,7 @@
   "Resets the meaning and score of a cxn."
   (let ((scene-idx (index (find-data agent 'context)))
         (interaction-number (interaction-number (current-interaction (experiment agent)))))
-    (setf (meaning cxn) (make-concept agent entity))
+    (setf (meaning cxn) (concept-representations::create-concept-representation (list entity) :weighted-multivariate-distribution))
     (setf (score cxn) (get-configuration (experiment agent) :initial-cxn-entrenchement))
     (setf (history cxn) (list (cons interaction-number scene-idx)))
     (update-lexicon-inventory (lexicon agent) cxn)))

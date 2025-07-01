@@ -23,7 +23,6 @@
                (:module "world"
                 :serial t
                 :components ((:file "world")
-                             (:file "object")
                              (:file "scene")
                              (:file "topic")
                              ))
@@ -55,8 +54,7 @@
                              (:file "switch")))
                (:module "utils"
                 :serial t
-                :components ((:file "seed")
-                             (:file "utils")))
+                :components ((:file "utils")))
                (:module "web"
                 :serial t
                 :components ((:file "html")
