@@ -25,6 +25,22 @@
           (wi:add-element (make-html frames  :expand-initially t)))
         (values solution cipn frames)))))
 
+(defun comprehend-and-extract-frames-with-error (utterance
+                                                &key (cxn-inventory *fcg-constructions*)
+                                                (silent nil)
+                                                (syntactic-analysis nil)
+                                                (selected-rolesets nil)
+                                                (timeout 60))
+  "Comprehends an utterance and visualises the extracted frames."
+  (set-data (blackboard cxn-inventory) :matched-categorial-links nil)
+  (multiple-value-bind (solution cipn)
+      (propbank-comprehend-with-error utterance :cxn-inventory cxn-inventory :silent silent
+                                      :syntactic-analysis syntactic-analysis :selected-rolesets selected-rolesets :timeout timeout)
+    (let ((frames (propbank-grammar::extract-frames (car-resulting-cfs (cipn-car cipn)))))
+      (unless silent
+        (wi:add-element `((h3 :style "margin-bottom:3px;") "Frame representation:"))
+        (wi:add-element (make-html frames  :expand-initially t)))
+      (values solution cipn frames))))
 
 (defgeneric propbank-comprehend (utterance &key cxn-inventory silent selected-rolesets timeout)
   (:documentation "Methods for PropBank comprehension, specialising on conll-sentences or strings."))
@@ -40,7 +56,7 @@
             (values 'time-out 'time-out 'time-out)))
       (values meaning cip-node cip))))
 
-(defmethod propbank-comprehend ((utterance string) 
+(defmethod propbank-comprehend ((utterance string)
                                 &key (syntactic-analysis nil) 
                                 (cxn-inventory *fcg-constructions*) (silent nil) (selected-rolesets nil) (timeout 60))
   (let ((initial-cfs (de-render utterance (get-configuration cxn-inventory :de-render-mode)
@@ -68,3 +84,44 @@
         (unless silent (monitors:notify parse-finished meaning processing-cxn-inventory))
         ;; Return value
         (values meaning solution cip)))))
+
+
+(define-condition timeout-error (error)
+  ((message :initarg :message :accessor message)))
+
+
+(defgeneric propbank-comprehend-with-error (utterance &key cxn-inventory silent selected-rolesets timeout)
+  (:documentation "Methods for PropBank comprehension, specialising on conll-sentences or strings."))
+
+(defmethod propbank-comprehend-with-error ((utterance conll-sentence) &key (cxn-inventory *fcg-constructions*) (silent nil) (selected-rolesets nil) (timeout 60) &allow-other-keys)
+  (let ((initial-cfs (handler-case (trivial-timeout:with-timeout (timeout)
+                                     (de-render utterance (get-configuration cxn-inventory :de-render-mode) :cxn-inventory cxn-inventory))
+                       (trivial-timeout:timeout-error (error)
+                         (error 'propbank-grammar::timeout-error
+                                :message (format nil "Utterance could not be de-rendered within a time frame of ~d seconds." timeout))))))
+    (set-data initial-cfs :annotation (propbank-frames utterance))
+    (unless silent (monitors:notify parse-started (listify (sentence-string utterance)) initial-cfs))
+    (multiple-value-bind (meaning cip-node cip)
+        (handler-case (trivial-timeout:with-timeout (timeout)
+                        (comprehend-with-rolesets initial-cfs cxn-inventory selected-rolesets (sentence-string utterance) silent))
+          (trivial-timeout:timeout-error (error)
+            (error 'propbank-grammar::timeout-error
+             :message (format nil "Utterance could not be comprehended within a time frame of ~d seconds." timeout))))
+      (values meaning cip-node cip))))
+
+(defmethod propbank-comprehend-with-error ((utterance string)
+                                &key (syntactic-analysis nil) 
+                                (cxn-inventory *fcg-constructions*) (silent nil) (selected-rolesets nil) (timeout 60))
+  (handler-case (trivial-timeout:with-timeout ((+ timeout 0.1))
+                  (let ((initial-cfs (handler-case (trivial-timeout:with-timeout (timeout)
+                                                     (de-render utterance (get-configuration cxn-inventory :de-render-mode)
+                                                                :model (or (get-configuration cxn-inventory :model) "en_benepar")
+                                                                :cxn-inventory cxn-inventory :syntactic-analysis syntactic-analysis))
+                                       (trivial-timeout:timeout-error (error)
+                                         (error 'propbank-grammar::timeout-error
+                                                :message (format nil "Utterance could not be de-rendered within a time frame of ~d seconds." timeout))))))
+                    (unless silent (monitors:notify parse-started (listify utterance) initial-cfs))
+                    (comprehend-with-rolesets initial-cfs cxn-inventory selected-rolesets utterance silent)))
+    (trivial-timeout:timeout-error (error)
+      (error 'propbank-grammar::timeout-error
+             :message (format nil "Utterance could not be comprehended within a time frame of ~d seconds." timeout)))))
