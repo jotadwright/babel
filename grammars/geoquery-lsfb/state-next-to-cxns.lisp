@@ -35,7 +35,8 @@
                             (left ?states-next-to-?x\(?x\)-boundary-left)))))
              :cxn-inventory *geoquery-lsfb*)
 
-(def-fcg-cxn states-next-to-?x-cxn-2 
+
+(def-fcg-cxn states-next-to-?x-cxn-2
              ((?states-next-to-?x-optional-signs-unit
                (form ((two-hand-articulation ?different "")
                       (two-hand-articulation ?pays "")
@@ -51,19 +52,19 @@
                (unit-cat states-next-to-?x-cat)
                (boundaries ((left ?states-next-to-?x\(?x\)-boundary-left)
                             (right ?neighbouring-states-pt)))
-               (args ((target ?b)
-                      (scope ?e))))
+               (args ((target ?c)
+                      (scope ?g))))
               <-
               (?states-next-to-?x-unit
-               (HASH meaning ((state ?e ?b)
-                              (next_to ?e ?b ?c)))
+               (HASH meaning ((state ?g ?c)
+                              (next_to ?g ?d ?c)))
                --
                (HASH form ((right-hand-articulation ?neighbouring-states-ds "")
                            )))
               (?states-next-to-?x\(?x\)-unit
                (unit-cat states-next-to-?x\(?x\)-cat)
-               (args ((target ?c)
-                      (scope ?e)))
+               (args ((target ?d)
+                      (scope ?g)))
                --
                (unit-cat states-next-to-?x\(?x\)-cat)
                (boundaries ((right ?states-next-to-?x\(?x\)-boundary-right)

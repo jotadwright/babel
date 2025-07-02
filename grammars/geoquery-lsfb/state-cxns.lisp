@@ -18,7 +18,11 @@
 
 
 (def-fcg-cxn state-cxn-2
-             ((?state-unit
+             ((?state-optional-signs-unit
+               (form ((adjacent ?il-y-a ?pays)
+                      (adjacent ?pays ?un))))
+              (?state-unit
+               (subunits (?state-optional-signs-unit))
                (unit-cat state-cat)
                (args ((target ?b)
                       (scope ?e)))
@@ -30,9 +34,7 @@
                --
                (HASH form ((right-hand-articulation ?il-y-a "")
                            (two-hand-articulation ?pays "")
-                           (right-hand-articulation ?un "")
-                           (adjacent ?il-y-a ?pays)
-                           (adjacent ?pays ?un)))))
+                           (right-hand-articulation ?un "")))))
              :cxn-inventory *geoquery-lsfb*)
 
 (def-fcg-cxn state-with-capital-?x-cxn-1

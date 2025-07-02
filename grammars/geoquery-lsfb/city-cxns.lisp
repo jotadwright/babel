@@ -35,7 +35,7 @@
       for city-meaning = (replace-spaces city-name :replacer "_")
       for fingerspelling-input = (replace-spaces city-name :replacer "-")
       for hamnosys = (make-fingerspelling fingerspelling-input)
-      for construction-name = (read-from-string (format nil "~a-cxn-1" city-meaning))
+      for construction-name = (read-from-string (format nil "~a-city-cxn-1" city-meaning))
       for city-fcg-tag = (read-from-string (format nil "?fs-~a" city-meaning))
       for city-unit-name = (read-from-string (format nil "?~a-unit" city-meaning))
       for city-category = (read-from-string (format nil "~a-cat" city-meaning))

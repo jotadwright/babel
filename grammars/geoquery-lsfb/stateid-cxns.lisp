@@ -110,7 +110,7 @@
       for french-state-name = (cdr (assoc :french state))
       for state-meaning = (replace-spaces (cdr (assoc :name state)) :replacer "_")
       for hamnosys = (make-fingerspelling french-state-name)
-      for construction-name = (read-from-string (format nil "~a-cxn-1" state-meaning))
+      for construction-name = (read-from-string (format nil "~a-state-cxn-1" state-meaning))
       for state-fcg-tag = (read-from-string (format nil "?fs-~a" french-state-name))
       for state-unit-name = (read-from-string (format nil "?~a-unit" state-meaning))
       for state-category = (read-from-string (format nil "~a-cat" state-meaning))
@@ -146,10 +146,10 @@
 
 (loop for state in *geoquery-states-naming-signs*
       for id-gloss = (string-replace (cdr (assoc :id-gloss state)) ":" "\\:")
-      for state-meaning = (replace-spaces (cdr (assoc :name state)) :replacer "_")
+      for state-meaning = (replace-spaces (cdr (assoc :meaning state)) :replacer "_")
       for hamnosys = (cdr (assoc :hamnosys state))
       for handedness = (read-from-string (cdr (assoc :handedness state)))
-      for construction-name = (read-from-string (format nil "~a-cxn-2" state-meaning))
+      for construction-name = (read-from-string (format nil "~a-state-cxn-2" state-meaning))
       for state-fcg-tag = (read-from-string (format nil "?~a" id-gloss))
       for state-unit-name = (read-from-string (format nil "?~a-unit" state-meaning))
       for state-category = (read-from-string (format nil "~a-cat" state-meaning))
@@ -176,6 +176,10 @@
                           --
                           (HASH form ((,handedness ,state-fcg-tag ,hamnosys)))))
                         :cxn-inventory *geoquery-lsfb*)))
+
+
+
+
 
 
 
