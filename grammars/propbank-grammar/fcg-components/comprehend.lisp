@@ -112,7 +112,7 @@
 (defmethod propbank-comprehend-with-error ((utterance string)
                                 &key (syntactic-analysis nil) 
                                 (cxn-inventory *fcg-constructions*) (silent nil) (selected-rolesets nil) (timeout 60))
-  (handler-case (trivial-timeout:with-timeout (timeout)
+  (handler-case (trivial-timeout:with-timeout ((+ timeout 0.1))
                   (let ((initial-cfs (handler-case (trivial-timeout:with-timeout (timeout)
                                                      (de-render utterance (get-configuration cxn-inventory :de-render-mode)
                                                                 :model (or (get-configuration cxn-inventory :model) "en_benepar")
