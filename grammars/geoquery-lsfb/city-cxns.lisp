@@ -3,7 +3,10 @@
 (def-fcg-cxn cities-in-?x-cxn-1
              ((?cities-in-?x-additional-signs-unit
                (form ((two-hand-articulation ?different "")
-                      (adjacent ?ville ?different))))
+                      (adjacent ?ville ?different)
+                      (adjacent ?cities-in-?x\(?x\)-boundary-right ?il-y-a)
+                      (adjacent ?il-y-a ?ville)
+                      (right-hand-articulation ?il-y-a ""))))
               (?cities-in-?x-unit
                (subunits (?cities-in-?x\(?x\) ?cities-in-?x-additional-signs-unit))
                (unit-cat cities-in-?x-cat)
@@ -16,10 +19,7 @@
                (HASH meaning ((city ?f ?a)
                               (loc ?f ?a ?b)))
                --
-               (HASH form ((right-hand-articulation ?il-y-a "")
-                           (two-hand-articulation ?ville "")
-                           (adjacent ?cities-in-?x\(?x\)-boundary-right ?il-y-a)
-                           (adjacent ?il-y-a ?ville))))
+               (HASH form ((two-hand-articulation ?ville ""))))
               (?cities-in-?x\(?x\)
                (unit-cat cities-in-?x\(?x\)-cat)
                (args ((scope ?f)
@@ -29,6 +29,74 @@
                (boundaries ((right ?cities-in-?x\(?x\)-boundary-right)
                             (left ?cities-in-?x\(?x\)-boundary-left)))))
              :cxn-inventory *geoquery-lsfb*)
+
+(def-fcg-cxn cities-in-?x-cxn-2
+             ((?cities-in-?x-additional-signs-unit
+               (form ((two-hand-articulation ?different "")
+                      (adjacent ?ville ?different)
+                      (adjacent ?cities-in-?x\(?x\)-boundary-right ?il-y-a)
+                      (adjacent ?il-y-a ?ville)
+                      (right-hand-articulation ?il-y-a ""))))
+              (?cities-in-?x-unit
+               (subunits (?cities-in-?x\(?x\) ?cities-in-?x-additional-signs-unit))
+               (unit-cat cities-in-?x-cat)
+               (args ((target ?a)
+                      (scope ?f)))
+               (boundaries ((left ?cities-in-?x\(?x\)-boundary-left)
+                            (right ?different))))
+              <-
+              (?cities-in-?x-unit
+               (HASH meaning ((city ?f ?a)
+                              (loc ?f ?a ?b)))
+               --
+               (HASH form ((two-hand-articulation ?ville ""))))
+              (?cities-in-?x\(?x\)
+               (unit-cat cities-in-?x\(?x\)-cat)
+               (args ((scope ?f)
+                      (target ?b)))
+               --
+               (unit-cat cities-in-?x\(?x\)-cat)
+               (boundaries ((right ?cities-in-?x\(?x\)-boundary-right)
+                            (left ?cities-in-?x\(?x\)-boundary-left)))))
+             :cxn-inventory *geoquery-lsfb*)
+
+(def-fcg-cxn largest-city-in-?x-cxn-1
+             ((?largest-city-in-?x-unit
+               (subunits (?largest-city-in-?x\(?x\) ?largest-city-in-?x-optional-signs-unit))
+               (unit-cat largest-city-in-?x-cat)
+               (args ((target ?a)
+                      (scope ?e)))
+               (boundaries ((left ?largest-city-in-?x\(?x\)-boundary-left)
+                            (right ?ville-2))))
+              (?largest-city-in-?x-optional-signs-unit
+               (form ((adjacent ?largest-city-in-?x\(?x\)-boundary-right ?ville-1))))
+              <-
+              (?largest-city-in-?x-unit
+               (HASH meaning ((largest ?e ?a ?f)
+                              (city ?f ?a)
+                              (loc ?f ?a ?b)))
+               --
+               (HASH form ((two-hand-articulation ?ville-1 "")
+                           (two-hand-articulation ?different "")
+                           (right-hand-articulation ?un "")
+                           (right-hand-articulation ?beaucoup "")
+                           (two-hand-articulation ?grand "")
+                           (two-hand-articulation ?ville-2 "")
+                           (adjacent ?ville-1 ?different)
+                           (adjacent ?different ?un)
+                           (adjacent ?un ?beaucoup)
+                           (adjacent ?beaucoup ?grand)
+                           (adjacent ?grand ?ville-2))))
+              (?largest-city-in-?x\(?x\)
+               (unit-cat largest-city-in-?x\(?x\)-cat)
+               (args ((scope ?f)
+                      (target ?b)))
+               --
+               (unit-cat largest-city-in-?x\(?x\)-cat)
+               (boundaries ((right ?largest-city-in-?x\(?x\)-boundary-right)
+                            (left ?largest-city-in-?x\(?x\)-boundary-left)))))
+             :cxn-inventory *geoquery-lsfb*)
+
 
 (loop for city in *geoquery-cities*
       for city-name = (cdr (assoc :name city))

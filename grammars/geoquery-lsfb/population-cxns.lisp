@@ -1,91 +1,129 @@
 (in-package :geoquery-lsfb-grammar)
 
-(def-fcg-cxn ?x-population-of-?y-cxn-1
-             ((?x-population-of-?y-unit
-               (subunits (?x-population-of-?y\(?x\)-unit ?x-population-of-?y\(?y\)-unit))
-               (unit-cat x-population-of-?y-cat)
+(def-fcg-cxn has-largest-population-of-?x-cxn-1
+             ((?has-largest-population-of-?x-unit
+               (subunits (?has-largest-population-of-?x\(?x\)-unit))
+               (unit-cat has-largest-population-of-?x-cat)
                (args ((scope ?e)
                       (target ?a)))
-               (boundaries ((left ?x-population-of-?y\(?y\)-left-boundary)
+               (boundaries ((left ?has-largest-population-of-?x\(?x\)-left-boundary)
                             (right ?pt-states-2))))
+              (?has-largest-population-of-?x-optional-signs-unit
+               (form ((adjacent ?quoi-1 ?plus))))
               <-
-              (?x-population-of-?y-unit
-               (HASH meaning ((population ?f ?a ?b)))
+              (?has-largest-population-of-?x-unit
+               (HASH meaning ((largest ?e ?b ?f)
+                              (population ?f ?a ?b)))
                --
                (HASH form ((right-hand-articulation ?quelle "")
                            (right-hand-articulation ?quoi-1 "")
-                           (right-hand-articulation ?pt-states-1 "")
+                           (right-hand-articulation ?plus "")
                            (two-hand-articulation ?habiter "")
                            (right-hand-articulation ?quoi-2 "")
-                           (right-hand-articulation ?pt-states-2 "")
-                           (left-hand-articulation ?states-ds "")
-                           (adjacent ?x-population-of-?y\(?y\)-boundary-right ?quelle)
+                           (adjacent ?has-largest-population-of-?x\(?x\)-boundary-right ?quelle)
                            (adjacent ?quelle ?quoi-1)
-                           (adjacent ?quoi-1 ?pt-states-1)
-                           (adjacent ?pt-states-1 ?x-population-of-?y\(?x\)-boundary-left)
-                           (adjacent ?x-population-of-?y\(?x\)-boundary-right ?habiter)
-                           (adjacent ?habiter ?quoi-2)
-                           (adjacent ?quoi-2 ?pt-states-2)
-                           (during ?quoi-2 ?states-ds)
-                           (during ?pt-states-2 ?states-ds)
-                           )))
-              (?x-population-of-?y\(?x\)-unit
-               (unit-cat x-population-of-?y\(?x\)-cat)
-               (args ((scope ?e)
-                      (target ?b)
-                      (source ?f)))
-               --
-               (unit-cat x-population-of-?y\(?x\)-cat)
-               (boundaries ((right ?x-population-of-?y\(?x\)-boundary-right)
-                            (left ?x-population-of-?y\(?x\)-boundary-left)))
-               )
-              (?x-population-of-?y\(?y\)-unit
-               (unit-cat x-population-of-?y\(?y\)-cat)
+                           (adjacent ?plus ?habiter)
+                           (adjacent ?habiter ?quoi-2))))
+              (?has-largest-population-of-?x\(?x\)-unit
+               (unit-cat has-largest-population-of-?x\(?x\)-cat)
                (args ((scope ?f)
                       (target ?a)))
                --
-               (unit-cat x-population-of-?y\(?y\)-cat)
-               (boundaries ((right ?x-population-of-?y\(?y\)-boundary-right)
-                            (left ?x-population-of-?y\(?y\)-boundary-left)))))
+               (unit-cat has-largest-population-of-?x\(?x\)-cat)
+               (boundaries ((right ?has-largest-population-of-?x\(?x\)-boundary-right)
+                            (left ?has-largest-population-of-?x\(?x\)-boundary-left)))))
              :cxn-inventory *geoquery-lsfb*)
 
-(def-fcg-cxn ?x-population-of-?y-cxn-2
-             ((?x-population-of-?y-unit
-               (subunits (?x-population-of-?y\(?x\)-unit ?x-population-of-?y\(?y\)-unit ?x-population-of-?y-optional-signs-unit))
-               (unit-cat x-population-of-?y-cat)
+(def-fcg-cxn has-largest-population-of-?x-cxn-2
+             ((?has-largest-population-of-?x-unit
+               (subunits (?has-largest-population-of-?x\(?x\)-unit ?has-largest-population-of-?x-optional-signs-unit))
+               (unit-cat has-largest-population-of-?x-cat)
+               (args ((scope ?e)
+                      (target ?a)))
+               (boundaries ((left ?has-largest-population-of-?x\(?x\)-left-boundary)
+                            (right ?habiter))))
+              (?has-largest-population-of-?x-optional-signs-unit
+               (form ((adjacent ?has-largest-population-of-?x\(?x\)-boundary-right ?beaucoup-1))))
+              <-
+              (?has-largest-population-of-?x-unit
+               (HASH meaning ((largest ?e ?b ?f)
+                              (population ?f ?a ?b)))
+               --
+               (HASH form ((right-hand-articulation ?beaucoup-1 "")
+                           (right-hand-articulation ?beaucoup-2 "")
+                           (two-hand-articulation ?personne "")
+                           (two-hand-articulation ?habiter "")
+                           (adjacent ?beaucoup-1 ?beaucoup-2)
+                           (adjacent ?beaucoup-2 ?personne)
+                           (adjacent ?personne ?habiter))))
+              (?has-largest-population-of-?x\(?x\)-unit
+               (unit-cat has-largest-population-of-?x\(?x\)-cat)
                (args ((scope ?f)
                       (target ?a)))
-               (boundaries ((left ?x-population-of-?y\(?y\)-left-boundary)
-                            (right ?pt-states-1))))
-              (?x-population-of-?y-optional-signs-unit
-               (form ((adjacent ?x-population-of-?y\(?x\)-boundary-right ?personne))))
-              <-
-              (?x-population-of-?y-unit
-               (HASH meaning ((population ?g ?c ?b)))
                --
-               (HASH form ((two-hand-articulation ?personne "")
-                           (right-hand-articulation ?pt-states-1 "")
-                           (adjacent ?personne ?pt-states-1)
-                           (adjacent ?x-population-of-?y\(?y\)-boundary-right ?x-population-of-?y\(?x\)-boundary-left))))
-              (?x-population-of-?y\(?x\)-unit
-               (unit-cat x-population-of-?y\(?x\)-cat)
+               (unit-cat has-largest-population-of-?x\(?x\)-cat)
+               (boundaries ((right ?has-largest-population-of-?x\(?x\)-boundary-right)
+                            (left ?has-largest-population-of-?x\(?x\)-boundary-left)))))
+             :cxn-inventory *geoquery-lsfb*)
+
+
+
+(def-fcg-cxn ?summed-population-of-?x-cxn-2
+             ((?summed-population-of-?x-unit
+               (subunits (?summed-population-of-?x\(?x\)-unit ?summed-population-of-?x-optional-signs-unit))
+               (unit-cat summed-population-of-?x-cat)
                (args ((scope ?f)
-                      (target ?a)
-                      (source ?b)
-                      (source-2 ?g)))
+                      (target ?a)))
+               (boundaries ((left ?summed-population-of-?x\(?x\)-left-boundary)
+                            (right ?pt-states-1))))
+              (?summed-population-of-?x-optional-signs-unit
+               (form ((adjacent ?summed-population-of-?x\(?x\)-boundary-right ?total)
+                      (adjacent ?total ?personne))))
+              <-
+              (?summed-population-of-?x-unit
+               (HASH meaning ((sum ?f ?b ?g ?a) 
+                              (population ?g ?c ?b)))
                --
-               (unit-cat x-population-of-?y\(?x\)-cat)
-               (boundaries ((right ?x-population-of-?y\(?x\)-boundary-right)
-                            (left ?x-population-of-?y\(?x\)-boundary-left)))
-               )
-              (?x-population-of-?y\(?y\)-unit
-               (unit-cat x-population-of-?y\(?y\)-cat)
+               (HASH form ((two-hand-articulation ?total "")
+                           (two-hand-articulation ?personne "")
+                           (right-hand-articulation ?pt-states-1 "")
+                           (adjacent ?personne ?pt-states-1))))
+              (?summed-population-of-?x\(?x\)-unit
+               (unit-cat summed-population-of-?x\(?x\)-cat)
                (args ((scope ?g)
                       (target ?c)))
                --
-               (unit-cat x-population-of-?y\(?y\)-cat)
-               (boundaries ((right ?x-population-of-?y\(?y\)-boundary-right)
-                            (left ?x-population-of-?y\(?y\)-boundary-left))))
-              )
+               (unit-cat summed-population-of-?x\(?x\)-cat)
+               (boundaries ((right ?summed-population-of-?x\(?x\)-boundary-right)
+                            (left ?summed-population-of-?x\(?x\)-boundary-left)))))
              :cxn-inventory *geoquery-lsfb*)
+
+(def-fcg-cxn population-of-?x-cxn-2
+             ((?population-of-?x-unit
+               (subunits (?population-of-?x\(?x\)-unit ?population-of-?x-optional-signs-unit))
+               (unit-cat population-of-?x-cat)
+               (args ((scope ?e)
+                      (target ?a)))
+               (boundaries ((left ?population-of-?x\(?x\)-left-boundary)
+                            (right ?personne))))
+              (?population-of-?x-optional-signs-unit
+               (form ((adjacent ?population-of-?x\(?x\)-boundary-right ?combien))))
+              <-
+              (?population-of-?x-unit
+               (HASH meaning ((population ?e ?b ?a)))
+               --
+               (HASH form ((right-hand-articulation ?combien "")
+                           (two-hand-articulation ?personne "")
+                           (adjacent ?combien ?personne))))
+              (?population-of-?x\(?x\)-unit
+               (unit-cat population-of-?x\(?x\)-cat)
+               (args ((scope ?e)
+                      (target ?b)))
+               --
+               (unit-cat population-of-?x\(?x\)-cat)
+               (boundaries ((right ?population-of-?x\(?x\)-boundary-right)
+                            (left ?population-of-?x\(?x\)-boundary-left)))))
+             :cxn-inventory *geoquery-lsfb*)
+
+
 

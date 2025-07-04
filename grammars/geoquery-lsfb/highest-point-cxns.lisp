@@ -29,15 +29,15 @@
              ((?highest-place-of-?x-unit
                (subunits (?highest-place-of-?x\(?x\)))
                (unit-cat highest-place-of-?x-cat)
-               (args ((target ?a)
-                      (scope ?e)))
+               (args ((scope ?e)
+                      (target ?a)))
                (boundaries ((left ?highest-place-of-?x\(?x\)-boundary-left)
                             (right ?haut))))
               <-
               (?highest-place-of-?x-unit
-               (HASH meaning ((HIGHEST ?e ?a ?f)
-                              (PLACE ?f ?a)
-                              (LOC ?f ?a ?b)))
+               (HASH meaning ((highest ?e ?a ?f)
+                              (place ?f ?a)
+                              (loc ?f ?a ?b)))
                --
                (HASH form ((right-hand-articulation ?plus "")
                            (right-hand-articulation ?haut "")

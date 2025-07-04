@@ -22,33 +22,29 @@
 
 (defparameter *result*
   (comprehend
-  (get-example-form 852 *train-set*)
+  (get-example-form 573 *train-set*)
  :cxn-inventory *geoquery-lsfb*))
 
 (equivalent-irl-programs? *result* 
-                          (get-example-meaning 852 *train-set*))
+                          (get-example-meaning 573 *train-set*))
 
-(formulate
-  (get-example-meaning 809 *train-set*)
+(formulate-all
+  (get-example-meaning 573 *train-set*)
  :cxn-inventory *geoquery-lsfb*)
-
-
 
 (test-coverage *train-set* *geoquery-lsfb*)
 (test-coverage *test-set* *geoquery-lsfb*)
 (length (data  *test-set*))
 
-(pprint (get-example-meaning 4287 *train-set*))
-((ANSWER ?D ?A ?E)
+(pprint (get-example-meaning 573 *train-set*))
+((ANSWER ?C ?A ?D)
  
- (RIVER ?E ?A)
- (TRAVERSE ?E ?A ?B)
+ (SMALLEST ?D ?A ?E)
  
- ;(STATE ?E ?B)
- ;(NEXT_TO ?E ?B ?C)
+ (CITY ?E ?A)
+ (LOC ?E ?A ?B)
  
- ;(CONST ?E ?C ?F)
- ;(STATEID ?F ?G)
- ;(ALABAMA ?G)
- )
-(draw-irl-program (get-example-meaning 4287 *train-set*) :format "pdf")
+ (CONST ?E ?B ?F)
+ (COUNTRYID ?F ?G)
+ (USA ?G))
+(draw-irl-program (get-example-meaning 2801 *train-set*) :format "pdf")

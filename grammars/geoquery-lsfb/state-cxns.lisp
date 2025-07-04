@@ -17,12 +17,9 @@
              :cxn-inventory *geoquery-lsfb*)
 
 
+;; moving the adjacent predicates to contributing part causes overgeneralisation, so maybe make alternative constructions if necessary
 (def-fcg-cxn state-cxn-2
-             ((?state-optional-signs-unit
-               (form ((adjacent ?il-y-a ?pays)
-                      (adjacent ?pays ?un))))
-              (?state-unit
-               (subunits (?state-optional-signs-unit))
+             ((?state-unit
                (unit-cat state-cat)
                (args ((target ?b)
                       (scope ?e)))
@@ -34,7 +31,27 @@
                --
                (HASH form ((right-hand-articulation ?il-y-a "")
                            (two-hand-articulation ?pays "")
-                           (right-hand-articulation ?un "")))))
+                           (right-hand-articulation ?un "")
+                           (adjacent ?il-y-a ?pays)
+                           (adjacent ?pays ?un)))))
+             :cxn-inventory *geoquery-lsfb*)
+
+(def-fcg-cxn state-cxn-3
+             ((?state-unit
+               (unit-cat state-cat)
+               (args ((target ?b)
+                      (scope ?e)))
+               (boundaries ((left ?il-y-a)
+                            (right ?pays))))
+              <-
+              (?state-unit
+               (HASH meaning ((state ?e ?b)))
+               --
+               (HASH form ((right-hand-articulation ?il-y-a "")
+                           (right-hand-articulation ?un "")
+                           (two-hand-articulation ?pays "")
+                           (adjacent ?il-y-a ?un)
+                           (adjacent ?un ?pays)))))
              :cxn-inventory *geoquery-lsfb*)
 
 (def-fcg-cxn state-with-capital-?x-cxn-1
@@ -74,9 +91,9 @@
               (?state-with-capital-?x\(?x\)-unit
                (args ((scope ?f)
                       (target ?d)))
-               ;(unit-cat state-with-capital-?x\(?x\)-cat)
+               (unit-cat state-with-capital-?x\(?x\)-cat)
                --
-               ;(unit-cat state-with-capital-?x\(?x\)-cat)
+               (unit-cat state-with-capital-?x\(?x\)-cat)
                (boundaries ((right ?state-with-capital-?x\(?x\)-boundary-right)
                             (left ?state-with-capital-?x\(?x\)-boundary-left))))
               )

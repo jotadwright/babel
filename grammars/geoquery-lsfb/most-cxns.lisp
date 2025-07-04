@@ -38,8 +38,7 @@
                --
                (unit-cat x-has-most-?y\(?y\)-cat)
                (boundaries ((right ?x-has-most-?y\(?y\)-boundary-right)
-                            (left ?x-has-most-?y\(?y\)-boundary-left))))
-              )
+                            (left ?x-has-most-?y\(?y\)-boundary-left)))))
              :cxn-inventory *geoquery-lsfb*)
 
 (def-fcg-cxn ?x-has-most-?y-cxn-2
@@ -81,8 +80,5 @@
                --
                (unit-cat x-has-most-?y\(?y\)-cat)
                (boundaries ((right ?x-has-most-?y\(?y\)-boundary-right)
-                            (left ?x-has-most-?y\(?y\)-boundary-left)
-                            ))
-               )
-              )
+                            (left ?x-has-most-?y\(?y\)-boundary-left)))))
              :cxn-inventory *geoquery-lsfb*)
