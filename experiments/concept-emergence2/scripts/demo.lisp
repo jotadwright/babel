@@ -71,8 +71,9 @@
                 (:weight-decf . -5)   ;; :standard uses floats, j-interpolation uses int
                 ;; experimental alternatives
                 (:weighted-distribution-distance . :paper) ;; :paper or :paper-wo-ledger
+                (:f-divergence . :hellinger)
                 ;; staging
-                (:switch-condition . :after-n-interactions) ; :none, :after-n-interactions
+                (:switch-condition . :none) ; :none, :after-n-interactions
                 (:switch-conditions-after-n-interactions . 50000) ;;
                 (:stage-parameters ((:switch-disable-features-half . 10))) ;;
                 ;; measures

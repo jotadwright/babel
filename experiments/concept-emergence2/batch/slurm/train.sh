@@ -48,5 +48,11 @@ sbcl --dynamic-space-size $space --load $VSC_HOME/concept-emergence2/batch/run.l
     switch-conditions-after-n-interactions $switch_conditions_after_n_interactions \
     stage-parameters "$stage_parameters" \
     coherence-perspective $coherence_perspective \
+    interacting-agents-strategy $interacting_agents_strategy \
+    boltzmann-tau $boltzmann_tau \
+    boltzmann-lr $boltzmann_lr \
+    network-topology $network_topology \
+    local-connectivity $local_connectivity \
+    rewiring-probability $rewiring_probability \
     seed $seed \
     exp-top-dir $exp_top_dir

@@ -41,6 +41,7 @@
 ;; Divergence
 (defmethod f-divergence ((distribution1 categorical)
                          (distribution2 categorical)
+                         (mode t)
                          &key
                          &allow-other-keys)
   ;; step 1: synchronisation
@@ -142,7 +143,8 @@
 ;; Divergence
 (defmethod f-divergence ((distribution1 gaussian)
                          (distribution2 gaussian)
-                         &key
+                         (mode (eql :hellinger))
+                         &key 
                          &allow-other-keys)
   "Quantifies the hellinger distance between two probability distributions.
 

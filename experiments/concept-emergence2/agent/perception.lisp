@@ -24,9 +24,9 @@
 
 (defmethod switch-feature-availability (agent (feature-name symbol))
   "Switches the availability of the given feature."
-  (if (gethash feature (disabled-channels agent))
-    (remhash feature-name (disabled-channels agent))
-    (setf (gethash feature-name (disabled-channels agent)) feature-name)))
+  (if (gethash feature-name (disabled-features agent))
+    (remhash feature-name (disabled-features agent))
+    (setf (gethash feature-name (disabled-features agent)) feature-name)))
 
 ;; ---------
 ;; + NOISE +

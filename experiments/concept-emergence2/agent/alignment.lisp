@@ -41,7 +41,9 @@
                                                    :weight-decf (get-configuration (experiment agent) :weight-decf))
           ;;  3. punish competing similar cxns TODO: punishment is based on shifted concept
           (loop for other-cxn in (find-data agent 'meaning-competitors)
-                for similarity = (concept-representations::concept-similarity (meaning applied-cxn) (meaning other-cxn))
+                for similarity = (concept-representations::concept-similarity (meaning applied-cxn)
+                                                                              (meaning other-cxn)
+                                                                              (get-configuration (experiment agent) :f-divergence))
                 for delta = (* similarity (get-configuration (experiment agent) :entrenchment-li))
                 do (update-score-cxn agent other-cxn delta))
           ;; notify
@@ -80,7 +82,9 @@
                 ;; 3. find and punish meaning competitors TODO: punishment is based on shifted concept
                 (conceptualise agent)
                 (loop for other-cxn in (find-data agent 'meaning-competitors)
-                      for similarity = (concept-representations::concept-similarity (meaning applied-cxn) (meaning other-cxn))
+                      for similarity = (concept-representations::concept-similarity (meaning applied-cxn)
+                                                                                    (meaning other-cxn)
+                                                                                    (get-configuration (experiment agent) :f-divergence))
                       for delta = (* similarity (get-configuration (experiment agent) :entrenchment-li))
                       do (update-score-cxn agent other-cxn delta))
                 ;; notify

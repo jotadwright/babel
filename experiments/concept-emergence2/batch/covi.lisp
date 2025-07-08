@@ -11,7 +11,6 @@
     ;(:record-every-x-interactions . 100)
     (:usage-tracker-window . 5000)
     (:save-distribution-history . nil)
-    (:interacting-agents-strategy . :standard)
     (:initial-cxn-entrenchement . 0.5)
     ;; parameter for updating continuous distributions (gaussian-welford)
     (:M2 . 0.0001)))
