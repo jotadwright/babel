@@ -25,7 +25,8 @@
                        for unit-start = (first (unit-feature-value unit 'span))
                        for unit-end = (second (unit-feature-value unit 'span))
                        thereis (and (= first-index-for-role unit-start)
-                                    (= last-index-for-role (- unit-end 1)))))))
+                                    (= last-index-for-role (- unit-end 1))
+                                    (equalp (role-string role) (unit-feature-value unit 'string)))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

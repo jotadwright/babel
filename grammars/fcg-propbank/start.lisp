@@ -42,7 +42,9 @@
                                      ;(dev-split *ontonotes-corpus-annotated-with-init-ts*)
                                      (dev-split *ewt-corpus-annotated-with-init-ts*)))
 
-(learn-propbank-grammar (subseq *training-set* 1 2)
+(mapcar #'sentence-string *training-set*)
+
+(learn-propbank-grammar (subseq *training-set* 225 226)
                         #|:excluded-rolesets '("be.01" "be.02" "be.03"
                                              "do.01" "do.02" "do.04" "do.11" "do.12"
                                              "have.01" "have.02" "have.03" "have.04" "have.05" "have.06" "have.07" "have.08" "have.09" "have.10" "have.11"
@@ -61,5 +63,5 @@
 
 (add-element (make-html *ewt-grammar*))
 
-(loop for propbank-utterance in (subseq *training-set* 1 2)
+(loop for propbank-utterance in (subseq *training-set* 225 226)
       do (comprehend-and-extract-frames propbank-utterance :cxn-inventory *ewt-grammar*))
