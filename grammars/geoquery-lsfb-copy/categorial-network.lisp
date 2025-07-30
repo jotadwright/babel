@@ -2,26 +2,12 @@
 
 (let ((categorial-network (categorial-network *geoquery-lsfb-copy*)))
   (add-categories
-   '(stateid-?x\(?x\)-cat
-     x-state-cat
-     x-state\(?x\)-cat
-     largest-cat
-     smallest-cat
-     largest-area-cat
-     smallest-area-cat
-     largest-population-cat)
+   '(state-or-country
+     country
+     state)
    categorial-network)
-  (add-link 'x-state\(?x\)-cat 'largest-cat categorial-network)
-  (add-link 'x-state\(?x\)-cat 'smallest-cat categorial-network)
-  (add-link 'x-state\(?x\)-cat 'largest-area-cat categorial-network)
-  (add-link 'x-state\(?x\)-cat 'smallest-area-cat categorial-network)
-  (add-link 'x-state\(?x\)-cat 'largest-population-cat categorial-network))
-
-
-
-
-
-
+  (add-link 'state-or-country 'country categorial-network)
+  (add-link 'state-or-country 'state categorial-network))
 
 
 #|

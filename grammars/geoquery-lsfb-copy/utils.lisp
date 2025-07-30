@@ -64,3 +64,22 @@
    (babel-pathname :directory '("systems" "sign-language-processing""sign-language-processing-requirements")
                    :name "cities"
                    :type "jsonl")))
+
+(defparameter *geoquery-rivers*
+  (jsonl->list-of-json-alists
+   (babel-pathname :directory '("systems" "sign-language-processing""sign-language-processing-requirements")
+                   :name "rivers"
+                   :type "jsonl")))
+
+
+(defun determine-additional-categories (state-name)
+  (let ((additional-categories '()))
+    (loop for city in *geoquery-cities*
+          for city-name = (replace-spaces (cdr (assoc :name city)) :replacer "_")
+          when (string= state-name city-name)
+            do (push 'city additional-categories))
+    (loop for river in *geoquery-rivers*
+          for river-name = (replace-spaces (cdr (assoc :name river)) :replacer "_")
+          when (string= state-name river-name)
+            do (push 'river additional-categories))
+    additional-categories))

@@ -192,6 +192,10 @@
           = (retrieve-column-nr
              coincides-rh-fcg-tag
              right-hand-cells)
+        unless column-nr
+            do (progn
+                 ;(warn "The signed form cannot be rendered completely due to missing alignment predicates. Please make sure that all alignment predicates are included in the signed expression. For now, part of the expression will be rendered.")
+                 (return `(-1 . -1)))
         when (eql coincides-lh-fcg-tag
                   lh-fcg-tag)
           do (unless current-start

@@ -10,7 +10,7 @@
 (deactivate-monitor trace-slp)
 
 (comprehend
- (get-example-form 4337 *train-set*)
+ (get-example-form 779 *train-set*)
  :cxn-inventory *geoquery-lsfb-copy*)
 
 (defparameter *train-set*
@@ -83,7 +83,9 @@
 (test-coverage *test-set* *geoquery-lsfb*)
 (length (data  *test-set*))
 
-(pprint (get-example-meaning 809 *train-set*))
+(pprint (get-example-meaning 1 *train-set*))
+(formulate '((const e c f) (countryid f g) (usa g))
+           :cxn-inventory *geoquery-lsfb-copy*)
 ((ANSWER ?C ?A ?D)
 
  (STATE ?D ?A)

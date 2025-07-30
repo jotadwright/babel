@@ -18,6 +18,8 @@
                (:file "pointing-signs")
                (:file "stateid-cxns")
                (:file "state-cxns")
+               (:file "countryid-cxns")
+               (:file "largest-cxns")
                ;(:file "answer-cxns")
                ;(:file "state-next-to-cxns")
                ;(:file "stateid-cxns")

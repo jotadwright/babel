@@ -170,6 +170,23 @@ left-handed articulation into one two-handed hamnosys representation"
              (when rh-hamnosys (push rh-hamnosys output))))
            (setf previous-lh-hamnosys lh-hamnosys)
         finally (return (reverse output))))
+                      
 
 
 ;(sign-table-to-hamnosys-string (make-sign-table (predicates *test-utterance-1-predicates*)))
+
+
+(defun intern-all-symbols (set-of-predicates)
+  (loop for predicate in set-of-predicates
+        for second-arg = (second predicate)
+        for third-arg = (third predicate)
+        do (when (eql (type-of second-arg)
+                      'symbol)
+             (setf (second predicate)
+                   (intern (symbol-name second-arg) :slp)))
+           (when (eql (type-of third-arg)
+                      'symbol)
+             (setf (third predicate)
+                   (intern (symbol-name third-arg) :slp)))
+        collect predicate))
+        

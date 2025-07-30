@@ -10,7 +10,8 @@
                :fcg
                :cl-json
                :xmls
-               :grammar-learning)
+               :grammar-learning
+               :predicate-networks)
   :serial t
   :components ((:file "package")
                (:module utils

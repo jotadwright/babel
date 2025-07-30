@@ -12,7 +12,8 @@
 (defmethod render ((ts coupled-feature-structure) (mode (eql :signed-form-predicates)) &key &allow-other-keys)
   "renders signed-form-predicates by extracting all form features from the resulting transient structure in production"
   (make-instance 'signed-form-predicates
-                 :predicates (extract-forms (left-pole-structure ts))))
+                 :predicates
+                 (intern-all-symbols (pn::instantiate-predicate-network (extract-forms (left-pole-structure ts))))))
 
 
 

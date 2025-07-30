@@ -1,6 +1,79 @@
 (in-package :geoquery-lsfb-grammar-copy)
 
 #|
+(def-fcg-cxn state-?Xst-cxn\(dans\,usa\,?ds\,?pt\,il-y-a\,un\,?Xst\,pays\)
+             ((?state-unit
+               (syn-cat np)
+               (sem-cat place)
+               (subunits (?ds-unit ?pt-unit))
+               (args ((scope ?c)
+                      (target ?a)))
+               (boundaries ((left ?dans)
+                            (right ?pays))))
+              <-
+              (?ds-unit
+               --
+               (syn-cat depicting-sign)
+               (boundaries ((left ?ds-left)
+                            (right ?ds-right))))
+              (?pt-unit
+               --
+               (syn-cat pointing-sign))
+              (?Xst-unit
+               (args ((source ?d)
+                      (target ?a)
+                      (scope ?c)))
+               --
+               (syn-cat adjective)
+               (boundaries ((left ?adjective-left)
+                            (right ?adjective-right))))
+              (?state-unit
+               (HASH meaning ((state ?d ?a)))
+               --
+               (HASH form ((two-hand-articulation ?dans "")
+                           (right-hand-articulation ?usa "")
+                           (right-hand-articulation ?il-y-a "")
+                           (right-hand-articulation ?un "")
+                           (two-hand-articulation ?pays "")
+                           (adjacent ?dans ?usa)
+                           (adjacent ?usa ?ds-left)
+                           (adjacent ?ds-right ?pt-unit)
+                           (adjacent ?pt-unit ?il-y-a)
+                           (adjacent ?il-y-a ?un)
+                           (adjacent ?un ?adjective-left)
+                           (adjacent ?adjective-right ?pays)))))
+              :cxn-inventory *geoquery-lsfb-copy*)
+
+(def-fcg-cxn state-cxn\(dans\,usa\,ds\,pt\)
+             ((?state-unit
+               (syn-cat np)
+               (sem-cat place)
+               (subunits (?ds-unit ?pt-unit))
+               (args ((scope ?d)
+                      (target ?a)))
+               (boundaries ((left ?dans)
+                            (right ?pt-unit))))
+              <-
+              (?ds-unit
+               --
+               (syn-cat depicting-sign)
+               (boundaries ((left ?ds-left)
+                            (right ?ds-right))))
+              (?pt-unit
+               --
+               (syn-cat pointing-sign))
+              (?state-unit
+               (HASH meaning ((state ?d ?a)))
+               --
+               (HASH form ((two-hand-articulation ?dans "")
+                           (right-hand-articulation ?usa "")
+                           (adjacent ?dans ?usa)
+                           (adjacent ?usa ?ds-left)
+                           (adjacent ?ds-right ?pt-unit)))))
+              :cxn-inventory *geoquery-lsfb-copy*)
+|#
+
+#|
 (def-fcg-cxn ?x-state-cxn-1
              ((?x-state-unit
                (unit-cat x-state-cat)

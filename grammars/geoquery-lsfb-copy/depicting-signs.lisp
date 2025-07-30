@@ -15,6 +15,65 @@
                            (during ?pt ?landmark)))))
              :cxn-inventory *geoquery-lsfb-copy*)
 
+(def-fcg-cxn ds-cxn\(landmark-out\,pt-flat-sweep\)
+             ((?ds-unit
+               (boundaries ((left ?pt)
+                            (right ?pt)))
+               (footprints (ds)))
+              <-
+              (?ds-unit
+               (syn-cat depicting-sign)
+               (footprints (not ds))
+               --
+               (HASH form ((right-hand-articulation ?pt "")
+                           (left-hand-articulation ?landmark "")
+                           (during ?pt ?landmark)))))
+             :cxn-inventory *geoquery-lsfb-copy*)
+
+(def-fcg-cxn ds-cxn\(landmark-left\,pt-flat-sweep\)
+             ((?ds-unit
+               (boundaries ((left ?pt)
+                            (right ?pt)))
+               (footprints (ds)))
+              <-
+              (?ds-unit
+               (syn-cat depicting-sign)
+               (footprints (not ds))
+               --
+               (HASH form ((right-hand-articulation ?pt "")
+                           (left-hand-articulation ?landmark "")
+                           (during ?pt ?landmark)))))
+             :cxn-inventory *geoquery-lsfb-copy*)
+
+
+(def-fcg-cxn ds-cxn\(landmark\,pt-flat-sweep\)
+             ((?ds-unit
+               (boundaries ((left ?pt)
+                            (right ?pt)))
+               (footprints (ds)))
+              <-
+              (?ds-unit
+               (syn-cat depicting-sign)
+               (footprints (not ds))
+               --
+               (HASH form ((right-hand-articulation ?pt "")
+                           (left-hand-articulation ?landmark "")
+                           (during ?pt ?landmark)))))
+             :cxn-inventory *geoquery-lsfb-copy*)
+
+(def-fcg-cxn ds-cxn\(placement\)
+             ((?ds-unit
+               (boundaries ((left ?placement)
+                            (right ?placement)))
+               (footprints (ds)))
+              <-
+              (?ds-unit
+               (syn-cat depicting-sign)
+               (footprints (not ds))
+               --
+               (HASH form ((right-hand-articulation ?placement "")))))
+             :cxn-inventory *geoquery-lsfb-copy*)
+
 (def-fcg-cxn ds-cxn\(landmark-out\,pt\)
              ((?ds-unit
                (boundaries ((left ?pt)
@@ -42,6 +101,21 @@
                --
                (HASH form ((right-hand-articulation ?pt "")
                            (left-hand-articulation ?landmark "")
+                           (during ?pt ?landmark)))))
+             :cxn-inventory *geoquery-lsfb-copy*)
+
+(def-fcg-cxn ds-cxn\(hand-landmark-left\,pt\)
+             ((?ds-unit
+               (boundaries ((left ?pt)
+                            (right ?pt)))
+               (footprints (ds)))
+              <-
+              (?ds-unit
+               (syn-cat depicting-sign)
+               (footprints (not ds))
+               --
+               (HASH form ((right-hand-articulation ?pt "")
+                           (left-hand-articulation ?landmark "")
                            (during ?pt ?landmark)))))
              :cxn-inventory *geoquery-lsfb-copy*)
 
@@ -198,6 +272,23 @@
                            (left-hand-articulation ?landmark "")
                            (during ?pt ?landmark)))))
              :cxn-inventory *geoquery-lsfb-copy*)
+
+(def-fcg-cxn ds-cxn\(landmark\,pt-flat-sweep\)
+             ((?ds-unit
+               (boundaries ((left ?pt)
+                            (right ?pt)))
+               (footprints (ds)))
+              <-
+              (?ds-unit
+               (syn-cat depicting-sign)
+               (footprints (not ds))
+               --
+               (HASH form ((right-hand-articulation ?pt "")
+                           (left-hand-articulation ?landmark "")
+                           (during ?pt ?landmark)))))
+             :cxn-inventory *geoquery-lsfb-copy*)
+
+
 #|
 
 (def-fcg-cxn ds-phrase-cxn\(landmark\,pt\,pt\)

@@ -10,7 +10,8 @@
    :irl
    :fcg
    :xmls-system
-   :grammar-learning)
+   :grammar-learning
+   :predicate-networks)
   (:import-from :cl-json
    :decode-json-from-string
    :encode-json-to-string

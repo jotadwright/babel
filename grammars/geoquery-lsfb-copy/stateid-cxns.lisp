@@ -10,23 +10,37 @@
       for state-unit-name = (read-from-string (format nil "?~a-unit" state-meaning))
       for state-category = (read-from-string (format nil "~a-cat" state-meaning))
       for additional-signs-unit-name = (read-from-string (format nil "?~a-optional-signs-unit" state-meaning))
+      for sem-categories = (append '(state)(determine-additional-categories state-meaning))
+      for possible-category-len = (length sem-categories)
       do (eval
           `(def-fcg-cxn ,construction-name
                         ((,state-unit-name
-                          ;(unit-cat ,state-category)
                           (syn-cat noun)
-                          (sem-cat place)
-                          (args ((target ?g)))
+                          (sem-cat
+                          ,(if (eql possible-category-len 1)
+                              `(identified-category state)
+                              `(possible-categories ,sem-categories)))
+                          (footprints
+                           ,(if (eql possible-category-len 1)
+                                      `(identified)
+                                      `()))
+                          (args
+                           ,(if (eql possible-category-len 1)
+                                      `((target ?g)
+                                        (scope ?f))
+                                      `((target ?g))))
                           (boundaries ((left ,state-fcg-tag)
                                        (right ,state-fcg-tag))))
                          <-
                          (,state-unit-name
-                          (HASH meaning ((,(read-from-string state-meaning) ?g)))
+                          (HASH meaning
+                                ,(if (eql possible-category-len 1)
+                                   `((,(read-from-string state-meaning) ?g)
+                                     (stateid ?f ?g))
+                                   `((,(read-from-string state-meaning) ?g))))
                           --
                           (HASH form ((right-hand-articulation ,state-fcg-tag ,hamnosys)))))
-                        :cxn-inventory *geoquery-lsfb-copy*))
-      (add-category state-category (categorial-network *geoquery-lsfb-copy*))
-      (add-link state-category 'stateid-?x\(?x\)-cat (categorial-network *geoquery-lsfb-copy*)))
+                        :cxn-inventory *geoquery-lsfb-copy*)))
          
 
 
@@ -39,17 +53,34 @@
       for state-unit-name = (read-from-string (format nil "?~a-unit" state-meaning))
       for state-category = (read-from-string (format nil "~a-cat" state-meaning))
       for additional-signs-unit-name = (read-from-string (format nil "?~a-optional-signs-unit" state-meaning))
+      for sem-categories = (append '(state)(determine-additional-categories state-meaning))
+      for possible-category-len = (length sem-categories)
       do (eval
           `(def-fcg-cxn ,construction-name
                         ((,state-unit-name
                           (syn-cat noun)
-                          (sem-cat place)
-                          (args ((target ?g)))
+                          (sem-cat
+                          ,(if (eql possible-category-len 1)
+                              `(identified-category state)
+                              `(possible-categories ,sem-categories)))
+                          (footprints
+                           ,(if (eql possible-category-len 1)
+                                      `(identified)
+                                      `()))
+                          (args
+                           ,(if (eql possible-category-len 1)
+                                      `((target ?g)
+                                        (scope ?f))
+                                      `((target ?g))))
                           (boundaries ((left ,state-fcg-tag)
                                        (right ,state-fcg-tag))))
                          <-
                          (,state-unit-name
-                          (HASH meaning ((,(read-from-string state-meaning) ?g)))
+                          (HASH meaning
+                                ,(if (eql possible-category-len 1)
+                                   `((,(read-from-string state-meaning) ?g)
+                                     (stateid ?f ?g))
+                                   `((,(read-from-string state-meaning) ?g))))
                           --
                           (HASH form ((right-hand-articulation ,state-fcg-tag ,hamnosys)))))
                         :cxn-inventory *geoquery-lsfb-copy*)))
@@ -58,24 +89,61 @@
 (def-fcg-cxn new-mexico-cxn-2
              ((?new-mexico-unit
                (syn-cat noun)
-               (sem-cat place)
-               (args ((target ?g)))
+               (sem-cat (identified-category state))
+               (footprints (identified))
+               (args ((scope ?f)
+                      (target ?g)))
                (boundaries ((left ?nouveau)
                             (right ?ns-mexique))))
               <-
               (?new-mexico-unit
-               (HASH meaning ((new_mexico ?g)))
+               (HASH meaning ((new_mexico ?g)
+                              (stateid ?f ?g)))
                --
                (HASH form ((two-hand-articulation ?nouveau "")
                            (right-hand-articulation ?ns-mexique "")
                            (adjacent ?nouveau ?ns-mexique)))))
              :cxn-inventory *geoquery-lsfb-copy*)
 
+(def-fcg-cxn usa-cxn-1
+             ((?usa-unit
+               (syn-cat noun)
+               (sem-cat (identified-category country))
+               (footprints (identified))
+               (args ((scope ?f)
+                      (target ?g)))
+               (boundaries ((left ?ns-amerique)
+                            (right ?ns-amerique))))
+              <-
+              (?usa-unit
+               (HASH meaning ((usa ?g)
+                              (countryid ?f ?g)))
+               --
+               (HASH form ((right-hand-articulation ?ns-amerique "")))))
+             :cxn-inventory *geoquery-lsfb-copy*)
 
+(def-fcg-cxn usa-cxn-2
+             ((?usa-unit
+               (syn-cat noun)
+               (sem-cat (identified-category country))
+               (footprints (identified))
+               (args ((scope ?f)
+                      (target ?g)))
+               (boundaries ((left ?ns-amerique)
+                            (right ?ns-amerique))))
+              <-
+              (?usa-unit
+               (HASH meaning ((usa ?g)
+                              (countryid ?f ?g)))
+               --
+               (HASH form ((two-hand-articulation ?ns-amerique "")))))
+             :cxn-inventory *geoquery-lsfb-copy*)
+
+#|
 (def-fcg-cxn des-moines-cxn-2
              ((?des-moines-unit
                (syn-cat noun)
-               (sem-cat place)
+               (sem-cat (state))
                (args ((target ?g)))
                (boundaries ((left ?des)
                             (right ?moine))))
@@ -87,106 +155,130 @@
                            (right-hand-articulation ?moine "")
                            (adjacent ?des ?moine)))))
              :cxn-inventory *geoquery-lsfb-copy*)
+|#
 
-(def-fcg-cxn stateid-cxn\(palm-up\,dans\,state\)
-             ((?stateid-unit
+(def-fcg-cxn stateid-cxn
+             ((?state-unit
+               (sem-cat (identified-category state))
+               (footprints (identified))
+               (args ((target ?g)
+                      (scope ?f))))
+              <-
+              (?state-unit
+               (sem-cat (possible-categories (state)))
+               (args ((target ?g)))
+               (HASH meaning ((stateid ?f ?g)))
+               --
+               (footprints (not identified))
+               (syn-cat noun)))
+             :cxn-inventory *geoquery-lsfb-copy*)
+
+(def-fcg-cxn const-?state-or-country-cxn\(palm-up\,dans\,?state-or-country\)
+             ((?const-unit
                (syn-cat np)
-               (sem-cat place)
-               (subunits (?state-unit))
+               (subunits (?state-or-country-unit))
                (args ((scope ?e)
                       (target ?c)))
                (boundaries ((left ?palm-up)
-                            (right ?state-right-boundary))))
+                            (right ?state-or-country-right-boundary))))
+              (?state-or-country-unit
+                (footprints (const)))
               <-
-              (?state-unit
-               (sem-cat state)
-               (args ((target ?g)))
+              (?state-or-country-unit
+               (sem-cat (identified-category state-or-country))
+               (args ((scope ?f)))
+               (footprints (not const))
                --
                (syn-cat noun)
-               (boundaries ((left ?state-left-boundary)
-                            (right ?state-right-boundary))))
-              (?stateid-unit
-               (HASH meaning ((const ?e ?c ?f)
-                              (stateid ?f ?g)))
+               (footprints (not const))
+               (boundaries ((left ?state-or-country-left-boundary)
+                            (right ?state-or-country-right-boundary))))
+              (?const-unit
+               (HASH meaning ((const ?e ?c ?f)))
                --
                (HASH form ((two-hand-articulation ?palm-up "")
                            (two-hand-articulation ?dans "")
-                           (adjacent  ?dans)
-                           (adjacent ?dans ?state-left-boundary)))))
+                           (adjacent ?palm-up ?dans)
+                           (adjacent ?dans ?state-or-country-left-boundary)))))
              :cxn-inventory *geoquery-lsfb-copy*)
 
-(def-fcg-cxn stateid-cxn\(dans\,pt\,state\)
-             ((?stateid-unit
+(def-fcg-cxn const-?state-or-country-cxn\(dans\,?pt\,?state-or-country\)
+             ((?const-unit
                (syn-cat np)
-               (sem-cat place)
-               (subunits (?state-unit ?pt-unit))
+               (subunits (?state-or-country-unit ?pt-unit))
                (args ((scope ?e)
                       (target ?c)))
                (boundaries ((left ?dans)
-                            (right ?state-right-boundary))))
+                            (right ?state-or-country-right-boundary))))
+               (?state-or-country-unit
+                (footprints (const)))
               <-
-              (?state-unit
-               (sem-cat place)
-               (args ((target ?g)))
+              (?state-or-country-unit
+               (sem-cat (identified-category state-or-country))
+               (args ((scope ?f)))
+               (footprints (not const))
                --
+               (footprints (not const))
                (syn-cat noun)
-               (boundaries ((left ?state-left-boundary)
-                            (right ?state-right-boundary))))
+               (boundaries ((left ?state-or-country-left-boundary)
+                            (right ?state-or-country-right-boundary))))
               (?pt-unit
                --
                (syn-cat pointing-sign))
-              (?stateid-unit
-               (HASH meaning ((const ?e ?c ?f)
-                              (stateid ?f ?g)))
+              (?const-unit
+               (HASH meaning ((const ?e ?c ?f)))
                --
                (HASH form ((two-hand-articulation ?dans "")
                            (adjacent ?dans ?pt-unit)
-                           (adjacent ?pt-unit ?state-left-boundary)))))
+                           (adjacent ?pt-unit ?state-or-country-left-boundary)))))
              :cxn-inventory *geoquery-lsfb-copy*)
 
-(def-fcg-cxn stateid-cxn\(ds\,state\,pt\)
-             ((?stateid-unit
+(def-fcg-cxn const-?state-or-country-cxn\(?ds\,?state-or-country\,?pt\)
+             ((?const-unit
                (syn-cat np)
-               (sem-cat place)
-               (subunits (?state-unit ?ds-unit ?pt-unit))
+               (subunits (?state-or-country-unit ?ds-unit ?pt-unit))
                (args ((scope ?e)
                       (target ?c)))
                (boundaries ((left ?ds-left)
                             (right ?pt-unit))))
+              (?state-or-country-unit
+                (footprints (const)))
               <-
               (?ds-unit
                --
                (syn-cat depicting-sign)
                (boundaries ((left ?ds-left)
                             (right ?ds-right))))
-              (?state-unit
-               (sem-cat place)
-               (args ((target ?g)))
+              (?state-or-country-unit
+               (sem-cat (identified-category state-or-country))
+               (args ((scope ?f)))
+               (footprints (not const))
                --
+               (footprints (not const))
                (syn-cat noun)
-               (boundaries ((left ?state-left-boundary)
-                            (right ?state-right-boundary))))
+               (boundaries ((left ?state-or-country-left-boundary)
+                            (right ?state-or-country-right-boundary))))
               (?pt-unit
                --
                (syn-cat pointing-sign))
-              (?stateid-unit
-               (HASH meaning ((const ?e ?c ?f)
-                              (stateid ?f ?g)))
+              (?const-unit
+               (HASH meaning ((const ?e ?c ?f)))
                --
-               (HASH form ((adjacent ?ds-right ?state-left-boundary) ;right of ds with left of state
-                           (adjacent ?state-right-boundary ?pt-unit) ; right of state with left of pt
+               (HASH form ((adjacent ?ds-right ?state-or-country-left-boundary) ;right of ds with left of state
+                           (adjacent ?state-or-country-right-boundary ?pt-unit) ; right of state with left of pt
                            ))))
              :cxn-inventory *geoquery-lsfb-copy*)
 
-(def-fcg-cxn stateid-cxn\(dans\,pt-1\,ds\,state\,pt-2\)
-             ((?stateid-unit
+(def-fcg-cxn const-?state-or-country-cxn\(dans\,?pt-1\,?ds\,?state-or-country\,?pt-2\)
+             ((?const-unit
                (syn-cat np)
-               (sem-cat place)
-               (subunits (?state-unit ?pt-unit-1 ?pt-unit-2 ?ds-unit))
+               (subunits (?state-or-country-unit ?pt-unit-1 ?pt-unit-2 ?ds-unit))
                (args ((scope ?e)
                       (target ?c)))
                (boundaries ((left ?dans)
                             (right ?pt-unit-2))))
+              (?state-or-country-unit
+                (footprints (const)))
               <-
               (?pt-unit-1
                --
@@ -196,99 +288,107 @@
                (syn-cat depicting-sign)
                (boundaries ((left ?ds-left)
                             (right ?ds-right))))
-              (?state-unit
-               (sem-cat place)
-               (args ((target ?g)))
+              (?state-or-country-unit
+               (sem-cat (identified-category state-or-country))
+               (args ((scope ?f)))
+               (footprints (not const))
                --
+               (footprints (not const))
                (syn-cat noun)
-               (boundaries ((left ?state-left-boundary)
-                            (right ?state-right-boundary))))
-              (?stateid-unit
-               (HASH meaning ((const ?e ?c ?f)
-                              (stateid ?f ?g)))
+               (boundaries ((left ?state-or-country-left-boundary)
+                            (right ?state-or-country-right-boundary))))
+              (?const-unit
+               (HASH meaning ((const ?e ?c ?f)))
                --
                (HASH form ((two-hand-articulation ?dans "")
                            (adjacent ?dans ?pt-unit-1)
                            (adjacent ?pt-unit-1 ?ds-left)
-                           (adjacent ?ds-right ?state-left-boundary)
-                           (adjacent ?state-right-boundary ?pt-unit-2))))
+                           (adjacent ?ds-right ?state-or-country-left-boundary)
+                           (adjacent ?state-or-country-right-boundary ?pt-unit-2))))
               (?pt-unit-2
                --
                (syn-cat pointing-sign)))
              :cxn-inventory *geoquery-lsfb-copy*)
 
-(def-fcg-cxn stateid-cxn\(ds\,state\)
-             ((?stateid-unit
+(def-fcg-cxn const-?state-or-country-cxn\(?ds\,?state-or-country\)
+             ((?const-unit
                (syn-cat np)
-               (sem-cat place)
-               (subunits (?state-unit ?ds-unit))
+               (subunits (?state-or-country-unit ?ds-unit))
                (args ((scope ?e)
                       (target ?c)))
                (boundaries ((left ?ds-left)
-                            (right ?state-right-boundary))))
+                            (right ?state-or-country-right-boundary))))
+              (?state-or-country-unit
+                (footprints (const)))
               <-
               (?ds-unit
                --
                (syn-cat depicting-sign)
                (boundaries ((left ?ds-left)
                             (right ?ds-right))))
-              (?state-unit
-               (sem-cat place)
-               (args ((target ?g)))
+              (?state-or-country-unit
+               (sem-cat (identified-category state-or-country))
+               (args ((scope ?f)))
+               (footprints (not const))
                --
+               (footprints (not const))
                (syn-cat noun)
-               (boundaries ((left ?state-left-boundary)
-                            (right ?state-right-boundary))))
-              (?stateid-unit
-               (HASH meaning ((const ?e ?c ?f)
-                              (stateid ?f ?g)))
+               (boundaries ((left ?state-or-country-left-boundary)
+                            (right ?state-or-country-right-boundary))))
+              (?const-unit
+               (HASH meaning ((const ?e ?c ?f)))
                --
-               (HASH form ((adjacent ?ds-right ?state-left-boundary)))))
+               (HASH form ((adjacent ?ds-right ?state-or-country-left-boundary)))))
              :cxn-inventory *geoquery-lsfb-copy*)
 
-(def-fcg-cxn stateid-cxn\(dans\,state\)
-             ((?stateid-unit
+(def-fcg-cxn const-?state-or-country-cxn\(dans\,?state-or-country\)
+             ((?const-unit
                (syn-cat np)
-               (sem-cat place)
-               (subunits (?state-unit))
+               (subunits (?state-or-country-unit))
                (args ((scope ?e)
                       (target ?c)))
                (boundaries ((left ?dans)
-                            (right ?state-right-boundary))))
+                            (right ?state-or-country-right-boundary))))
+              (?state-or-country-unit
+                (footprints (const)))
               <-
-              (?state-unit
-               (sem-cat place)
-               (args ((target ?g)))
+              (?state-or-country-unit
+               (sem-cat (identified-category state-or-country))
+               (args ((scope ?f)))
+               (footprints (not const))
                --
+               (footprints (not const))
                (syn-cat noun)
-               (boundaries ((left ?state-left-boundary)
-                            (right ?state-right-boundary))))
-              (?stateid-unit
-               (HASH meaning ((const ?e ?c ?f)
-                              (stateid ?f ?g)))
+               (boundaries ((left ?state-or-country-left-boundary)
+                            (right ?state-or-country-right-boundary))))
+              (?const-unit
+               (HASH meaning ((const ?e ?c ?f)))
                --
                (HASH form ((two-hand-articulation ?dans "")
-                           (adjacent ?dans ?state-left-boundary)))))
+                           (adjacent ?dans ?state-or-country-left-boundary)))))
              :cxn-inventory *geoquery-lsfb-copy*)
 
 
-(def-fcg-cxn stateid-cxn\(dans\,pt\,state\,ds\)
-             ((?stateid-unit
+(def-fcg-cxn const-?state-or-country-cxn\(dans\,?pt\,?state-or-country\,?ds\)
+             ((?const-unit
                (syn-cat np)
-               (sem-cat place)
-               (subunits (?state-unit ?pt-unit ?ds-unit))
+               (subunits (?state-or-country-unit ?pt-unit ?ds-unit))
                (args ((scope ?e)
                       (target ?c)))
                (boundaries ((left ?dans)
-                            (right ?state-right-boundary))))
+                            (right ?state-or-country-right-boundary))))
+              (?state-or-country-unit
+                (footprints (const)))
               <-
               (?pt-unit
                --
                (syn-cat pointing-sign))
-              (?state-unit
-               (sem-cat place)
-               (args ((target ?g)))
+              (?state-or-country-unit
+               (sem-cat (identified-category state-or-country))
+               (args ((scope ?f)))
+               (footprints (not const))
                --
+               (footprints (not const))
                (syn-cat noun)
                (boundaries ((left ?dans)
                             (right ?ds-right))))
@@ -297,36 +397,38 @@
                (syn-cat depicting-sign)
                (boundaries ((left ?ds-left)
                             (right ?ds-right))))
-              (?stateid-unit
-               (HASH meaning ((const ?e ?c ?f)
-                              (stateid ?f ?g)))
+              (?const-unit
+               (HASH meaning ((const ?e ?c ?f)))
                --
                (HASH form ((two-hand-articulation ?dans "")
                            (adjacent ?dans ?pt-unit)
-                           (adjacent ?pt-unit ?state-unit)
-                           (adjacent ?state-unit ?ds-left)))))
+                           (adjacent ?pt-unit ?state-or-country-unit)
+                           (adjacent ?state-or-country-unit ?ds-left)))))
              :cxn-inventory *geoquery-lsfb-copy*)
 
-(def-fcg-cxn stateid-cxn\(dans\,pt\,state\,ds\,pt\)
-             ((?stateid-unit
+(def-fcg-cxn const-?state-or-country-cxn\(dans\,?pt\,?state-or-country\,?ds\,?pt\)
+             ((?const-unit
                (syn-cat np)
-               (sem-cat place)
-               (subunits (?state-unit ?pt-unit-1 ?ds-unit ?pt-unit-2))
+               (subunits (?state-or-country-unit ?pt-unit-1 ?ds-unit ?pt-unit-2))
                (args ((scope ?e)
                       (target ?c)))
                (boundaries ((left ?dans)
                             (right ?ds-right))))
+              (?state-or-country-unit
+                (footprints (const)))
               <-
               (?pt-unit-1
                --
                (syn-cat pointing-sign))
-              (?state-unit
-               (sem-cat place)
-               (args ((target ?g)))
+              (?state-or-country-unit
+               (sem-cat (identified-category state-or-country))
+               (args ((scope ?f)))
+               (footprints (not const))
                --
+               (footprints (not const))
                (syn-cat noun)
-               (boundaries ((left ?state-left)
-                            (right ?state-right))))
+               (boundaries ((left ?state-or-country-left)
+                            (right ?state-or-country-right))))
               (?ds-unit
                --
                (syn-cat depicting-sign)
@@ -335,249 +437,263 @@
               (?pt-unit-2
                --
                (syn-cat pointing-sign))
-              (?stateid-unit
-               (HASH meaning ((const ?e ?c ?f)
-                              (stateid ?f ?g)))
+              (?const-unit
+               (HASH meaning ((const ?e ?c ?f)))
                --
                (HASH form ((two-hand-articulation ?dans "")
                            (adjacent ?dans ?pt-unit)
-                           (adjacent ?pt-unit ?state-left)
-                           (adjacent ?state-right ?ds-left)))))
+                           (adjacent ?pt-unit ?state-or-country-left)
+                           (adjacent ?state-or-country-right ?ds-left)))))
              :cxn-inventory *geoquery-lsfb-copy*)
 
-(def-fcg-cxn stateid-cxn\(dans\,ds\,state\)
-             ((?stateid-unit
+(def-fcg-cxn const-?state-or-country-cxn\(dans\,?ds\,?state-or-country\)
+             ((?const-unit
                (syn-cat np)
-               (sem-cat place)
-               (subunits (?state-unit ?ds-unit))
+               (subunits (?state-or-country-unit ?ds-unit))
                (args ((scope ?e)
                       (target ?c)))
                (boundaries ((left ?dans)
-                            (right ?state-right-boundary))))
+                            (right ?state-or-country-right-boundary))))
+              (?state-or-country-unit
+                (footprints (const)))
               <-
               (?ds-unit
                --
                (syn-cat depicting-sign)
                (boundaries ((left ?ds-left)
                             (right ?ds-right))))
-              (?state-unit
-               (sem-cat place)
-               (args ((target ?g)))
+              (?state-or-country-unit
+               (sem-cat (identified-category state-or-country))
+               (args ((scope ?f)))
+               (footprints (not const))
                --
+               (footprints (not const))
                (syn-cat noun)
-               (boundaries ((left ?state-left-boundary)
-                            (right ?state-right-boundary))))
-              (?stateid-unit
-               (HASH meaning ((const ?e ?c ?f)
-                              (stateid ?f ?g)))
+               (boundaries ((left ?state-or-country-left-boundary)
+                            (right ?state-or-country-right-boundary))))
+              (?const-unit
+               (HASH meaning ((const ?e ?c ?f)))
                --
                (HASH form ((two-hand-articulation ?dans "")
                            (adjacent ?dans ?ds-left)
-                           (adjacent ?ds-right ?state-left-boundary)))))
+                           (adjacent ?ds-right ?state-or-country-left-boundary)))))
              :cxn-inventory *geoquery-lsfb-copy*)
 
 
-(def-fcg-cxn stateid-cxn\(pt\,state\,pt\)
-             ((?stateid-unit
+(def-fcg-cxn const-?state-or-country-cxn\(?pt\,?state-or-country\,?pt\)
+             ((?const-unit
                (syn-cat np)
-               (sem-cat place)
-               (subunits (?state-unit ?pt-unit-1 ?pt-unit-2))
+               (subunits (?state-or-country-unit ?pt-unit-1 ?pt-unit-2))
                (args ((scope ?e)
                       (target ?c)))
                (boundaries ((left ?pt-unit-1)
                             (right ?pt-unit-2))))
+              (?state-or-country-unit
+                (footprints (const)))
               <-
               (?pt-unit-1
                --
                (syn-cat pointing-sign))
-              (?state-unit
-               (sem-cat place)
-               (args ((target ?g)))
+              (?state-or-country-unit
+               (sem-cat (identified-category state-or-country))
+               (args ((scope ?f)))
+               (footprints (not const))
                --
+               (footprints (not const))
                (syn-cat noun)
-               (boundaries ((left ?state-left-boundary)
-                            (right ?state-right-boundary))))
+               (boundaries ((left ?state-or-country-left-boundary)
+                            (right ?state-or-country-right-boundary))))
               (?pt-unit-2
                --
                (syn-cat pointing-sign))
-              (?stateid-unit
-               (HASH meaning ((const ?e ?c ?f)
-                              (stateid ?f ?g)))
+              (?const-unit
+               (HASH meaning ((const ?e ?c ?f)))
                --
-               (HASH form ((adjacent ?pt-unit-1 ?state-left-boundary)
-                           (adjacent ?state-right-boundary ?pt-unit-2)))))
+               (HASH form ((adjacent ?pt-unit-1 ?state-or-country-left-boundary)
+                           (adjacent ?state-or-country-right-boundary ?pt-unit-2)))))
              :cxn-inventory *geoquery-lsfb-copy*)
 
 
-(def-fcg-cxn stateid-cxn\(pt\,pays\,state\)
-             ((?stateid-unit
+(def-fcg-cxn const-?state-or-country-cxn\(?pt\,pays\,?state-or-country\)
+             ((?const-unit
                (syn-cat np)
-               (sem-cat place)
-               (subunits (?state-unit ?pt-unit))
+               (subunits (?state-or-country-unit ?pt-unit))
                (args ((scope ?e)
                       (target ?c)))
                (boundaries ((left ?pt-unit)
-                            (right ?state-right-boundary))))
+                            (right ?state-or-country-right-boundary))))
+              (?state-or-country-unit
+                (footprints (const)))
               <-
               (?pt-unit
                --
                (syn-cat pointing-sign))
-              (?state-unit
-               (sem-cat place)
-               (args ((target ?g)))
+              (?state-or-country-unit
+               (sem-cat (identified-category state-or-country))
+               (args ((scope ?f)))
+               (footprints (not const))
                --
+               (footprints (not const))
                (syn-cat noun)
-               (boundaries ((left ?state-left-boundary)
-                            (right ?state-right-boundary))))
-              (?stateid-unit
-               (HASH meaning ((const ?e ?c ?f)
-                              (stateid ?f ?g)))
+               (boundaries ((left ?state-or-country-left-boundary)
+                            (right ?state-or-country-right-boundary))))
+              (?const-unit
+               (HASH meaning ((const ?e ?c ?f)))
                --
                (HASH form ((two-hand-articulation ?pays "")
                            (adjacent ?pt-unit ?pays)
-                           (adjacent ?pays ?state-left-boundary)))))
+                           (adjacent ?pays ?state-or-country-left-boundary)))))
              :cxn-inventory *geoquery-lsfb-copy*)
 
 
-(def-fcg-cxn stateid-cxn\(pays\,ds\,state\)
-             ((?stateid-unit
+(def-fcg-cxn const-?state-or-country-cxn\(pays\,?ds\,?state-or-country\)
+             ((?const-unit
                (syn-cat np)
-               (sem-cat place)
-               (subunits (?state-unit ?ds-unit))
+               (subunits (?state-or-country-unit ?ds-unit))
                (args ((scope ?e)
                       (target ?c)))
                (boundaries ((left ?pays)
-                            (right ?state-right-boundary))))
+                            (right ?state-or-country-right-boundary))))
+              (?state-or-country-unit
+                (footprints (const)))
               <-
               (?ds-unit
                --
                (syn-cat depicting-sign)
                (boundaries ((left ?ds-left)
                             (right ?ds-right))))
-              (?state-unit
-               (sem-cat place)
-               (args ((target ?g)))
+              (?state-or-country-unit
+               (sem-cat (identified-category state-or-country))
+               (args ((scope ?f)))
+               (footprints (not const))
                --
+               (footprints (not const))
                (syn-cat noun)
-               (boundaries ((left ?state-left-boundary)
-                            (right ?state-right-boundary))))
-              (?stateid-unit
-               (HASH meaning ((const ?e ?c ?f)
-                              (stateid ?f ?g)))
+               (boundaries ((left ?state-or-country-left-boundary)
+                            (right ?state-or-country-right-boundary))))
+              (?const-unit
+               (HASH meaning ((const ?e ?c ?f)))
                --
                (HASH form ((two-hand-articulation ?pays "")
                            (adjacent ?pays ?ds-left)
-                           (adjacent ?ds-right ?state-left-boundary)))))
+                           (adjacent ?ds-right ?state-or-country-left-boundary)))))
              :cxn-inventory *geoquery-lsfb-copy*)
 
 
-(def-fcg-cxn stateid-cxn\(pays\,state\,pt\)
-             ((?stateid-unit
+(def-fcg-cxn const-?state-or-country-cxn\(pays\,?state-or-country\,?pt\)
+             ((?const-unit
                (syn-cat np)
-               (sem-cat place)
-               (subunits (?state-unit ?pt-unit))
+               (subunits (?state-or-country-unit ?pt-unit))
                (args ((scope ?e)
                       (target ?c)))
                (boundaries ((left ?pays)
                             (right ?pt-unit))))
+              (?state-or-country-unit
+                (footprints (const)))
               <-
-              (?state-unit
-               (sem-cat place)
-               (args ((target ?g)))
+              (?state-or-country-unit
+               (sem-cat (identified-category state-or-country))
+               (args ((scope ?f)))
+               (footprints (not const))
                --
+               (footprints (not const))
                (syn-cat noun)
-               (boundaries ((left ?state-left-boundary)
-                            (right ?state-right-boundary))))
+               (boundaries ((left ?state-or-country-left-boundary)
+                            (right ?state-or-country-right-boundary))))
               (?pt-unit
                --
                (syn-cat pointing-sign))
-              (?stateid-unit
-               (HASH meaning ((const ?e ?c ?f)
-                              (stateid ?f ?g)))
+              (?const-unit
+               (HASH meaning ((const ?e ?c ?f)))
                --
                (HASH form ((two-hand-articulation ?pays "")
-                           (adjacent ?pays ?state-left-boundary)
-                           (adjacent ?state-right-boundary ?pt-unit)))))
+                           (adjacent ?pays ?state-or-country-left-boundary)
+                           (adjacent ?state-or-country-right-boundary ?pt-unit)))))
              :cxn-inventory *geoquery-lsfb-copy*)
 
 
-(def-fcg-cxn stateid-cxn\(pt\,pays\,state\,pt\)
-             ((?stateid-unit
+(def-fcg-cxn const-?state-or-country-cxn\(?pt\,pays\,?state-or-country\,?pt\)
+             ((?const-unit
                (syn-cat np)
-               (sem-cat place)
-               (subunits (?state-unit ?pt-unit-1 ?pt-unit-2))
+               (subunits (?state-or-country-unit ?pt-unit-1 ?pt-unit-2))
                (args ((scope ?e)
                       (target ?c)))
                (boundaries ((left ?pays)
                             (right ?pt-unit))))
+              (?state-or-country-unit
+                (footprints (const)))
               <-
               (?pt-unit-1
                --
                (syn-cat pointing-sign))
-              (?state-unit
-               (sem-cat place)
-               (args ((target ?g)))
+              (?state-or-country-unit
+               (sem-cat (identified-category state-or-country))
+               (args ((scope ?f)))
+               (footprints (not const))
                --
+               (footprints (not const))
                (syn-cat noun)
-               (boundaries ((left ?state-left-boundary)
-                            (right ?state-right-boundary))))
+               (boundaries ((left ?state-or-country-left-boundary)
+                            (right ?state-or-country-right-boundary))))
               (?pt-unit-2
                --
                (syn-cat pointing-sign))
-              (?stateid-unit
-               (HASH meaning ((const ?e ?c ?f)
-                              (stateid ?f ?g)))
+              (?const-unit
+               (HASH meaning ((const ?e ?c ?f)))
                --
                (HASH form ((two-hand-articulation ?pays "")
                            (adjacent ?pt-unit-1 ?pays)
-                           (adjacent ?pays ?state-left-boundary)
-                           (adjacent ?state-right-boundary ?pt-unit-2)))))
+                           (adjacent ?pays ?state-or-country-left-boundary)
+                           (adjacent ?state-or-country-right-boundary ?pt-unit-2)))))
              :cxn-inventory *geoquery-lsfb-copy*)
 
-(def-fcg-cxn stateid-cxn\(pt\,pays\,state\,ds\)
-             ((?stateid-unit
+(def-fcg-cxn const-?state-or-country-cxn\(?pt\,pays\,?state-or-country\,?ds\)
+             ((?const-unit
                (syn-cat np)
-               (sem-cat place)
-               (subunits (?state-unit ?pt-unit ?ds-unit))
+               (subunits (?state-or-country-unit ?pt-unit ?ds-unit))
                (args ((scope ?e)
                       (target ?c)))
                (boundaries ((left ?pays)
                             (right ?ds-right))))
+              (?state-or-country-unit
+                (footprints (const)))
               <-
               (?pt-unit
                --
                (syn-cat pointing-sign))
-              (?state-unit
-               (sem-cat place)
-               (args ((target ?g)))
+              (?state-or-country-unit
+               (sem-cat (identified-category state-or-country))
+               (args ((scope ?f)))
+               (footprints (not const))
                --
+               (footprints (not const))
                (syn-cat noun)
-               (boundaries ((left ?state-left-boundary)
-                            (right ?state-right-boundary))))
+               (boundaries ((left ?state-or-country-left-boundary)
+                            (right ?state-or-country-right-boundary))))
               (?ds-unit
                --
                (syn-cat depicting-sign)
                (boundaries ((left ?ds-left)
                             (right ?ds-right))))
-              (?stateid-unit
-               (HASH meaning ((const ?e ?c ?f)
-                              (stateid ?f ?g)))
+              (?const-unit
+               (HASH meaning ((const ?e ?c ?f)))
                --
                (HASH form ((two-hand-articulation ?pays "")
                            (adjacent ?pt-unit ?pays)
-                           (adjacent ?pays ?state-left-boundary)
-                           (adjacent ?state-right-boundary ?ds-left)))))
+                           (adjacent ?pays ?state-or-country-left-boundary)
+                           (adjacent ?state-or-country-right-boundary ?ds-left)))))
              :cxn-inventory *geoquery-lsfb-copy*)
 
-(def-fcg-cxn stateid-cxn\(palm-up\,dans\,pays\,ds\,pt\,nom\,state\)
-             ((?stateid-unit
+(def-fcg-cxn const-?state-or-country-cxn\(palm-up\,dans\,pays\,?ds\,?pt\,nom\,?state-or-country\)
+             ((?const-unit
                (syn-cat np)
-               (sem-cat place)
-               (subunits (?state-unit ?ds-unit ?pt-unit))
+               (subunits (?state-or-country-unit ?ds-unit ?pt-unit))
                (args ((scope ?e)
                       (target ?c)))
                (boundaries ((left ?palm-up)
-                            (right ?state-right-boundary))))
+                            (right ?state-or-country-right-boundary))))
+              (?state-or-country-unit
+                (footprints (const)))
               <-
               (?ds-unit
                --
@@ -587,16 +703,17 @@
               (?pt-unit
                --
                (syn-cat pointing-sign))
-              (?state-unit
-               (sem-cat place)
-               (args ((target ?g)))
+              (?state-or-country-unit
+               (sem-cat (identified-category state-or-country))
+               (args ((scope ?f)))
+               (footprints (not const))
                --
+               (footprints (not const))
                (syn-cat noun)
-               (boundaries ((left ?state-left-boundary)
-                            (right ?state-right-boundary))))
-              (?stateid-unit
-               (HASH meaning ((const ?e ?c ?f)
-                              (stateid ?f ?g)))
+               (boundaries ((left ?state-or-country-left-boundary)
+                            (right ?state-or-country-right-boundary))))
+              (?const-unit
+               (HASH meaning ((const ?e ?c ?f)))
                --
                (HASH form ((two-hand-articulation ?palm-up "")
                            (two-hand-articulation ?dans "")
@@ -607,142 +724,151 @@
                            (adjacent ?pays ?ds-left)
                            (adjacent ?ds-right ?pt-unit)
                            (adjacent ?pt-unit ?nom)
-                           (adjacent ?nom ?state-left-boundary)))))
+                           (adjacent ?nom ?state-or-country-left-boundary)))))
              :cxn-inventory *geoquery-lsfb-copy*)
 
-(def-fcg-cxn stateid-cxn\(pays\,state\,ds\)
-             ((?stateid-unit
+(def-fcg-cxn const-?state-or-country-cxn\(pays\,?state-or-country\,?ds\)
+             ((?const-unit
                (syn-cat np)
-               (sem-cat place)
-               (subunits (?state-unit ?ds-unit))
+               (subunits (?state-or-country-unit ?ds-unit))
                (args ((scope ?e)
                       (target ?c)))
                (boundaries ((left ?pays)
                             (right ?ds-right))))
+              (?state-or-country-unit
+                (footprints (const)))
               <-
-              (?state-unit
-               (sem-cat place)
-               (args ((target ?g)))
+              (?state-or-country-unit
+               (sem-cat (identified-category state-or-country))
+               (args ((scope ?f)))
+               (footprints (not const))
                --
+               (footprints (not const))
                (syn-cat noun)
-               (boundaries ((left ?state-left-boundary)
-                            (right ?state-right-boundary))))
+               (boundaries ((left ?state-or-country-left-boundary)
+                            (right ?state-or-country-right-boundary))))
               (?ds-unit
                --
                (syn-cat depicting-sign)
                (boundaries ((left ?ds-left)
                             (right ?ds-right))))
-              (?stateid-unit
-               (HASH meaning ((const ?e ?c ?f)
-                              (stateid ?f ?g)))
+              (?const-unit
+               (HASH meaning ((const ?e ?c ?f)))
                --
                (HASH form ((two-hand-articulation ?pays "")
-                           (adjacent ?pays ?state-left-boundary)
-                           (adjacent ?state-right-boundary ?ds-left)))))
+                           (adjacent ?pays ?state-or-country-left-boundary)
+                           (adjacent ?state-or-country-right-boundary ?ds-left)))))
              :cxn-inventory *geoquery-lsfb-copy*)
 
-(def-fcg-cxn stateid-cxn\(dans\,pays\,state\,ds\)
-             ((?stateid-unit
+(def-fcg-cxn const-?state-or-country-cxn\(dans\,pays\,?state-or-country\,?ds\)
+             ((?const-unit
                (syn-cat np)
-               (sem-cat place)
-               (subunits (?state-unit ?ds-unit))
+               (subunits (?state-or-country-unit ?ds-unit))
                (args ((scope ?e)
                       (target ?c)))
                (boundaries ((left ?dans)
                             (right ?ds-right))))
+              (?state-or-country-unit
+                (footprints (const)))
               <-
-              (?state-unit
-               (sem-cat place)
-               (args ((target ?g)))
+              (?state-or-country-unit
+               (sem-cat (identified-category state-or-country))
+               (args ((scope ?f)))
+               (footprints (not const))
                --
+               (footprints (not const))
                (syn-cat noun)
-               (boundaries ((left ?state-left-boundary)
-                            (right ?state-right-boundary))))
+               (boundaries ((left ?state-or-country-left-boundary)
+                            (right ?state-or-country-right-boundary))))
               (?ds-unit
                --
                (syn-cat depicting-sign)
                (boundaries ((left ?ds-left)
                             (right ?ds-right))))
-              (?stateid-unit
-               (HASH meaning ((const ?e ?c ?f)
-                              (stateid ?f ?g)))
+              (?const-unit
+               (HASH meaning ((const ?e ?c ?f)))
                --
                (HASH form ((two-hand-articulation ?dans "")
                            (two-hand-articulation ?pays "")
                            (adjacent ?dans ?pays)
-                           (adjacent ?pays ?state-left-boundary)
-                           (adjacent ?state-right-boundary ?ds-left)))))
+                           (adjacent ?pays ?state-or-country-left-boundary)
+                           (adjacent ?state-or-country-right-boundary ?ds-left)))))
              :cxn-inventory *geoquery-lsfb-copy*)
 
 
-(def-fcg-cxn stateid-cxn\(dans\,pays\,state\,pt\)
-             ((?stateid-unit
+(def-fcg-cxn const-?state-or-country-cxn\(dans\,pays\,?state-or-country\,?pt\)
+             ((?const-unit
                (syn-cat np)
-               (sem-cat place)
-               (subunits (?state-unit ?pt-unit))
+               (subunits (?state-or-country-unit ?pt-unit))
                (args ((scope ?e)
                       (target ?c)))
                (boundaries ((left ?dans)
                             (right ?pt-unit))))
+              (?state-or-country-unit
+                (footprints (const)))
               <-
-              (?state-unit
-               (sem-cat place)
-               (args ((target ?g)))
+              (?state-or-country-unit
+               (sem-cat (identified-category state-or-country))
+               (args ((scope ?f)))
+               (footprints (not const))
                --
+               (footprints (not const))
                (syn-cat noun)
-               (boundaries ((left ?state-left-boundary)
-                            (right ?state-right-boundary))))
+               (boundaries ((left ?state-or-country-left-boundary)
+                            (right ?state-or-country-right-boundary))))
               (?pt-unit
                --
                (syn-cat pointing-sign))
-              (?stateid-unit
-               (HASH meaning ((const ?e ?c ?f)
-                              (stateid ?f ?g)))
+              (?const-unit
+               (HASH meaning ((const ?e ?c ?f)))
                --
                (HASH form ((two-hand-articulation ?dans "")
                            (two-hand-articulation ?pays "")
                            (adjacent ?dans ?pays)
-                           (adjacent ?pays ?state-left-boundary)
-                           (adjacent ?state-right-boundary ?pt-unit)))))
+                           (adjacent ?pays ?state-or-country-left-boundary)
+                           (adjacent ?state-or-country-right-boundary ?pt-unit)))))
              :cxn-inventory *geoquery-lsfb-copy*)
 
-(def-fcg-cxn stateid-cxn\(dans\,pays\,state\)
-             ((?stateid-unit
+(def-fcg-cxn const-?state-or-country-cxn\(dans\,pays\,?state-or-country\)
+             ((?const-unit
                (syn-cat np)
-               (sem-cat place)
-               (subunits (?state-unit))
+               (subunits (?state-or-country-unit))
                (args ((scope ?e)
                       (target ?c)))
                (boundaries ((left ?dans)
-                            (right ?state-right-boundary))))
+                            (right ?state-or-country-right-boundary))))
+              (?state-or-country-unit
+                (footprints (const)))
               <-
-              (?state-unit
-               (sem-cat place)
-               (args ((target ?g)))
+              (?state-or-country-unit
+               (sem-cat (identified-category state-or-country))
+               (args ((scope ?f)))
+               (footprints (not const))
                --
+               (footprints (not const))
                (syn-cat noun)
-               (boundaries ((left ?state-left-boundary)
-                            (right ?state-right-boundary))))
-              (?stateid-unit
-               (HASH meaning ((const ?e ?c ?f)
-                              (stateid ?f ?g)))
+               (boundaries ((left ?state-or-country-left-boundary)
+                            (right ?state-or-country-right-boundary))))
+              (?const-unit
+               (HASH meaning ((const ?e ?c ?f)))
                --
                (HASH form ((two-hand-articulation ?dans "")
                            (two-hand-articulation ?pays "")
                            (adjacent ?dans ?pays)
-                           (adjacent ?pays ?state-left-boundary)))))
+                           (adjacent ?pays ?state-or-country-left-boundary)))))
              :cxn-inventory *geoquery-lsfb-copy*)
 
 
-(def-fcg-cxn stateid-cxn\(dans\,ds\,il-y-a\,state\)
-             ((?stateid-unit
+(def-fcg-cxn const-?state-cxn\(dans\,?ds\,il-y-a\,?state\)
+             ((?const-unit
                (syn-cat np)
-               (sem-cat place)
                (subunits (?state-unit ?ds-unit))
                (args ((scope ?e)
                       (target ?c)))
                (boundaries ((left ?dans)
                             (right ?state-right-boundary))))
+              (?state-unit
+                (footprints (const)))
               <-
               (?ds-unit
                --
@@ -750,15 +876,16 @@
                (boundaries ((left ?ds-left)
                             (right ?ds-right))))
               (?state-unit
-               (sem-cat place)
-               (args ((target ?g)))
+               (sem-cat (identified-category state))
+               (args ((scope ?f)))
+               (footprints (not const))
                --
+               (footprints (not const))
                (syn-cat noun)
                (boundaries ((left ?state-left-boundary)
                             (right ?state-right-boundary))))
-              (?stateid-unit
-               (HASH meaning ((const ?e ?c ?f)
-                              (stateid ?f ?g)))
+              (?const-unit
+               (HASH meaning ((const ?e ?c ?f)))
                --
                (HASH form ((two-hand-articulation ?dans "")
                            (right-hand-articulation ?il-y-a "")
@@ -767,29 +894,31 @@
                            (adjacent ?il-y-a ?state-left-boundary)))))
              :cxn-inventory *geoquery-lsfb-copy*)
 
-(def-fcg-cxn stateid-cxn\(dans\,us\,il-y-a\,un\,pt\,pays\,nom\,state\)
-             ((?stateid-unit
+(def-fcg-cxn const-?state-cxn\(dans\,us\,il-y-a\,un\,?pt\,pays\,nom\,?state\)
+             ((?const-unit
                (syn-cat np)
-               (sem-cat place)
                (subunits (?state-unit ?pt-unit))
                (args ((scope ?e)
                       (target ?c)))
                (boundaries ((left ?dans)
                             (right ?state-right-boundary))))
+              (?state-unit
+                (footprints (const)))
               <-
               (?pt-unit
                --
                (syn-cat pointing-sign))
               (?state-unit
-               (sem-cat place)
-               (args ((target ?g)))
+               (sem-cat (identified-category state))
+               (args ((scope ?f)))
+               (footprints (not const))
                --
+               (footprints (not const))
                (syn-cat noun)
                (boundaries ((left ?state-left-boundary)
                             (right ?state-right-boundary))))
-              (?stateid-unit
-               (HASH meaning ((const ?e ?c ?f)
-                              (stateid ?f ?g)))
+              (?const-unit
+               (HASH meaning ((const ?e ?c ?f)))
                --
                (HASH form ((two-hand-articulation ?dans "")
                            (two-hand-articulation ?usa "")
@@ -807,78 +936,85 @@
              :cxn-inventory *geoquery-lsfb-copy*)
 
 
-(def-fcg-cxn stateid-cxn\(palm-up\,pays\,state\)
-             ((?stateid-unit
+(def-fcg-cxn const-?state-or-country-cxn\(palm-up\,pays\,?state-or-country\)
+             ((?const-unit
                (syn-cat np)
-               (sem-cat place)
-               (subunits (?state-unit))
+               (subunits (?state-or-country-unit))
                (args ((scope ?e)
                       (target ?c)))
                (boundaries ((left ?palm-up)
-                            (right ?state-right-boundary))))
+                            (right ?state-or-country-right-boundary))))
+              (?state-or-country-unit
+                (footprints (const)))
               <-
-              (?state-unit
-               (sem-cat place)
-               (args ((target ?g)))
+              (?state-or-country-unit
+               (sem-cat (identified-category state-or-country))
+               (args ((scope ?f)))
+               (footprints (not const))
                --
+               (footprints (not const))
                (syn-cat noun)
-               (boundaries ((left ?state-left-boundary)
-                            (right ?state-right-boundary))))
-              (?stateid-unit
-               (HASH meaning ((const ?e ?c ?f)
-                              (stateid ?f ?g)))
+               (boundaries ((left ?state-or-country-left-boundary)
+                            (right ?state-or-country-right-boundary))))
+              (?const-unit
+               (HASH meaning ((const ?e ?c ?f)))
                --
                (HASH form ((right-hand-articulation ?palm-up "")
                            (two-hand-articulation ?pays "")
                            (adjacent ?palm-up ?pays)
-                           (adjacent ?pays ?state-left-boundary)))))
+                           (adjacent ?pays ?state-or-country-left-boundary)))))
              :cxn-inventory *geoquery-lsfb-copy*)
 
-(def-fcg-cxn stateid-cxn\(pays\,state\)
-             ((?stateid-unit
+(def-fcg-cxn const-?state-or-country-cxn\(pays\,?state-or-country\)
+             ((?const-unit
                (syn-cat np)
-               (sem-cat place)
-               (subunits (?state-unit))
+               (subunits (?state-or-country-unit))
                (args ((scope ?e)
                       (target ?c)))
                (boundaries ((left ?pays)
-                            (right ?state-right-boundary))))
+                            (right ?state-or-country-right-boundary))))
+              (?state-or-country-unit
+                (footprints (const)))
               <-
-              (?state-unit
-               (sem-cat place)
-               (args ((target ?g)))
+              (?state-or-country-unit
+               (sem-cat (identified-category state-or-country))
+               (args ((scope ?f)))
+               (footprints (not const))
                --
+               (footprints (not const))
                (syn-cat noun)
-               (boundaries ((left ?state-left-boundary)
-                            (right ?state-right-boundary))))
-              (?stateid-unit
-               (HASH meaning ((const ?e ?c ?f)
-                              (stateid ?f ?g)))
+               (boundaries ((left ?state-or-country-left-boundary)
+                            (right ?state-or-country-right-boundary))))
+              (?const-unit
+               (HASH meaning ((const ?e ?c ?f)))
                --
                (HASH form ((two-hand-articulation ?pays "")
-                           (adjacent ?pays ?state-left-boundary)))))
+                           (adjacent ?pays ?state-or-country-left-boundary)))))
              :cxn-inventory *geoquery-lsfb-copy*)
 
-(def-fcg-cxn stateid-cxn\(il-y-a\,pt\,pays\,nom\,state\,ds\,pt\)
-             ((?stateid-unit
+(def-fcg-cxn const-?state-or-country-cxn\(il-y-a\,?pt\,pays\,nom\,?state-or-country\,?ds\,?pt\)
+             ((?const-unit
                (syn-cat np)
-               (sem-cat place)
-               (subunits (?state-unit ?pt-unit-1 ?ds-unit ?pt-unit-2))
+               (subunits (?state-or-country-unit ?pt-unit-1 ?ds-unit ?pt-unit-2))
                (args ((scope ?e)
                       (target ?c)))
                (boundaries ((left ?il-y-a)
                             (right ?pt-unit-2))))
+              (?state-or-country-unit
+                (footprints (const)))
               <-
               (?pt-unit-1
                --
                (syn-cat pointing-sign))
-              (?state-unit
-               (sem-cat place)
-               (args ((target ?g)))
+              (?state-or-country-unit
+               (sem-cat (identified-category state-or-country))
+               (args ((scope ?f)))
+               (footprints (not const))
                --
+               (footprints (not const))
                (syn-cat noun)
-               (boundaries ((left ?state-left-boundary)
-                            (right ?state-right-boundary))))
+               (boundaries ((left ?state-or-country-left-boundary)
+                            (right ?state-or-country-right-boundary))))
               (?ds-unit
                --
                (syn-cat depicting-sign)
@@ -887,9 +1023,8 @@
               (?pt-unit-2
                --
                (syn-cat pointing-sign))
-              (?stateid-unit
-               (HASH meaning ((const ?e ?c ?f)
-                              (stateid ?f ?g)))
+              (?const-unit
+               (HASH meaning ((const ?e ?c ?f)))
                --
                (HASH form ((right-hand-articulation ?il-y-a "")
                            (two-hand-articulation ?pays "")
@@ -897,29 +1032,32 @@
                            (adjacent ?il-y-a ?pt-unit-1)
                            (adjacent ?pt-unit-1 ?pays)
                            (adjacent ?pays ?nom)
-                           (adjacent ?nom ?state-left-boundary)
-                           (adjacent ?state-right-boundary ?ds-left)
+                           (adjacent ?nom ?state-or-country-left-boundary)
+                           (adjacent ?state-or-country-right-boundary ?ds-left)
                            (adjacent ?ds-right ?pt-unit-2)))))
              :cxn-inventory *geoquery-lsfb-copy*)
 
 
-(def-fcg-cxn stateid-cxn\(il-y-a\,different\,pays\,ds\,un\,pt\,state\,ds\)
-             ((?stateid-unit
+(def-fcg-cxn const-?state-cxn\(il-y-a\,different\,pays\,?ds\,un\,?pt\,?state\,?ds\)
+             ((?const-unit
                (syn-cat np)
-               (sem-cat place)
                (subunits (?state-unit ?pt-unit ?ds-unit-1 ?ds-unit-2))
                (args ((scope ?e)
                       (target ?c)))
                (boundaries ((left ?il-y-a)
                             (right ?ds-2-right))))
+              (?state-unit
+                (footprints (const)))
               <-
               (?pt-unit
                --
                (syn-cat pointing-sign))
               (?state-unit
-               (sem-cat place)
-               (args ((target ?g)))
+               (sem-cat (identified-category state))
+               (args ((scope ?f)))
+               (footprints (not const))
                --
+               (footprints (not const))
                (syn-cat noun)
                (boundaries ((left ?state-left-boundary)
                             (right ?state-right-boundary))))
@@ -933,9 +1071,8 @@
                (syn-cat depicting-sign)
                (boundaries ((left ?ds-2-left)
                             (right ?ds-2-right))))
-              (?stateid-unit
-               (HASH meaning ((const ?e ?c ?f)
-                              (stateid ?f ?g)))
+              (?const-unit
+               (HASH meaning ((const ?e ?c ?f)))
                --
                (HASH form ((right-hand-articulation ?il-y-a "")
                            (two-hand-articulation ?different "")
@@ -950,640 +1087,180 @@
                            (adjacent ?state-right-boundary ?ds-2-left)))))
              :cxn-inventory *geoquery-lsfb-copy*)
 
-#|
 
-(def-fcg-cxn stateid-?x-cxn-13
-             ((?stateid-?x-unit
+(def-fcg-cxn const-?state-or-country-cxn\(dans\,?state-or-country\,?ds\,?pt\,?pt\)
+             ((?const-unit
                (syn-cat np)
-               (sem-cat place)
-               (subunits (?stateid-?x\(?x\)-unit))
+               (subunits (?state-or-country-unit ?pt-unit-1 ?ds-unit ?pt-unit-2))
                (args ((scope ?e)
                       (target ?c)))
-               (boundaries ((left ?pays)
-                            (right ?stateid-?x\(?x\)-right-boundary))))
+               (boundaries ((left ?il-y-a)
+                            (right ?pt-unit-2))))
+              (?state-or-country-unit
+                (footprints (const)))
               <-
-              (?stateid-?x\(?x\)-unit
-               (sem-cat place)
-               (args ((target ?g)))
+              (?state-or-country-unit
+               (sem-cat (identified-category state-or-country))
+               (args ((scope ?f)))
+               (footprints (not const))
                --
+               (footprints (not const))
                (syn-cat noun)
-               (boundaries ((left ?stateid-?x\(?x\)-left-boundary)
-                            (right ?stateid-?x\(?x\)-right-boundary))))
-              (?stateid-?x-unit
-               (HASH meaning ((const ?e ?c ?f)
-                              (stateid ?f ?g)))
+               (boundaries ((left ?state-or-country-left-boundary)
+                            (right ?state-or-country-right-boundary))))
+              (?ds-unit
                --
-               (HASH form ((two-hand-articulation ?pays "")
-                           (right-hand-articulation ?state-pt "")
-                           (left-hand-articulation ?state-ds "")
-                           (adjacent ?pays ?state-ds)
-                           (adjacent ?state-pt ?stateid-?x\(?x\)-left-boundary)
-                           (during ?state-pt ?state-ds)))))
+               (syn-cat depicting-sign)
+               (boundaries ((left ?ds-left)
+                            (right ?ds-right))))
+              (?pt-unit-1
+               --
+               (syn-cat pointing-sign))
+              (?pt-unit-2
+               --
+               (syn-cat pointing-sign))
+              (?const-unit
+               (HASH meaning ((const ?e ?c ?f)))
+               --
+               (HASH form ((two-hand-articulation ?dans "")
+                           (adjacent ?dans ?state-or-country-left-boundary)
+                           (adjacent ?state-or-country-right-boundary ?ds-left)
+                           (adjacent ?ds-right ?pt-unit-1)
+                           (adjacent ?pt-unit-1 ?pt-unit-2)))))
              :cxn-inventory *geoquery-lsfb-copy*)
 
-(def-fcg-cxn stateid-?x-cxn-14
-             ((?stateid-?x-unit
+(def-fcg-cxn const-?state-or-country-cxn\(dans\,?state-or-country\,?ds\)
+             ((?const-unit
                (syn-cat np)
-               (sem-cat place)
-               (subunits (?stateid-?x\(?x\)-unit))
+               (subunits (?state-or-country-unit ?ds-unit))
+               (args ((scope ?e)
+                      (target ?c)))
+               (boundaries ((left ?dans)
+                            (right ?ds-right))))
+              (?state-or-country-unit
+                (footprints (const)))
+              <-
+              (?state-or-country-unit
+               (sem-cat (identified-category state-or-country))
+               (args ((scope ?f)))
+               (footprints (not const))
+               --
+               (footprints (not const))
+               (syn-cat noun)
+               (boundaries ((left ?state-or-country-left-boundary)
+                            (right ?state-or-country-right-boundary))))
+              (?ds-unit
+               --
+               (syn-cat depicting-sign)
+               (boundaries ((left ?ds-left)
+                            (right ?ds-right))))
+              (?const-unit
+               (HASH meaning ((const ?e ?c ?f)))
+               --
+               (HASH form ((two-hand-articulation ?dans "")
+                           (adjacent ?dans ?state-or-country-left-boundary)
+                           (adjacent ?state-or-country-right-boundary ?ds-left)))))
+             :cxn-inventory *geoquery-lsfb-copy*)
+
+
+(def-fcg-cxn const-?state-or-country-cxn\(?state-or-country\,?ds\)
+             ((?const-unit
+               (syn-cat np)
+               (subunits (?state-or-country-unit ?ds-unit))
+               (args ((scope ?e)
+                      (target ?c)))
+               (boundaries ((left ?state-or-country-left-boundary)
+                            (right ?state-or-country-right-boundary))))
+              (?state-or-country-unit
+                (footprints (const)))
+              <-
+              (?state-or-country-unit
+               (sem-cat (identified-category state-or-country))
+               (args ((scope ?f)))
+               (footprints (not const))
+               --
+               (footprints (not const))
+               (syn-cat noun)
+               (boundaries ((left ?state-or-country-left-boundary)
+                            (right ?state-or-country-right-boundary))))
+              (?ds-unit
+               --
+               (syn-cat depicting-sign)
+               (boundaries ((left ?ds-left)
+                            (right ?ds-right))))
+              (?const-unit
+               (HASH meaning ((const ?e ?c ?f)))
+               --
+               (HASH form ((adjacent ?state-or-country-right-boundary ?ds-left)))))
+             :cxn-inventory *geoquery-lsfb-copy*)
+
+(def-fcg-cxn const-?state-or-country-cxn\(palm-up\,pays\,?state-or-country\,?ds\)
+             ((?const-unit
+               (syn-cat np)
+               (subunits (?state-or-country-unit ?ds-unit))
                (args ((scope ?e)
                       (target ?c)))
                (boundaries ((left ?palm-up)
-                            (right ?stateid-?x\(?x\)-right-boundary))))
+                            (right ?ds-right))))
+              (?state-or-country-unit
+                (footprints (const)))
               <-
-              (?stateid-?x\(?x\)-unit
-               (sem-cat place)
-               (args ((target ?g)))
+              (?state-or-country-unit
+               (sem-cat (identified-category state-or-country))
+               (args ((scope ?f)))
+               (footprints (not const))
                --
+               (footprints (not const))
                (syn-cat noun)
-               (boundaries ((left ?stateid-?x\(?x\)-left-boundary)
-                            (right ?stateid-?x\(?x\)-right-boundary))))
-              (?stateid-?x-unit
-               (HASH meaning ((const ?e ?c ?f)
-                              (stateid ?f ?g)))
+               (boundaries ((left ?state-or-country-left-boundary)
+                            (right ?state-or-country-right-boundary))))
+              (?ds-unit
+               --
+               (syn-cat depicting-sign)
+               (boundaries ((left ?ds-left)
+                            (right ?ds-right))))
+              (?const-unit
+               (HASH meaning ((const ?e ?c ?f)))
                --
                (HASH form ((two-hand-articulation ?palm-up "")
-                           (two-hand-articulation ?dans "")
-                           (two-hand-articulation ?pays "")
-                           (right-hand-articulation ?state-pt-1 "")
-                           (right-hand-articulation ?state-pt-2 "")
-                           (left-hand-articulation ?map-ds "")
-                           (two-hand-articulation ?nom "")
-                           (adjacent ?palm-up ?dans)
-                           (adjacent ?dans ?pays)
-                           (adjacent ?pays ?state-pt-1)
-                           (adjacent ?state-pt-1 ?state-pt-2)
-                           (during ?state-pt-1 ?map-ds)
-                           (during ?state-pt-2 ?map-ds)
-                           (adjacent ?state-pt-2 ?nom)
-                           (adjacent ?nom ?stateid-?x\(?x\)-left-boundary)))))
-             :cxn-inventory *geoquery-lsfb-copy*)
-
-(def-fcg-cxn stateid-?x-cxn-15
-             ((?stateid-?x-unit
-               (syn-cat np)
-               (sem-cat place)
-               (subunits (?stateid-?x\(?x\)-unit))
-               (args ((scope ?e)
-                      (target ?c)))
-               (boundaries ((left ?pays)
-                            (right ?state-ds-1))))
-              <-
-              (?stateid-?x\(?x\)-unit
-               (sem-cat place)
-               (args ((target ?g)))
-               --
-               (syn-cat noun)
-               (boundaries ((left ?stateid-?x\(?x\)-left-boundary)
-                            (right ?stateid-?x\(?x\)-right-boundary))))
-              (?stateid-?x-unit
-               (HASH meaning ((const ?e ?c ?f)
-                              (stateid ?f ?g)))
-               --
-               (HASH form ((two-hand-articulation ?pays "")
-                           (right-hand-articulation ?state-ds-1 "")
-                           (left-hand-articulation ?state-ds-2 "")
-                           (adjacent ?pays ?stateid-?x\(?x\)-left-boundary)
-                           (adjacent ?stateid-?x\(?x\)-right-boundary ?state-ds-1)
-                           (during ?state-ds-1 ?state-ds-2)))))
-             :cxn-inventory *geoquery-lsfb-copy*)
-
-(def-fcg-cxn stateid-?x-cxn-16
-             ((?stateid-?x-unit
-               (syn-cat np)
-               (sem-cat place)
-               (subunits (?stateid-?x\(?x\)-unit))
-               (args ((scope ?e)
-                      (target ?c)))
-               (boundaries ((left ?dans)
-                            (right ?stateid-?x\(?x\)-right-boundary))))
-              <-
-              (?stateid-?x\(?x\)-unit
-               (sem-cat place)
-               (args ((target ?g)))
-               --
-               (syn-cat noun)
-               (boundaries ((left ?stateid-?x\(?x\)-left-boundary)
-                            (right ?stateid-?x\(?x\)-right-boundary))))
-              (?stateid-?x-unit
-               (HASH meaning ((const ?e ?c ?f)
-                              (stateid ?f ?g)))
-               --
-               (HASH form ((two-hand-articulation ?dans "")
-                           (adjacent ?dans ?stateid-?x\(?x\)-left-boundary)))))
-             :cxn-inventory *geoquery-lsfb-copy*)
-
-(def-fcg-cxn stateid-?x-cxn-17
-             ((?stateid-?x-unit
-               (syn-cat np)
-               (sem-cat place)
-               (subunits (?stateid-?x\(?x\)-unit))
-               (args ((scope ?e)
-                      (target ?c)))
-               (boundaries ((left ?pt-state)
-                            (right ?stateid-?x\(?x\)-right-boundary))))
-              <-
-              (?stateid-?x\(?x\)-unit
-               (sem-cat place)
-               (args ((target ?g)))
-               --
-               (syn-cat noun)
-               (boundaries ((left ?stateid-?x\(?x\)-left-boundary)
-                            (right ?stateid-?x\(?x\)-right-boundary))))
-              (?stateid-?x-unit
-               (HASH meaning ((const ?e ?c ?f)
-                              (stateid ?f ?g)))
-               --
-               (HASH form ((right-hand-articulation ?pt-state "")
-                           (two-hand-articulation ?pays "")
-                           (adjacent ?pt-state ?pays)
-                           (adjacent ?pays ?stateid-?x\(?x\)-left-boundary)))))
-             :cxn-inventory *geoquery-lsfb-copy*)
-
-(def-fcg-cxn stateid-?x-cxn-18
-             ((?stateid-?x-unit
-               (syn-cat np)
-               (sem-cat place)
-               (subunits (?stateid-?x\(?x\)-unit))
-               (args ((scope ?e)
-                      (target ?c)))
-               (boundaries ((left ?dans)
-                            (right ?stateid-?x\(?x\)-right-boundary))))
-              <-
-              (?stateid-?x\(?x\)-unit
-               (sem-cat place)
-               (args ((target ?g)))
-               --
-               (syn-cat noun)
-               (boundaries ((left ?stateid-?x\(?x\)-left-boundary)
-                            (right ?stateid-?x\(?x\)-right-boundary))))
-              (?stateid-?x-unit
-               (HASH meaning ((const ?e ?c ?f)
-                              (stateid ?f ?g)))
-               --
-               (HASH form ((two-hand-articulation ?dans "")
-                           (two-hand-articulation ?pays "")
-                           (right-hand-articulation ?pt-state "")
-                           (left-hand-articulation ?map-ds "")
-                           (adjacent ?dans ?pays)
-                           (adjacent ?pays ?stateid-?x\(?x\)-left-boundary)
-                           (adjacent ?stateid-?x\(?x\)-right-boundary ?pt-state)
-                           (during ?pt-state ?map-ds)))))
-             :cxn-inventory *geoquery-lsfb-copy*)
-
-(def-fcg-cxn stateid-?x-cxn-19
-             ((?stateid-?x-unit
-               (syn-cat np)
-               (sem-cat place)
-               (subunits (?stateid-?x\(?x\)-unit))
-               (args ((scope ?e)
-                      (target ?c)))
-               (boundaries ((left ?pays)
-                            (right ?stateid-?x\(?x\)-right-boundary))))
-              <-
-              (?stateid-?x\(?x\)-unit
-               (sem-cat place)
-               (args ((target ?g)))
-               --
-               (syn-cat noun)
-               (boundaries ((left ?stateid-?x\(?x\)-left-boundary)
-                            (right ?stateid-?x\(?x\)-right-boundary))))
-              (?stateid-?x-unit
-               (HASH meaning ((const ?e ?c ?f)
-                              (stateid ?f ?g)))
-               --
-               (HASH form ((two-hand-articulation ?pays "")
-                           (right-hand-articulation ?state-ds-1 "")
-                           (right-hand-articulation ?pt-state "")
-                           (left-hand-articulation ?state-ds-2 "")
-                           (adjacent ?pays ?state-ds-1)
-                           (adjacent ?state-ds-1 ?pt-state)
-                           (adjacent ?pt-state ?stateid-?x\(?x\)-left-boundary)
-                           (during ?state-ds-1 ?state-ds-2)
-                           (during ?pt-state ?state-ds-2)))))
-             :cxn-inventory *geoquery-lsfb-copy*)
-
-(def-fcg-cxn stateid-?x-cxn-20
-             ((?stateid-?x-unit
-               (syn-cat np)
-               (sem-cat place)
-               (subunits (?stateid-?x\(?x\)-unit))
-               (args ((scope ?e)
-                      (target ?c)))
-               (boundaries ((left ?dans)
-                            (right ?pt-state))))
-              <-
-              (?stateid-?x\(?x\)-unit
-               (sem-cat place)
-               (args ((target ?g)))
-               --
-               (syn-cat noun)
-               (boundaries ((left ?stateid-?x\(?x\)-left-boundary)
-                            (right ?stateid-?x\(?x\)-right-boundary))))
-              (?stateid-?x-unit
-               (HASH meaning ((const ?e ?c ?f)
-                              (stateid ?f ?g)))
-               --
-               (HASH form ((two-hand-articulation ?dans "")
-                           (two-hand-articulation ?pays "")
-                           (right-hand-articulation ?pt-state "")
-                           (adjacent ?dans ?pays)
-                           (adjacent ?pays ?stateid-?x\(?x\)-left-boundary)
-                           (adjacent ?stateid-?x\(?x\)-right-boundary ?pt-state)))))
-             :cxn-inventory *geoquery-lsfb-copy*)
-
-(def-fcg-cxn stateid-?x-cxn-21
-             ((?stateid-?x-unit
-               (syn-cat np)
-               (sem-cat place)
-               (subunits (?stateid-?x\(?x\)-unit))
-               (args ((scope ?e)
-                      (target ?c)))
-               (boundaries ((left ?dans)
-                            (right ?pt-state))))
-              <-
-              (?stateid-?x\(?x\)-unit
-               (sem-cat place)
-               (args ((target ?g)))
-               --
-               (syn-cat noun)
-               (boundaries ((left ?stateid-?x\(?x\)-left-boundary)
-                            (right ?stateid-?x\(?x\)-right-boundary))))
-              (?stateid-?x-unit
-               (HASH meaning ((const ?e ?c ?f)
-                              (stateid ?f ?g)))
-               --
-               (HASH form ((two-hand-articulation ?pays "")
-                           (right-hand-articulation ?pt-state "")
-                           (adjacent ?pays ?stateid-?x\(?x\)-left-boundary)
-                           (adjacent ?stateid-?x\(?x\)-right-boundary ?pt-state)))))
-             :cxn-inventory *geoquery-lsfb-copy*)
-
-
-(def-fcg-cxn stateid-?x-cxn-22
-             ((?stateid-?x-unit
-               (syn-cat np)
-               (sem-cat place)
-               (subunits (?stateid-?x\(?x\)-unit))
-               (args ((scope ?e)
-                      (target ?c)))
-               (boundaries ((left ?dans)
-                            (right ?stateid-?x\(?x\)-right-boundary))))
-              <-
-              (?stateid-?x\(?x\)-unit
-               (sem-cat place)
-               (args ((target ?g)))
-               --
-               (syn-cat noun)
-               (boundaries ((left ?stateid-?x\(?x\)-left-boundary)
-                            (right ?stateid-?x\(?x\)-right-boundary))))
-              (?stateid-?x-unit
-               (HASH meaning ((const ?e ?c ?f)
-                              (stateid ?f ?g)))
-               --
-               (HASH form ((two-hand-articulation ?dans "")
-                           (right-hand-articulation ?states-ds "")
-                           (right-hand-articulation ?il-y-a "")
-                           (left-hand-articulation ?map-ds "")
-                           (adjacent ?dans ?states-ds)
-                           (adjacent ?states-ds ?il-y-a)
-                           (adjacent ?il-y-a ?stateid-?x\(?x\)-left-boundary)
-                           (during ?states-ds ?map-ds)
-                           (during ?il-y-a ?map-ds)))))
-             :cxn-inventory *geoquery-lsfb-copy*)
-
-(def-fcg-cxn stateid-?x-cxn-23
-             ((?stateid-?x-unit
-               (syn-cat np)
-               (sem-cat place)
-               (subunits (?stateid-?x\(?x\)-unit))
-               (args ((scope ?e)
-                      (target ?c)))
-               (boundaries ((left ?dans)
-                            (right ?stateid-?x\(?x\)-right-boundary))))
-              <-
-              (?stateid-?x\(?x\)-unit
-               (sem-cat place)
-               (args ((target ?g)))
-               --
-               (syn-cat noun)
-               (boundaries ((left ?stateid-?x\(?x\)-left-boundary)
-                            (right ?stateid-?x\(?x\)-right-boundary))))
-              (?stateid-?x-unit
-               (HASH meaning ((const ?e ?c ?f)
-                              (stateid ?f ?g)))
-               --
-               (HASH form ((two-hand-articulation ?pays "")
-                           (left-hand-articulation ?ds-state "")
-                           (adjacent ?pays ?stateid-?x\(?x\)-left-boundary)
-                           (adjacent ?stateid-?x\(?x\)-right-boundary ?ds-state)))))
-             :cxn-inventory *geoquery-lsfb-copy*)
-
-
-(def-fcg-cxn stateid-?x-cxn-24
-             ((?stateid-?x-unit
-               (syn-cat np)
-               (sem-cat place)
-               (subunits (?stateid-?x\(?x\)-unit))
-               (args ((scope ?e)
-                      (target ?c)))
-               (boundaries ((left ?dans)
-                            (right ?stateid-?x\(?x\)-right-boundary))))
-              <-
-              (?stateid-?x\(?x\)-unit
-               (sem-cat place)
-               (args ((target ?g)))
-               --
-               (syn-cat noun)
-               (boundaries ((left ?stateid-?x\(?x\)-left-boundary)
-                            (right ?stateid-?x\(?x\)-right-boundary))))
-              (?stateid-?x-unit
-               (HASH meaning ((const ?e ?c ?f)
-                              (stateid ?f ?g)))
-               --
-               (HASH form ((two-hand-articulation ?dans "")
-                           (two-hand-articulation ?pays "")
-                           (adjacent ?dans ?pays)
-                           (adjacent ?pays ?stateid-?x\(?x\)-left-boundary)))))
-             :cxn-inventory *geoquery-lsfb-copy*)
-
-(def-fcg-cxn stateid-?x-cxn-25
-             ((?stateid-?x-unit
-               (syn-cat np)
-               (sem-cat place)
-               (subunits (?stateid-?x\(?x\)-unit))
-               (args ((scope ?e)
-                      (target ?c)))
-               (boundaries ((left ?pt-state)
-                            (right ?stateid-?x\(?x\)-right-boundary))))
-              <-
-              (?stateid-?x\(?x\)-unit
-               (sem-cat place)
-               (args ((target ?g)))
-               --
-               (syn-cat noun)
-               (boundaries ((left ?stateid-?x\(?x\)-left-boundary)
-                            (right ?stateid-?x\(?x\)-right-boundary))))
-              (?stateid-?x-unit
-               (HASH meaning ((const ?e ?c ?f)
-                              (stateid ?f ?g)))
-               --
-               (HASH form ((right-hand-articulation ?pt-state "")
-                           (two-hand-articulation ?pays "")
-                           (adjacent ?pt-state ?pays)
-                           (adjacent ?pays ?stateid-?x\(?x\)-left-boundary)))))
-             :cxn-inventory *geoquery-lsfb-copy*)
-
-(def-fcg-cxn stateid-?x-cxn-26
-             ((?stateid-?x-unit
-               (syn-cat np)
-               (sem-cat place)
-               (subunits (?stateid-?x\(?x\)-unit))
-               (args ((scope ?e)
-                      (target ?c)))
-               (boundaries ((left ?pays)
-                            (right ?stateid-?x\(?x\)-right-boundary))))
-              <-
-              (?stateid-?x\(?x\)-unit
-               (sem-cat place)
-               (args ((target ?g)))
-               --
-               (syn-cat noun)
-               (boundaries ((left ?stateid-?x\(?x\)-left-boundary)
-                            (right ?stateid-?x\(?x\)-right-boundary))))
-              (?stateid-?x-unit
-               (HASH meaning ((const ?e ?c ?f)
-                              (stateid ?f ?g)))
-               --
-               (HASH form ((two-hand-articulation ?pays "")
-                           (right-hand-articulation ?pt-state "")
-                           (left-hand-articulation ?state-ds "")
-                           (adjacent ?pays ?pt-state)
-                           (adjacent ?pt-state ?stateid-?x\(?x\)-left-boundary)
-                           (during ?pt-state ?state-ds)))))
-             :cxn-inventory *geoquery-lsfb-copy*)
-
-(def-fcg-cxn stateid-?x-cxn-27
-             ((?stateid-?x-unit
-               (syn-cat np)
-               (sem-cat place)
-               (subunits (?stateid-?x\(?x\)-unit))
-               (args ((scope ?e)
-                      (target ?c)))
-               (boundaries ((left ?dans)
-                            (right ?stateid-?x\(?x\)-right-boundary))))
-              <-
-              (?stateid-?x\(?x\)-unit
-               (sem-cat place)
-               (args ((target ?g)))
-               --
-               (syn-cat noun)
-               (boundaries ((left ?stateid-?x\(?x\)-left-boundary)
-                            (right ?stateid-?x\(?x\)-right-boundary))))
-              (?stateid-?x-unit
-               (HASH meaning ((const ?e ?c ?f)
-                              (stateid ?f ?g)))
-               --
-               (HASH form ((two-hand-articulation ?dans "")
-                           (two-hand-articulation ?usa "")
-                           (right-hand-articulation ?il-y-a "")
-                           (right-hand-articulation ?un "")
-                           (right-hand-articulation ?pt-state "")
-                           (two-hand-articulation ?pays "")
-                           (two-hand-articulation ?nom "")
-                           (adjacent ?dans ?usa)
-                           (adjacent ?usa ?il-y-a)
-                           (adjacent ?il-y-a ?un)
-                           (adjacent ?un ?pt-state)
-                           (adjacent ?pt-state ?pays)
-                           (adjacent ?pays ?nom)
-                           (adjacent ?nom ?stateid-?x\(?x\)-left-boundary)))))
-             :cxn-inventory *geoquery-lsfb-copy*)
-
-
-(def-fcg-cxn stateid-?x-cxn-28
-             ((?stateid-?x-unit
-               (syn-cat np)
-               (sem-cat place)
-               (subunits (?stateid-?x\(?x\)-unit))
-               (args ((scope ?e)
-                      (target ?c)))
-               (boundaries ((left ?state-pt)
-                            (right ?stateid-?x\(?x\)-right-boundary))))
-              <-
-              (?stateid-?x\(?x\)-unit
-               (sem-cat place)
-               (args ((target ?g)))
-               --
-               (syn-cat noun)
-               (boundaries ((left ?stateid-?x\(?x\)-left-boundary)
-                            (right ?stateid-?x\(?x\)-right-boundary))))
-              (?stateid-?x-unit
-               (HASH meaning ((const ?e ?c ?f)
-                              (stateid ?f ?g)))
-               --
-               (HASH form ((right-hand-articulation ?state-pt "")
-                           (two-hand-articulation ?pays "")
-                           (adjacent ?state-pt ?pays)
-                           (adjacent ?pays ?stateid-?x\(?x\)-left-boundary)))))
-             :cxn-inventory *geoquery-lsfb-copy*)
-
-(def-fcg-cxn stateid-?x-cxn-29
-             ((?stateid-?x-unit
-               (syn-cat np)
-               (sem-cat place)
-               (subunits (?stateid-?x\(?x\)-unit))
-               (args ((scope ?e)
-                      (target ?c)))
-               (boundaries ((left ?palm-up)
-                            (right ?stateid-?x\(?x\)-right-boundary))))
-              <-
-              (?stateid-?x\(?x\)-unit
-               (sem-cat place)
-               (args ((target ?g)))
-               --
-               (syn-cat noun)
-               (boundaries ((left ?stateid-?x\(?x\)-left-boundary)
-                            (right ?stateid-?x\(?x\)-right-boundary))))
-              (?stateid-?x-unit
-               (HASH meaning ((const ?e ?c ?f)
-                              (stateid ?f ?g)))
-               --
-               (HASH form ((right-hand-articulation ?palm-up "")
                            (two-hand-articulation ?pays "")
                            (adjacent ?palm-up ?pays)
-                           (adjacent ?pays ?stateid-?x\(?x\)-left-boundary)))))
+                           (adjacent ?pays ?state-or-country-left-boundary)
+                           (adjacent ?state-or-country-right-boundary ?ds-left)))))
              :cxn-inventory *geoquery-lsfb-copy*)
 
-(def-fcg-cxn stateid-?x-cxn-30
-             ((?stateid-?x-unit
+(def-fcg-cxn const-?state-or-country-cxn\(?state-or-country\,?ds\,?pt\)
+             ((?const-unit
                (syn-cat np)
-               (sem-cat place)
-               (subunits (?stateid-?x\(?x\)-unit))
+               (subunits (?state-or-country-unit ?ds-unit ?pt-unit))
                (args ((scope ?e)
                       (target ?c)))
-               (boundaries ((left ?pays)
-                            (right ?stateid-?x\(?x\)-right-boundary))))
+               (boundaries ((left ?state-or-country-left-boundary)
+                            (right ?pt-unit))))
+              (?state-or-country-unit
+                (footprints (const)))
               <-
-              (?stateid-?x\(?x\)-unit
-               (sem-cat place)
-               (args ((target ?g)))
+              (?state-or-country-unit
+               (sem-cat (identified-category state-or-country))
+               (args ((scope ?f)))
+               (footprints (not const))
                --
+               (footprints (not const))
                (syn-cat noun)
-               (boundaries ((left ?stateid-?x\(?x\)-left-boundary)
-                            (right ?stateid-?x\(?x\)-right-boundary))))
-              (?stateid-?x-unit
-               (HASH meaning ((const ?e ?c ?f)
-                              (stateid ?f ?g)))
+               (boundaries ((left ?state-or-country-left-boundary)
+                            (right ?state-or-country-right-boundary))))
+              (?ds-unit
                --
-               (HASH form ((two-hand-articulation ?pays "")
-                           (adjacent ?pays ?stateid-?x\(?x\)-left-boundary)))))
+               (syn-cat depicting-sign)
+               (boundaries ((left ?ds-left)
+                            (right ?ds-right))))
+               (?pt-unit
+               --
+               (syn-cat pointing-sign))
+              (?const-unit
+               (HASH meaning ((const ?e ?c ?f)))
+               --
+               (HASH form ((adjacent ?state-or-country-right-boundary ?ds-left)
+                           (adjacent ?ds-right ?pt-unit)))))
              :cxn-inventory *geoquery-lsfb-copy*)
 
-(def-fcg-cxn stateid-?x-cxn-31
-             ((?stateid-?x-unit
-               (syn-cat np)
-               (sem-cat place)
-               (subunits (?stateid-?x\(?x\)-unit))
-               (args ((scope ?e)
-                      (target ?c)))
-               (boundaries ((left ?il-y-a)
-                            (right ?stateid-?x\(?x\)-right-boundary))))
-              <-
-              (?stateid-?x\(?x\)-unit
-               (sem-cat place)
-               (args ((target ?g)))
-               --
-               (syn-cat noun)
-               (boundaries ((left ?stateid-?x\(?x\)-left-boundary)
-                            (right ?stateid-?x\(?x\)-right-boundary))))
-              (?stateid-?x-unit
-               (HASH meaning ((const ?e ?c ?f)
-                              (stateid ?f ?g)))
-               --
-               (HASH form ((right-hand-articulation ?il-y-a "")
-                           (right-hand-articulation ?pt-state-1 "")
-                           (two-hand-articulation ?pays "")
-                           (two-hand-articulation ?nom "")
-                           (right-hand-articulation ?ds-state-1 "")
-                           (right-hand-articulation ?pt-state-2 "")
-                           (left-hand-articulation ?ds-state-2 "")
-                           (adjacent ?il-y-a ?pt-state-1)
-                           (adjacent ?pt-state-1 ?pays)
-                           (adjacent ?pays ?nom)
-                           (adjacent ?nom ?stateid-?x\(?x\)-left-boundary)
-                           (adjacent ?stateid-?x\(?x\)-right-boundary ?ds-state-1)
-                           (adjacent ?ds-state-1 ?pt-state-2)
-                           (during ?ds-state-1 ?ds-state-2)
-                           (during ?pt-state-2 ?ds-state-2)))))
-             :cxn-inventory *geoquery-lsfb-copy*)
-
-(def-fcg-cxn stateid-?x-cxn-32
-             ((?stateid-?x-unit
-               (syn-cat np)
-               (sem-cat place)
-               (subunits (?stateid-?x\(?x\)-unit))
-               (args ((scope ?e)
-                      (target ?c)))
-               (boundaries ((left ?il-y-a)
-                            (right ?pt-state-2))))
-              <-
-              (?stateid-?x\(?x\)-unit
-               (sem-cat place)
-               (args ((target ?g)))
-               --
-               (syn-cat noun)
-               (boundaries ((left ?stateid-?x\(?x\)-left-boundary)
-                            (right ?stateid-?x\(?x\)-right-boundary))))
-              (?stateid-?x-unit
-               (HASH meaning ((const ?e ?c ?f)
-                              (stateid ?f ?g)))
-               --
-               (HASH form ((right-hand-articulation ?il-y-a "")
-                           (two-hand-articulation ?different "")
-                           (two-hand-articulation ?pays "")
-                           (right-hand-articulation ?ds-state-1 "")
-                           (left-hand-articulation ?ds-state-2 "")
-                           (right-hand-articulation ?un "")
-                           (right-hand-articulation ?pt-state-1 "")
-                           (right-hand-articulation ?pt-state-2 "")
-                           (adjacent ?il-y-a ?different)
-                           (adjacent ?different ?pays)
-                           (adjacent ?pays ?ds-state-1)
-                           (adjacent ?ds-state-1 ?un)
-                           (adjacent ?un ?pt-state-1)
-                           (adjacent ?pt-state-1 ?stateid-?x\(?x\)-left-boundary)
-                           (adjacent ?stateid-?x\(?x\)-right-boundary ?pt-state-2)
-                           (during ?ds-state-1 ?ds-state-2)
-                           (during ?un ?ds-state-2)))))
-             :cxn-inventory *geoquery-lsfb-copy*)
-
-
-(def-fcg-cxn stateid-?x-cxn-33
-             ((?stateid-?x-unit
-               (syn-cat np)
-               (sem-cat place)
-               (subunits (?stateid-?x\(?x\)-unit))
-               (args ((scope ?e)
-                      (target ?c)))
-               (boundaries ((left ?dans)
-                            (right ?stateid-?x\(?x\)-right-boundary))))
-              <-
-              (?stateid-?x\(?x\)-unit
-               (sem-cat place)
-               (args ((target ?g)))
-               --
-               (syn-cat noun)
-               (boundaries ((left ?stateid-?x\(?x\)-left-boundary)
-                            (right ?stateid-?x\(?x\)-right-boundary))))
-              (?stateid-?x-unit
-               (HASH meaning ((const ?e ?c ?f)
-                              (stateid ?f ?g)))
-               --
-               (HASH form ((two-hand-articulation ?dans "")
-                           (right-hand-articulation ?pt-state "")
-                           (adjacent ?dans ?pt-state)
-                           (adjacent ?pt-state ?stateid-?x\(?x\)-left-boundary)))))
-             :cxn-inventory *geoquery-lsfb-copy*)
-
-|#
