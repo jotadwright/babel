@@ -72,14 +72,21 @@
                    :type "jsonl")))
 
 
-(defun determine-additional-categories (state-name)
+(defun determine-additional-categories (name &key (type 'state))
   (let ((additional-categories '()))
-    (loop for city in *geoquery-cities*
+    (unless (eql type 'city)
+      (loop for city in *geoquery-cities*
           for city-name = (replace-spaces (cdr (assoc :name city)) :replacer "_")
-          when (string= state-name city-name)
-            do (push 'city additional-categories))
-    (loop for river in *geoquery-rivers*
-          for river-name = (replace-spaces (cdr (assoc :name river)) :replacer "_")
-          when (string= state-name river-name)
-            do (push 'river additional-categories))
+          when (string= name city-name)
+            do (push 'city additional-categories)))
+    (unless (eql type 'river)
+      (loop for river in *geoquery-rivers*
+            for river-name = (replace-spaces (cdr (assoc :name river)) :replacer "_")
+            when (string= name river-name)
+              do (push 'river additional-categories)))
+    (unless (eql type 'state)
+      (loop for state in *geoquery-states*
+            for state-name = (replace-spaces (cdr (assoc :name state)) :replacer "_")
+            when (string= name state-name)
+              do (push 'state additional-categories)))
     additional-categories))

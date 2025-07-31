@@ -15,6 +15,37 @@
                            (during ?pt ?landmark)))))
              :cxn-inventory *geoquery-lsfb-copy*)
 
+
+(def-fcg-cxn ds-cxn\(landmark-hand\,pt-left\)
+             ((?ds-unit
+               (boundaries ((left ?pt)
+                            (right ?pt)))
+               (footprints (ds)))
+              <-
+              (?ds-unit
+               (syn-cat depicting-sign)
+               (footprints (not ds))
+               --
+               (HASH form ((right-hand-articulation ?pt "")
+                           (left-hand-articulation ?landmark "")
+                           (during ?pt ?landmark)))))
+             :cxn-inventory *geoquery-lsfb-copy*)
+
+(def-fcg-cxn ds-cxn\(landmark-pt\,pt-multiple\)
+             ((?ds-unit
+               (boundaries ((left ?pt)
+                            (right ?pt)))
+               (footprints (ds)))
+              <-
+              (?ds-unit
+               (syn-cat depicting-sign)
+               (footprints (not ds))
+               --
+               (HASH form ((right-hand-articulation ?pt "")
+                           (left-hand-articulation ?landmark "")
+                           (during ?pt ?landmark)))))
+             :cxn-inventory *geoquery-lsfb-copy*)
+
 (def-fcg-cxn ds-cxn\(landmark-out\,pt-flat-sweep\)
              ((?ds-unit
                (boundaries ((left ?pt)
@@ -258,22 +289,7 @@
                            (during ?placement ?landmark)))))
              :cxn-inventory *geoquery-lsfb-copy*)
 
-(def-fcg-cxn ds-cxn\(landmark-bent\,pt\)
-             ((?ds-unit
-               (boundaries ((left ?pt)
-                            (right ?pt)))
-               (footprints (ds)))
-              <-
-              (?ds-unit
-               (syn-cat depicting-sign)
-               (footprints (not ds))
-               --
-               (HASH form ((right-hand-articulation ?pt "")
-                           (left-hand-articulation ?landmark "")
-                           (during ?pt ?landmark)))))
-             :cxn-inventory *geoquery-lsfb-copy*)
-
-(def-fcg-cxn ds-cxn\(landmark\,pt-flat-sweep\)
+(def-fcg-cxn ds-cxn\(landmark-B\,pt-flat-sweep\)
              ((?ds-unit
                (boundaries ((left ?pt)
                             (right ?pt)))

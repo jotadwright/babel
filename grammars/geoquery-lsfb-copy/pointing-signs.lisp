@@ -11,6 +11,17 @@
                (HASH form ((right-hand-articulation ?pt-unit "")))))
              :cxn-inventory *geoquery-lsfb-copy*)
 
+(def-fcg-cxn pt-cxn\(index\,down\,out\,movement\)
+             ((?pt-unit
+               (footprints (pt)))
+              <-
+              (?pt-unit
+               (syn-cat pointing-sign)
+               (footprints (not pt))
+               --
+               (HASH form ((right-hand-articulation ?pt-unit "")))))
+             :cxn-inventory *geoquery-lsfb-copy*)
+
 (def-fcg-cxn pt-cxn\(index\,out\,multiple-movement\)
              ((?pt-unit
                (footprints (pt)))
@@ -53,6 +64,17 @@
                (footprints (not pt))
                --
                (HASH form ((right-hand-articulation ?pt-unit "")))))
+             :cxn-inventory *geoquery-lsfb-copy*)
+
+(def-fcg-cxn pt-cxn\(index\,out-left\,right-side\)
+             ((?pt-unit
+               (footprints (pt)))
+              <-
+              (?pt-unit
+               (syn-cat pointing-sign)
+               (footprints (not pt))
+               --
+               (HASH form ((right-hand-articulation ?pt-unit "")))))
              :cxn-inventory *geoquery-lsfb-copy*)
 
 (def-fcg-cxn pt-cxn\(index\,left\,multiple-movement\)
@@ -134,6 +156,17 @@
                (footprints (not pt))
                --
                (HASH form ((right-hand-articulation ?pt-unit "")))))
+             :cxn-inventory *geoquery-lsfb-copy*)
+
+(def-fcg-cxn pt-cxn\(index\,out\,movement-down-long\)
+             ((?pt-unit
+               (footprints (pt)))
+              <-
+              (?pt-unit
+               (syn-cat pointing-sign)
+               (footprints (not pt))
+               --
+               (HASH form ((right-hand-articulation ?pt-unit "")))))
              :cxn-inventory *geoquery-lsfb-copy*)
 
 (def-fcg-cxn pt-cxn\(index\,out\,movement-out\)

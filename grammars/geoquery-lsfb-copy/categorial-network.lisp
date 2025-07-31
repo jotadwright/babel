@@ -3,10 +3,15 @@
 (let ((categorial-network (categorial-network *geoquery-lsfb-copy*)))
   (add-categories
    '(state-or-country
+     state-country-or-city
+     city
      country
      state)
    categorial-network)
   (add-link 'state-or-country 'country categorial-network)
+  (add-link 'state-country-or-city 'country categorial-network)
+  (add-link 'state-country-or-city 'state categorial-network)
+  (add-link 'state-country-or-city 'city categorial-network)
   (add-link 'state-or-country 'state categorial-network))
 
 

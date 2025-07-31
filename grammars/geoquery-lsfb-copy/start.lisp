@@ -10,7 +10,7 @@
 (deactivate-monitor trace-slp)
 
 (comprehend
- (get-example-form 779 *train-set*)
+ (get-example-form 728 *train-set*)
  :cxn-inventory *geoquery-lsfb-copy*)
 
 (defparameter *train-set*
@@ -83,8 +83,9 @@
 (test-coverage *test-set* *geoquery-lsfb*)
 (length (data  *test-set*))
 
-(pprint (get-example-meaning 1 *train-set*))
-(formulate '((const e c f) (countryid f g) (usa g))
+(formulate-all (get-example-meaning 175 *train-set*)
+               :cxn-inventory *geoquery-lsfb-copy*)
+(formulate '((const ?d ?b ?e) (cityid ?e ?f ?g) (spokane ?f) (wa ?g))
            :cxn-inventory *geoquery-lsfb-copy*)
 ((ANSWER ?C ?A ?D)
 
@@ -96,4 +97,7 @@
  (CITY ?E ?B)
  
  )
-(draw-irl-program (get-example-meaning 347 *train-set*) :format "pdf")
+(draw-irl-program (get-example-meaning 648 *train-set*) :format "pdf")
+
+
+(add-element (make-html *geoquery-lsfb-copy*))
