@@ -15,7 +15,7 @@
   :fcg-configurations ((:parse-goal-tests :no-applicable-cxns :connected-semantic-network :connected-structure)
                        (:production-goal-tests :no-applicable-cxns :no-meaning-in-root :connected-structure)
                        (:node-tests :check-duplicate :restrict-nr-of-nodes :restrict-search-depth)
-                       (:max-number-of-nodes . 300)
+                       (:max-number-of-nodes . 3000)
                        (:max-search-depth . 50)
                        (:render-mode . :signed-form-predicates)
                        (:de-render-mode . :signed-form-predicates)

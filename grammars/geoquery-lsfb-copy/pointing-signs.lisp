@@ -1,203 +1,311 @@
 (in-package :geoquery-lsfb-grammar-copy)
 
-(def-fcg-cxn pt-cxn\(index\,left\,out\)
+(def-fcg-cxn pt-cxn\(\)
              ((?pt-unit
                (footprints (pt)))
               <-
               (?pt-unit
                (syn-cat pointing-sign)
                (footprints (not pt))
+               (phonetic-components
+                (handshape )
+                (finger-orientation )
+                (palm-orientation )
+                (location )
+                (movement ))
                --
                (HASH form ((right-hand-articulation ?pt-unit "")))))
              :cxn-inventory *geoquery-lsfb-copy*)
 
-(def-fcg-cxn pt-cxn\(index\,down\,out\,movement\)
+(def-fcg-cxn pt-cxn\(\)
              ((?pt-unit
                (footprints (pt)))
               <-
               (?pt-unit
                (syn-cat pointing-sign)
                (footprints (not pt))
+               (phonetic-components
+                (handshape )
+                (finger-orientation )
+                (palm-orientation )
+                (location )
+                (movement ))
                --
                (HASH form ((right-hand-articulation ?pt-unit "")))))
              :cxn-inventory *geoquery-lsfb-copy*)
 
-(def-fcg-cxn pt-cxn\(index\,out\,multiple-movement\)
+(def-fcg-cxn pt-cxn\(\)
              ((?pt-unit
                (footprints (pt)))
               <-
               (?pt-unit
                (syn-cat pointing-sign)
                (footprints (not pt))
+               (phonetic-components
+                (handshape )
+                (finger-orientation )
+                (palm-orientation )
+                (location )
+                (movement ))
                --
                (HASH form ((right-hand-articulation ?pt-unit "")))))
              :cxn-inventory *geoquery-lsfb-copy*)
 
-(def-fcg-cxn pt-cxn\(index\,out\,movement-out-long\)
+(def-fcg-cxn pt-cxn\(\)
              ((?pt-unit
                (footprints (pt)))
               <-
               (?pt-unit
                (syn-cat pointing-sign)
                (footprints (not pt))
+               (phonetic-components
+                (handshape )
+                (finger-orientation )
+                (palm-orientation )
+                (location )
+                (movement ))
                --
                (HASH form ((right-hand-articulation ?pt-unit "")))))
              :cxn-inventory *geoquery-lsfb-copy*)
 
-(def-fcg-cxn pt-cxn\(index\,out\)
+(def-fcg-cxn pt-cxn\(\)
              ((?pt-unit
                (footprints (pt)))
               <-
               (?pt-unit
                (syn-cat pointing-sign)
                (footprints (not pt))
+               (phonetic-components
+                (handshape )
+                (finger-orientation )
+                (palm-orientation )
+                (location )
+                (movement ))
                --
                (HASH form ((right-hand-articulation ?pt-unit "")))))
              :cxn-inventory *geoquery-lsfb-copy*)
 
-(def-fcg-cxn pt-cxn\(index\,out-left\)
+(def-fcg-cxn pt-cxn\(\)
              ((?pt-unit
                (footprints (pt)))
               <-
               (?pt-unit
                (syn-cat pointing-sign)
                (footprints (not pt))
+               (phonetic-components
+                (handshape )
+                (finger-orientation )
+                (palm-orientation )
+                (location )
+                (movement ))
                --
                (HASH form ((right-hand-articulation ?pt-unit "")))))
              :cxn-inventory *geoquery-lsfb-copy*)
 
-(def-fcg-cxn pt-cxn\(index\,out-left\,right-side\)
+(def-fcg-cxn pt-cxn\(\)
              ((?pt-unit
                (footprints (pt)))
               <-
               (?pt-unit
                (syn-cat pointing-sign)
                (footprints (not pt))
+               (phonetic-components
+                (handshape )
+                (finger-orientation )
+                (palm-orientation )
+                (location )
+                (movement ))
                --
                (HASH form ((right-hand-articulation ?pt-unit "")))))
              :cxn-inventory *geoquery-lsfb-copy*)
 
-(def-fcg-cxn pt-cxn\(index\,left\,multiple-movement\)
+(def-fcg-cxn pt-cxn\(\)
              ((?pt-unit
                (footprints (pt)))
               <-
               (?pt-unit
                (syn-cat pointing-sign)
                (footprints (not pt))
+               (phonetic-components
+                (handshape )
+                (finger-orientation )
+                (palm-orientation )
+                (location )
+                (movement ))
                --
                (HASH form ((right-hand-articulation ?pt-unit "")))))
              :cxn-inventory *geoquery-lsfb-copy*)
 
 
-(def-fcg-cxn pt-cxn\(index\,left\,out\,movement\)
+(def-fcg-cxn pt-cxn\(\)
              ((?pt-unit
                (footprints (pt)))
               <-
               (?pt-unit
                (syn-cat pointing-sign)
                (footprints (not pt))
+               (phonetic-components
+                (handshape )
+                (finger-orientation )
+                (palm-orientation )
+                (location )
+                (movement ))
                --
                (HASH form ((right-hand-articulation ?pt-unit "")))))
              :cxn-inventory *geoquery-lsfb-copy*)
 
 
-(def-fcg-cxn pt-cxn\(index-bent\,left\,out\,movement\)
+(def-fcg-cxn pt-cxn\(\)
              ((?pt-unit
                (footprints (pt)))
               <-
               (?pt-unit
                (syn-cat pointing-sign)
                (footprints (not pt))
+               (phonetic-components
+                (handshape )
+                (finger-orientation )
+                (palm-orientation )
+                (location )
+                (movement ))
                --
                (HASH form ((right-hand-articulation ?pt-unit "")))))
              :cxn-inventory *geoquery-lsfb-copy*)
 
 
-(def-fcg-cxn pt-cxn\(index\,out\,repeated-movement\)
+(def-fcg-cxn pt-cxn\(\)
              ((?pt-unit
                (footprints (pt)))
               <-
               (?pt-unit
                (syn-cat pointing-sign)
                (footprints (not pt))
+               (phonetic-components
+                (handshape )
+                (finger-orientation )
+                (palm-orientation )
+                (location )
+                (movement ))
                --
                (HASH form ((right-hand-articulation ?pt-unit "")))))
              :cxn-inventory *geoquery-lsfb-copy*)
 
-(def-fcg-cxn pt-cxn\(index\,out-left\,movement-multiple\)
+(def-fcg-cxn pt-cxn\(\)
              ((?pt-unit
                (footprints (pt)))
               <-
               (?pt-unit
                (syn-cat pointing-sign)
                (footprints (not pt))
+               (phonetic-components
+                (handshape )
+                (finger-orientation )
+                (palm-orientation )
+                (location )
+                (movement ))
                --
                (HASH form ((right-hand-articulation ?pt-unit "")))))
              :cxn-inventory *geoquery-lsfb-copy*)
 
-(def-fcg-cxn pt-cxn\(index\,out-left\,movement-out\)
+(def-fcg-cxn pt-cxn\(\)
              ((?pt-unit
                (footprints (pt)))
               <-
               (?pt-unit
                (syn-cat pointing-sign)
                (footprints (not pt))
+               (phonetic-components
+                (handshape )
+                (finger-orientation )
+                (palm-orientation )
+                (location )
+                (movement ))
                --
                (HASH form ((right-hand-articulation ?pt-unit "")))))
              :cxn-inventory *geoquery-lsfb-copy*)
 
 
-(def-fcg-cxn pt-cxn\(index\,out\,movement-down\)
+(def-fcg-cxn pt-cxn\(\)
              ((?pt-unit
                (footprints (pt)))
               <-
               (?pt-unit
                (syn-cat pointing-sign)
                (footprints (not pt))
+               (phonetic-components
+                (handshape )
+                (finger-orientation )
+                (palm-orientation )
+                (location )
+                (movement ))
                --
                (HASH form ((right-hand-articulation ?pt-unit "")))))
              :cxn-inventory *geoquery-lsfb-copy*)
 
-(def-fcg-cxn pt-cxn\(index\,out\,movement-down-long\)
+(def-fcg-cxn pt-cxn\(\)
              ((?pt-unit
                (footprints (pt)))
               <-
               (?pt-unit
                (syn-cat pointing-sign)
                (footprints (not pt))
+               (phonetic-components
+                (handshape )
+                (finger-orientation )
+                (palm-orientation )
+                (location )
+                (movement ))
                --
                (HASH form ((right-hand-articulation ?pt-unit "")))))
              :cxn-inventory *geoquery-lsfb-copy*)
 
-(def-fcg-cxn pt-cxn\(index\,out\,movement-out\)
+(def-fcg-cxn pt-cxn\(\)
              ((?pt-unit
                (footprints (pt)))
               <-
               (?pt-unit
                (syn-cat pointing-sign)
                (footprints (not pt))
+               (phonetic-components
+                (handshape )
+                (finger-orientation )
+                (palm-orientation )
+                (location )
+                (movement ))
                --
                (HASH form ((right-hand-articulation ?pt-unit "")))))
              :cxn-inventory *geoquery-lsfb-copy*)
 
-(def-fcg-cxn pt-cxn\(index-bent\,out\,movement-out-multiple\)
+(def-fcg-cxn pt-cxn\(\)
              ((?pt-unit
                (footprints (pt)))
               <-
               (?pt-unit
                (syn-cat pointing-sign)
                (footprints (not pt))
+               (phonetic-components
+                (handshape )
+                (finger-orientation )
+                (palm-orientation )
+                (location )
+                (movement ))
                --
                (HASH form ((right-hand-articulation ?pt-unit "")))))
              :cxn-inventory *geoquery-lsfb-copy*)
 
-(def-fcg-cxn pt-cxn\(index\,out\,sweep\)
+(def-fcg-cxn pt-cxn\(\)
              ((?pt-unit
                (footprints (pt)))
               <-
               (?pt-unit
                (syn-cat pointing-sign)
                (footprints (not pt))
+               (phonetic-components
+                (handshape )
+                (finger-orientation )
+                (palm-orientation )
+                (location )
+                (movement ))
                --
                (HASH form ((right-hand-articulation ?pt-unit "")))))
              :cxn-inventory *geoquery-lsfb-copy*)

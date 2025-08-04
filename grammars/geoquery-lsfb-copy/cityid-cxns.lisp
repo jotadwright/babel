@@ -87,25 +87,23 @@
 
 (def-fcg-cxn cityid-cxn
              ((?city-unit
-               (sem-cat (identified-category city)
-                        (identified yes))
                (footprints (identified))
                (args ((source ?g)
                       (scope ?e))))
               <-
               (?city-unit
-               (sem-cat (possible-categories (city)))
                (args ((target ?f)))
                (HASH meaning ((cityid ?e ?f ?g)))
+               (sem-cat (identified-category city)
+                        (identified yes))
                --
-               (sem-cat (possible-categories (city)))
                (footprints (not identified))
                (syn-cat noun)))
              :cxn-inventory *geoquery-lsfb-copy*)
 
 ; city: 1
-; pt-1: 
-; pt-2: 
+; pt-1:  --> done
+; pt-2:  --> done
 (def-fcg-cxn const-?city-in-?state-cxn\(?pt\,pays\,nom\,?state\,dans\,il-y-a\,ville\,?city\,?pt\)
              ((?const-unit
                (syn-cat np)
@@ -121,6 +119,12 @@
               <-
               (?pt-unit-1
                --
+               (phonetic-components
+                (handshape )
+                (finger-orientation )
+                (palm-orientation )
+                (location )
+                (movement ))
                (syn-cat pointing-sign))
               (?state-unit
                (sem-cat (identified-category state)
@@ -147,6 +151,12 @@
                             (right ?city-right-boundary))))
               (?pt-unit-2
                --
+               (phonetic-components
+                (handshape )
+                (finger-orientation )
+                (palm-orientation )
+                (location )
+                (movement ))
                (syn-cat pointing-sign))
               (?const-unit
                (HASH meaning ((const ?d ?b ?e)))
@@ -166,6 +176,7 @@
                            (adjacent ?city-right-boundary ?pt-unit-2)))))
              :cxn-inventory *geoquery-lsfb-copy*)
 
+#|
 
 (def-fcg-cxn capital-?city-cxn\(capitale\,nom\,city\,pt\)
              ((?capital-unit
@@ -202,6 +213,8 @@
                            (adjacent ?city-right-boundary ?pt-unit)))))
              :cxn-inventory *geoquery-lsfb-copy*)
 
+|#
+
 ; city: 1
 (def-fcg-cxn capital-?city-cxn\(capitale\,nom\,city\)
              ((?capital-unit
@@ -235,8 +248,7 @@
              :cxn-inventory *geoquery-lsfb-copy*)
 
 ; city: 1
-; ds: _
-
+; ds: _ --> done
 
 (def-fcg-cxn capital-?city-cxn\(capitale\,nom\,city\,ds\)
              ((?capital-unit
@@ -261,6 +273,19 @@
                             (right ?city-right-boundary))))
               (?ds-unit
                --
+               (phonetic-components
+                (dominant-hand
+                 (handshape )
+                 (finger-orientation )
+                 (palm-orientation )
+                 (location )
+                 (movement ))
+                (non-dominant-hand
+                 (handshape )
+                 (finger-orientation )
+                 (palm-orientation )
+                 (location )
+                 (movement )))
                (syn-cat depicting-sign)
                (boundaries ((left ?ds-left)
                             (right ?ds-right))))
@@ -277,10 +302,10 @@
 
 
 ;city: 1
-;ds-1: _
-;ds-2: _
-;pt-1: 
-;pt-2: 
+;ds-1: _ --> done
+;ds-2: _ --> done
+;pt-1:  --> done
+;pt-2:  --> done
 
 (def-fcg-cxn capital-?city-cxn\(?usa\,?ds\,il-y-a\,different\,capitale\,?ds\,un\,?pt\,nom\,?city\,?pt\)
              ((?capital-unit
@@ -301,19 +326,57 @@
                             (right ?usa-right-boundary))))
               (?ds-unit-1
                --
+               (phonetic-components
+                (dominant-hand
+                 (handshape )
+                 (finger-orientation )
+                 (palm-orientation )
+                 (location )
+                 (movement ))
+                (non-dominant-hand
+                 (handshape )
+                 (finger-orientation )
+                 (palm-orientation )
+                 (location )
+                 (movement )))
                (syn-cat depicting-sign)
                (boundaries ((left ?ds-1-left)
                             (right ?ds-1-right))))
               (?ds-unit-2
                --
+               (phonetic-components
+                (dominant-hand
+                 (handshape )
+                 (finger-orientation )
+                 (palm-orientation )
+                 (location )
+                 (movement ))
+                (non-dominant-hand
+                 (handshape )
+                 (finger-orientation )
+                 (palm-orientation )
+                 (location )
+                 (movement )))
                (syn-cat depicting-sign)
                (boundaries ((left ?ds-2-left)
                             (right ?ds-2-right))))
               (?pt-unit-1
                --
+               (phonetic-components
+                (handshape )
+                (finger-orientation )
+                (palm-orientation )
+                (location )
+                (movement ))
                (syn-cat pointing-sign))
               (?pt-unit-2
                --
+               (phonetic-components
+                (handshape )
+                (finger-orientation )
+                (palm-orientation )
+                (location )
+                (movement ))
                (syn-cat pointing-sign))
               (?city-unit
                (sem-cat (identified-category city)
@@ -347,8 +410,8 @@
              :cxn-inventory *geoquery-lsfb-copy*)
 
 ;city: 1
-;pt-1: 
-;pt-2: 
+;pt-1:  --> done
+;pt-2:  --> done
 
 (def-fcg-cxn const-?city-cxn\(il-y-a\,different\,ville\,un\,?pt\,nom\,?city\,?pt\)
              ((?const-unit
@@ -363,6 +426,12 @@
               <-
               (?pt-unit-1
                --
+               (phonetic-components
+                (handshape )
+                (finger-orientation )
+                (palm-orientation )
+                (location )
+                (movement ))
                (syn-cat pointing-sign))
               (?city-unit
                (sem-cat (identified-category city)
@@ -377,6 +446,12 @@
                             (right ?city-right-boundary))))
               (?pt-unit-2
                --
+               (phonetic-components
+                (handshape )
+                (finger-orientation )
+                (palm-orientation )
+                (location )
+                (movement ))
                (syn-cat pointing-sign))
               (?const-unit
                (HASH meaning ((const ?d ?b ?e)))
@@ -412,6 +487,12 @@
               <-
               (?pt-unit-1
                --
+               (phonetic-components
+                (handshape )
+                (finger-orientation )
+                (palm-orientation )
+                (location )
+                (movement ))
                (syn-cat pointing-sign))
               (?city-unit
                (sem-cat (identified-category city)
@@ -426,6 +507,12 @@
                             (right ?city-right-boundary))))
               (?pt-unit-2
                --
+               (phonetic-components
+                (handshape )
+                (finger-orientation )
+                (palm-orientation )
+                (location )
+                (movement ))
                (syn-cat pointing-sign))
               (?const-unit
                (HASH meaning ((const ?d ?b ?e)))

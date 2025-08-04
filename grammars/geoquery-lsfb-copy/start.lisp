@@ -10,7 +10,7 @@
 (deactivate-monitor trace-slp)
 
 (comprehend
- (get-example-form 728 *train-set*)
+ (get-example-form 870 *train-set*)
  :cxn-inventory *geoquery-lsfb-copy*)
 
 (defparameter *train-set*
@@ -83,7 +83,7 @@
 (test-coverage *test-set* *geoquery-lsfb*)
 (length (data  *test-set*))
 
-(formulate-all (get-example-meaning 175 *train-set*)
+(formulate-all (get-example-meaning 26 *train-set*)
                :cxn-inventory *geoquery-lsfb-copy*)
 (formulate '((const ?d ?b ?e) (cityid ?e ?f ?g) (spokane ?f) (wa ?g))
            :cxn-inventory *geoquery-lsfb-copy*)
@@ -101,3 +101,7 @@
 
 
 (add-element (make-html *geoquery-lsfb-copy*))
+
+
+""
+""
