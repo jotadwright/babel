@@ -1,4 +1,4 @@
-(in-package :geoquery-lsfb-grammar)
+(in-package :geoquery-lsfb-grammar-copy)
 
 (defun test-coverage (dataset grammar)
   (let ((comprehension-failed-list nil)

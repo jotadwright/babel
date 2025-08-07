@@ -1,4 +1,4 @@
-(in-package :geoquery-lsfb-grammar)
+(in-package :geoquery-lsfb-grammar-copy)
 
 (defun same-arguments (pred-1 pred-2)
   (when (and (eql (first pred-1)(first pred-2))
@@ -64,3 +64,29 @@
    (babel-pathname :directory '("systems" "sign-language-processing""sign-language-processing-requirements")
                    :name "cities"
                    :type "jsonl")))
+
+(defparameter *geoquery-rivers*
+  (jsonl->list-of-json-alists
+   (babel-pathname :directory '("systems" "sign-language-processing""sign-language-processing-requirements")
+                   :name "rivers"
+                   :type "jsonl")))
+
+
+(defun determine-additional-categories (name &key (type 'state))
+  (let ((additional-categories '()))
+    (unless (eql type 'city)
+      (loop for city in *geoquery-cities*
+          for city-name = (replace-spaces (cdr (assoc :name city)) :replacer "_")
+          when (string= name city-name)
+            do (push 'city additional-categories)))
+    (unless (eql type 'river)
+      (loop for river in *geoquery-rivers*
+            for river-name = (replace-spaces (cdr (assoc :name river)) :replacer "_")
+            when (string= name river-name)
+              do (push 'river additional-categories)))
+    (unless (eql type 'state)
+      (loop for state in *geoquery-states*
+            for state-name = (replace-spaces (cdr (assoc :name state)) :replacer "_")
+            when (string= name state-name)
+              do (push 'state additional-categories)))
+    additional-categories))
