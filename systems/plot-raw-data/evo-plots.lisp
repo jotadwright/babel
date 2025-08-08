@@ -41,7 +41,10 @@
         (error-bar-modes '(:filled)) ;; '(:lines :filled)
         (open t)
         (unicode t)
-        (key-box nil))
+        (key-box nil)
+        (fsize 10)
+        (show-legend t)
+        (show-labels t))
   "Takes the :raw-file-paths and generates one single merged evo-plot
 for them. An evo-plot is a line-plot that has number of games on the
 x-axis."
@@ -78,35 +81,35 @@ x-axis."
                         (nth i captions))))
     
     (plot-evo-data data-set
-                   :file-name plot-file-name
-                   :directory plot-directory
-                   :graphic-type graphic-type
-                   :key-location key-location
-                   :use-y-axis use-y-axis
-                   :y1-min y1-min
-                   :y1-max y1-max
-                   :y2-min y2-min
-                   :y2-max y2-max
-                   :caption captions
-                   :title title
-                   :logscale logscale
-                   :line-width line-width
-                   :colors colors
-                   :draw-y1-grid draw-y1-grid
-                   :draw-y2-grid draw-y2-grid
-                   :x-label x-label
-                   :y1-label y1-label
-                   :y2-label y2-label
-                   :grid-line-width grid-line-width
-                   :divide-indices-by divide-indices-by
-                   :error-bars error-bars
-                   :error-bar-modes error-bar-modes
-                   :average-mode average-mode
-                   :points points :fsize fsize
-                   :open open
-                   :unicode unicode
-                   :key-box key-box
-                   )))
+                 :file-name plot-file-name
+                 :directory plot-directory
+                 :graphic-type graphic-type
+                 :key-location (if show-legend key-location "off")
+                 :use-y-axis use-y-axis
+                 :y1-min y1-min
+                 :y1-max y1-max
+                 :y2-min y2-min
+                 :y2-max y2-max
+                 :caption captions
+                 :title title
+                 :logscale logscale
+                 :line-width line-width
+                 :colors colors
+                 :draw-y1-grid draw-y1-grid
+                 :draw-y2-grid draw-y2-grid
+                 :x-label (if show-labels x-label "")
+                 :y1-label (if show-labels y1-label "")
+                 :y2-label (if show-labels y2-label "")
+                 :grid-line-width grid-line-width
+                 :divide-indices-by divide-indices-by
+                 :error-bars error-bars
+                 :error-bar-modes error-bar-modes
+                 :average-mode average-mode
+                 :points points
+                 :fsize fsize
+                 :open open
+                 :unicode unicode
+                 :key-box key-box)))
 
 ;; ##################### evo-plot creation ######################
 

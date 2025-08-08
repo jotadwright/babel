@@ -43,6 +43,20 @@
                    evo-plot-keyword-args)))
   (format t "~%Graphs have been created."))
 
+(defun create-graph-for-multiple-strategies (experiment-names measure-names
+                                                         &rest evo-plot-keyword-args)
+  "Creates a plot of the evolutionary dynamics from a given experiment (using exported data)."
+  (format t "~%Creating graph for experiments ~a with measures ~a" experiment-names measure-names)
+  (let* ((raw-file-paths
+          (loop for measure-name in measure-names
+                nconc (loop for experiment-name in experiment-names
+                         collect `("experiments" "crs-conventionality" "raw-data" ,experiment-name ,measure-name))))) 
+    (apply #'raw-files->evo-plot
+           (append `(:raw-file-paths ,raw-file-paths
+                     :plot-directory ("experiments" "crs-conventionality" "plots" "multi-plots"))
+                   evo-plot-keyword-args)))
+  (format t "~%Graphs have been created."))
+
 (defun create-graph-for-batch (measure-names exp-top-dir datasplit exp-name &rest evo-plot-keyword-args)
   "Creates a plot of the evolutionary dynamics from a batch experiment (using exported data)."
   (format t "~%Creating graph for experiment batch ~a with measures ~a" exp-name measure-names)
@@ -223,7 +237,42 @@
                (notify series-finished series))
       (notify batch-finished (symbol-name (type-of experiment))))))
 
-    
+(defun create-standalone-legend (file-name directory captions
+                                &key (graphic-type "pdf") (fsize 10))
+  "Creates a separate file containing just the legend"
+  (with-open-stream (stream (monitors::pipe-to-gnuplot))
+    (format stream "set terminal ~A font '~A,~D'" graphic-type "Helvetica" fsize)
+    (format stream "~%set output '~A'"
+            (namestring (babel-pathname :directory directory
+                                      :name (format nil "~A-legend" file-name)
+                                      :type graphic-type)))
+    (format stream "~%set key horizontal center")
+    (format stream "~%plot ")
+    (loop for caption in captions
+          for i from 1
+          do (format stream "2 title '~A' with lines~A"
+                    caption
+                    (if (< i (length captions)) "," "")))
+    (format stream "~%exit~%")
+    (finish-output stream)))
+
+(defun create-standalone-labels (file-name directory x-label y1-label y2-label
+                                &key (graphic-type "pdf") (fsize 10))
+  "Creates a separate file containing just the axis labels"
+  (with-open-stream (stream (monitors::pipe-to-gnuplot))
+    (format stream "set terminal ~A font '~A,~D'" graphic-type "Helvetica" fsize)
+    (format stream "~%set output '~A'"
+            (namestring (babel-pathname :directory directory
+                                      :name (format nil "~A-labels" file-name)
+                                      :type graphic-type)))
+    (format stream "~%set xlabel '~A'" x-label)
+    (when y1-label
+      (format stream "~%set ylabel '~A'" y1-label))
+    (when y2-label
+      (format stream "~%set y2label '~A'" y2-label))
+    (format stream "~%plot 2")
+    (format stream "~%exit~%")
+    (finish-output stream)))
     
         
 
