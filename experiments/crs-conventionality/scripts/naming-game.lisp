@@ -11,7 +11,7 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;; Base experiments ;;;;;;;;;
+;;;; Base experiments (Fig. 1) ;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (run-experiments-sequentially 'naming-game-experiment
@@ -56,7 +56,7 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;; Noise experiments ;;;;;;;;
+;;;; Noise experiments (Fig. 3) ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (run-experiments-sequentially 'naming-game-experiment
@@ -171,9 +171,9 @@
                                     "export-construction-inventory-size"))
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;; Population turnover experiments ;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;; Population turnover experiments (Fig. 5) ;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 (run-experiments-sequentially 'naming-game-experiment
@@ -220,9 +220,9 @@
                                     "export-construction-inventory-size"))
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;; Learner agent experiments ;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;; Learner agent experiments (Fig. 7) ;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 (run-experiments-sequentially 'naming-game-experiment
@@ -272,9 +272,9 @@
                                     "export-construction-inventory-size-of-new-agents"))
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;; Vocabulary limit experiments ;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;; Vocabulary limit experiments (Fig. 9) ;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 (run-experiments-sequentially 'naming-game-experiment
