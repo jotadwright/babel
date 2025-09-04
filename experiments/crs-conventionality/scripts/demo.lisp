@@ -1,6 +1,6 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                                                        ;;
-;; Script for running a quick demo of the crs-conventionality experiments ;;
+;; Script for running a quick demo of the crs conventionality experiments ;;
 ;;                                                                        ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -28,18 +28,6 @@
                                           (:determine-interacting-agents-mode . :random-from-social-network)
                                           (:determine-scene-entities-mode . :random-subset-of-world)
                                           (:determine-topic-mode . :random-entity-from-scene))))
-
-; Evaluate one or more of the following expressions to adapt the *configuration* of the naming game
-
-;; Social network
-(set-configurations *configuration* '((:network-topology . :regular)
-                                      (:local-connectivity . 1)))
-
-
-;; Boltzmann partner selection
-(set-configurations *configuration* '((:determine-interacting-agents-mode . :boltzmann-partner-selection)
-                                      (:boltzmann-tau . -20)
-                                      (:neighbor-q-value-lr . 0.02)))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -115,18 +103,3 @@
              1 ;; nr-of-series
              :configuration *configuration*))
 
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Introducing a new agent into the population ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;; Introduce new agent that will always be selected as the listener 
-(progn
-  (introduce-new-agents *naming-game* :number-of-agents 1)
-  (set-configuration *naming-game* :determine-interacting-agents-mode :random-listener-from-younger-generation))
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Population Turnover/Replacement ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(replace-agents *naming-game* 0.5)
