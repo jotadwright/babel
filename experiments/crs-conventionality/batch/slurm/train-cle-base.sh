@@ -18,7 +18,6 @@ sbcl --dynamic-space-size $space --load $VSC_SCRATCH/babel/experiments/crs-conve
     exp-name $exp_name \
     nr-of-series $nr_of_series \
     nr-of-interactions $nr_of_interactions \
-    store-every-x-interactions $store_every_x_interactions \
     dataset $dataset \
     datasplit $datasplit \
     nr-of-entities-in-world $nr_of_entities_in_world \
@@ -32,4 +31,4 @@ sbcl --dynamic-space-size $space --load $VSC_SCRATCH/babel/experiments/crs-conve
     determine-scene-entities-mode $determine_scene_entities_mode \
     determine-topic-mode $determine_topic_mode \
     seed $seed \
-    exp-top-dir $exp_top_dir
+    exp-top-dir $exp_top_dir \
