@@ -50,15 +50,16 @@
   "Creates path for concept emergence experiments."
   (merge-pathnames
    (make-pathname :directory `(:relative
-                               "concept-emergence2" ;; ADAPT
-                               "split-by-entities"  ;; ADAPT
+                               "experiments"
+                               "crs-conventionality"
+                               "data"
                                ,dataset-name)
                   :name (format nil
                                 "~a-~a"
                                 dataset-name
                                 dataset-split)
                   :type "jsonl")
-   cl-user:*babel-corpora*))
+   cl-user::*babel-path*))
 
 (defun get-current-date ()
   (multiple-value-bind
