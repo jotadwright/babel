@@ -6,14 +6,6 @@
 ;;                                    ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-
-;; Remi told us not to do this BUT we want to explore this anyway... To be continued :)
-;; We will prove Remi wrong! 
-;; Update: 31/01/2025, we did it.
-
-;; We want to do conceptualisation and formulation at the same time since these are two processes that are integrated.
-;; If we conceptualise, we use information from the grammar (e.g. in concept learning we use entrenchment scores), also if we don't use constructional information in conceptualisation, it could be the case that you conceptualise something that you cannot formulate. 
-
 (defgeneric conceptualise-and-produce (speaker scene topic &key &allow-other-keys)
   (:documentation "Based on the topic and scene, the speaker produces an utterance."))
 
@@ -96,7 +88,7 @@
   (let* ((irl-program (extract-meanings (left-pole-structure (car-resulting-cfs (cipn-car node)))))
          (renamed-irl-program (loop for predicate in irl-program
                                     for last-var = (fourth predicate)
-                                    when (and last-var (not (eq (first predicate) 'bind))) ;; We don't want to check bind statements, get-base-name will also give a type error in SBCL.
+                                    when (and last-var (not (eq (first predicate) 'bind))) 
                                       do (when (equal (get-base-name last-var)  "SCENE")
                                            (setf (fourth predicate) 'crs-conventionality::?scene))
                                     collect predicate))
@@ -133,11 +125,11 @@
   
       (let* ((irl-program (extract-meanings (left-pole-structure (car-resulting-cfs (cipn-car node))))))
         (if (not (and (equal (length irl-program) 1)
-                      (equal (first (first irl-program)) 'bind))) ;; if length is equal to 1 and just a bind statement, the goal test can never succeed.
-          (when (equal (length irl-program) 3) ;; FOR NOW ONLY GO TO IRL WHEN ONLY 1 CXN APPLIED
+                      (equal (first (first irl-program)) 'bind)))
+          (when (equal (length irl-program) 3) 
             (let* ((renamed-irl-program (loop for predicate in irl-program
                                               for last-var = (fourth predicate)
-                                              when (and last-var (not (eq (first predicate) 'bind))) ;; We don't want to check bind statements, get-base-name will also give a type error in SBCL.
+                                              when (and last-var (not (eq (first predicate) 'bind))) ;
                                                 do (when (equal (get-base-name last-var)  "SCENE")
                                                      (setf (fourth predicate) 'crs-conventionality::?scene))
                                               collect predicate))

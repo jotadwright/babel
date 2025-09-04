@@ -1,15 +1,3 @@
-
-;; 03/02/2025: File created (Remi van Trijp)
-;; 05/02/2025: Changes made by Lara to fit with crs-conventionality experiments: 
-;;             - Producer and comprehender changed to speaker and hearer.
-;;             - Speaker and hearer changed to get-speaker and get-hearer.
-;;             - Value of population is an object and not a list.
-;; 24/02/2025: Changes made by Jamie:
-;;             - Made small word network rewiring undirected (remove/add old/new links from other agent).
-;;             - Removed some functions defined elsewhere.
-
-;; (ql:quickload :crs-conventionality)
-
 (in-package :crs-conventionality)
 
 ;;;;; This code supports experiments that want to investigate 

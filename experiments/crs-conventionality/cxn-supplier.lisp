@@ -1,7 +1,6 @@
 (in-package :fcg)
 
 
-;; First try cxns that are entrenched, later the one that have an entrenchment score of 0
 (defclass cxn-supplier-cascading-entrenchment (cxn-supplier-cxn-sets)
   ((current-level-cxns
     :initarg :current-level-cxns :accessor current-level-cxns

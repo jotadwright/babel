@@ -176,7 +176,6 @@
                    (cipn cip-node)
                    &key &allow-other-keys)
 
-  ;; BE CAREFUL!!!
   ;; This relies on the topic and scene that were set in the blackboard of the cxn-inventory during coherence check (conceptualise)
   
   (let* (;; copy cxn-inventory
@@ -231,7 +230,6 @@
                    (cipn cip-node)
                    &key &allow-other-keys)
 
-  ;; BE CAREFUL!!!
   ;; This relies on the topic and scene that were set in the blackboard of the cxn-inventory during coherence check (conceptualise)
   
   (let* (;; copy cxn-inventory

@@ -8,7 +8,7 @@
 
 
 ;; Alignment Strategies ;;
-;; Lateral inhibition: reward used utterance and punish all competitors in success, punish used utterance and adopt in failure. 
+;; Naming game conventional setting: lateral inhibition
 
 (defmethod align ((speaker crs-conventionality-agent) (hearer crs-conventionality-agent) (interaction crs-conventionality-interaction)
                   (mode (eql :lateral-inhibition)))
@@ -38,6 +38,15 @@
          (setf (attr-val applied-cxn-speaker :score)
                (calculate-decreased-score (learning-rate speaker) (attr-val applied-cxn-speaker :score))))
        (notify alignment-finished speaker hearer interaction)))))
+
+;; Naming game unconventional setting: no alignment
+
+(defmethod align ((speaker crs-conventionality-agent) (hearer crs-conventionality-agent) (interaction crs-conventionality-interaction)
+                  (mode (eql :no-alignment)))
+  "No alignment setting - scores not adjusted."
+  (notify alignment-finished speaker hearer interaction))
+
+;; Concept emergence game conventional setting: align entrenchment scores and shift concepts
 
 (defmethod align ((speaker crs-conventionality-agent) (hearer crs-conventionality-agent) (interaction crs-conventionality-interaction)
                   (mode (eql :concept-alignment)))
@@ -73,6 +82,8 @@
             (update-score-cxn applied-cxn-hearer -0.1)))
         (notify alignment-finished speaker hearer interaction)))))
 
+;; Concept emergence game unconventional setting: shift concepts but do not update scores
+
 (defmethod align ((speaker crs-conventionality-agent) (hearer crs-conventionality-agent) (interaction crs-conventionality-interaction)
                   (mode (eql :shift-no-update)))
   "Align grammar of speaker and hearer based on interaction."
@@ -93,22 +104,12 @@
           (shift applied-cxn-hearer (topic interaction) hearer)) ;; check if shift is on the right cxn 
         (notify alignment-finished speaker hearer interaction)))))
 
-;; Never change scores. 
-
-
-(defmethod align ((speaker crs-conventionality-agent) (hearer crs-conventionality-agent) (interaction crs-conventionality-interaction)
-                  (mode (eql :no-alignment)))
-  "No alignment setting - scores not adjusted."
-  (notify alignment-finished speaker hearer interaction))
-
-
 (defmethod find-competitors ((agent naming-game-agent))
   "Finds competitors in the cip"
   (loop for cxn in (constructions-list (grammar agent))
         when (and (eq (attr-val cxn :topic) (id (first (entities (topic agent)))))
                   (not (string= (attr-val cxn :form) (first (utterance agent)))))
           collect cxn))
-
 
 (defmethod punish-competitors ((agent concept-emergence-game-agent))
   "Finds competitors in the cip in conceptualisation. Competitors are nodes that have a positive discriminative power (just the similarity - best-other-similarity, no entrenchment score). So get all solution-nodes (these are the ones that had a positive discriminative power > checked in goal-test). From these solution-nodes, get rest of solution-nodes (the first is the concept that was uttered, this list is sorted on discriminative-power * entrenchment. Then, from these solution-nodes, get discriminative power that is stored in the node: (cdr (find-data node :discriminative-power)) and check that is it positive (only sanity check because goal test should have done this). These are all the candidates. Then punish based on the concept-similarity and inhibition score. "

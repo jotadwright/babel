@@ -1,6 +1,4 @@
 (in-package :fcg)
-;; ! SPECIALISES METHODS IN :fcg
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                               ;;
 ;;  Code implementing invention  ;;
@@ -45,7 +43,3 @@
       (push cxn consolidated-cxns)
     
       (values cxn fix))))
-
-
-
-;; set onotlogy to blackboard of primitive inventory

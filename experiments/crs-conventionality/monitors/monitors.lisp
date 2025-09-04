@@ -2,12 +2,12 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;                                  ;;
-;;  Defines the different monitors  ;;
+;;       Monitor definitions        ;;
 ;;                                  ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;; --------------------------------------
-;; + Logs information in output-browser +
+;; + Log information in output-browser +
 ;; --------------------------------------
 (defvar *start-time* nil)
 

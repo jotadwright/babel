@@ -1,3 +1,12 @@
+;; -------------------------------
+;; + HOW TO GENERATE A SEED BANK +
+;; -------------------------------
+
+;; execute the following three lines in LW or SBCL
+;; (ql:quickload :crs-conventionality)
+;; (in-package :crs-conventionality)
+;; (generate-seeds 100) ;; generates a seed bank of 100 seeds!
+
 (in-package :crs-conventionality)
 
 (defparameter *seed-path*
@@ -41,26 +50,4 @@
           do (setf (aref seeds i) seed))
     (cl-store:store seeds *seed-path*)))
 
-;; -------------------------------
-;; + HOW TO GENERATE A SEED BANK +
-;; -------------------------------
 
-;; execute the following three lines in LW or SBCL
-;; (ql:quickload :crs-conventionality)
-;; (in-package :crs-conventionality)
-;; (generate-seeds 100) ;; generates a seed bank of 100 seeds!
-
-
-;; --------
-;; + test +
-;; --------
-
-;; run the following code twice and compare if both runs give you the same list
-#|
-(progn
-  (set-seed 1)
-  (loop for i from 1 to 5
-        collect (random 100) into lst
-        finally (format t "~% ~a" lst))
-  )
-|#
