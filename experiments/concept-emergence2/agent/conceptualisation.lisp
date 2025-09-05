@@ -71,7 +71,7 @@
   """Calculates the maximim similarity between the given concept and all objects in the context."
   (loop named lazy-loop
         for object in context
-        for other-sim = (weighted-similarity agent object concept)
+        for other-sim = (concept-entity-similarity agent object concept)
         when (<= topic-sim other-sim)
           ;; lazy stopping
           do (return-from lazy-loop other-sim)
@@ -109,7 +109,7 @@
         ;; iterate
         for cxn being the hash-values of (get-inventory (lexicon agent) inventory-name)
         for concept = (meaning cxn)
-        for topic-sim = (weighted-similarity agent topic concept)
+        for topic-sim = (concept-entity-similarity agent topic concept)
         for best-other-sim = (calculate-max-similarity-in-context agent concept context topic-sim)
         for discriminative-power = (- topic-sim best-other-sim)
         ;; trash inventory -> the score is irrelevant (so set score to 1), otherwise use score

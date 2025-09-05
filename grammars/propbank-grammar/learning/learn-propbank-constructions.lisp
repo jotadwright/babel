@@ -108,7 +108,7 @@ have been annotated for the given gold-frame. "
   "Finds a lexical construction based on a v-unit."
   (let* ((lemma (feature-value (find 'lemma (unit-body v-unit) :key #'feature-name)))
          (syn-class (feature-value (find 'syn-class (unit-body v-unit) :key #'feature-name)))
-         (cxn-name (intern (upcase (format nil "~a~a-cxn" lemma syn-class)))))
+         (cxn-name (intern (upcase (format nil "~a~a-cxn" lemma syn-class)) :propbank-grammar)))
     (find-cxn cxn-name cxn-inventory :hash-key lemma :key #'name)))
 
 (defun add-lexical-cxn (gold-frame v-unit cxn-inventory propbank-sentence)
@@ -117,8 +117,9 @@ increments frequency of existing cxn. Also adds a new lexical category
 to the categorial network. Returns the lexical category."
   (let* ((lemma (feature-value (find 'lemma (unit-body v-unit) :key #'feature-name)))
          (syn-class (feature-value (find 'syn-class (unit-body v-unit) :key #'feature-name)))
-         (lex-category (intern (symbol-name (make-id (format nil "~a~a" (truncate-frame-name (frame-name gold-frame)) syn-class)))))
-         (cxn-name (intern (upcase (format nil "~a~a-cxn" lemma syn-class))))
+         (lex-category (intern (symbol-name (make-id (format nil "~a~a" (truncate-frame-name (frame-name gold-frame)) syn-class)))
+                               :propbank-grammar))
+         (cxn-name (intern (upcase (format nil "~a~a-cxn" lemma syn-class)) :propbank-grammar))
          (equivalent-cxn (find-cxn cxn-name cxn-inventory :hash-key lemma :key #'name)))
     (if equivalent-cxn
       ;; If cxn already exists: increment frequency
@@ -128,7 +129,7 @@ to the categorial network. Returns the lexical category."
       ;; Else make new cxn
       (when lemma
         (if (equalp syn-class '(vp))
-          (let ((lex-lemma (intern (subseq (symbol-name lemma) 0 (search "-" (symbol-name lemma))))))
+          (let ((lex-lemma (intern (subseq (symbol-name lemma) 0 (search "-" (symbol-name lemma))) :propbank-grammar)))
             (eval
              `(def-fcg-cxn ,cxn-name
                            ((?phrasal-unit
@@ -196,7 +197,7 @@ grammatical category."
                         return t))
          (contributing-unit (make-propbank-contributing-unit core-units-with-role gold-frame gram-category 'fee))
          (schema (make-cxn-schema core-units-with-role cxn-units-with-role :core-roles :passive? passive))
-         (cxn-name (intern (upcase (format nil "~a+~a-cxn" gram-category (length cxn-units-without-role)))))
+         (cxn-name (intern (upcase (format nil "~a+~a-cxn" gram-category (length cxn-units-without-role))) :propbank-grammar))
          (equivalent-cxn (find-equivalent-cxn schema
                                               (syn-classes (append cxn-units-with-role
                                                                    cxn-units-without-role))
@@ -255,12 +256,12 @@ increments frequency of existing cxn. Adds a new sense category to the
 categorial network and returns it."
   (let* ((lemma (or (feature-value (find 'lemma (unit-body v-unit) :key #'feature-name))
                     (feature-value (find 'string (unit-body v-unit) :key #'feature-name))))
-         (cxn-name (intern (upcase (format nil "~a(~a)-cxn" (frame-name gold-frame) lemma))))
+         (cxn-name (intern (upcase (format nil "~a(~a)-cxn" (frame-name gold-frame) lemma)) :propbank-grammar))
          
-         (equivalent-cxn (find-cxn cxn-name cxn-inventory :hash-key (if (stringp lemma) ;;WERKT NIET MEER!
-                                                                      (intern (upcase lemma))
+         (equivalent-cxn (find-cxn cxn-name cxn-inventory :hash-key (if (stringp lemma)
+                                                                      (intern (upcase lemma) :propbank-grammar)
                                                                       lemma) :key #'name))
-         (sense-category (intern (symbol-name (make-id (frame-name gold-frame))))))
+         (sense-category (intern (symbol-name (make-id (frame-name gold-frame))) :propbank-grammar)))
     
     (if equivalent-cxn
       
@@ -310,11 +311,11 @@ categorial network and returns it."
                              `((lemma ,lemma)))
                          (gram-category ,sense-category)
                          (lex-category ,sense-category)
-                         (frame ,(intern (upcase (frame-name gold-frame))))
+                         (frame ,(intern (upcase (frame-name gold-frame)) :propbank-grammar))
                          (footprints (NOT ws))))
                        :disable-automatic-footprints t
                        :attributes (:lemma ,(if (stringp lemma)
-                                              (intern (upcase lemma))
+                                              (intern (upcase lemma) :propbank-grammar)
                                               lemma)
                                     :sense-category ,sense-category
                                     :label word-sense-cxn
@@ -469,8 +470,8 @@ categorial network and returns it."
 (defun find-word-sense-cxn (gold-frame v-unit cxn-inventory)
   "Find a word sense construction."
   (let* ((lemma (or (feature-value (find 'lemma (unit-body v-unit) :key #'feature-name))
-                    (intern (upcase (feature-value (find 'string (unit-body v-unit) :key #'feature-name))))))
-         (cxn-name (intern (upcase (format nil "~a-cxn" (frame-name gold-frame))))))
+                    (intern (upcase (feature-value (find 'string (unit-body v-unit) :key #'feature-name))) :propbank-grammar)))
+         (cxn-name (intern (upcase (format nil "~a-cxn" (frame-name gold-frame))) :propbank-grammar)))
     (find-cxn cxn-name cxn-inventory :hash-key lemma :key #'name)))
 
 
@@ -522,7 +523,7 @@ categorial network and returns it."
          (contributing-unit (make-propbank-contributing-unit units-with-role gold-frame gram-category footprint :include-gram-category? nil))
          (cxn-units-without-role (make-propbank-conditional-units-without-role units-with-role cxn-units-with-role ts-unit-structure))
          
-         (cxn-name (intern (upcase (format nil "~a+~a-cxn" gram-category (length cxn-units-without-role)))))
+         (cxn-name (intern (upcase (format nil "~a+~a-cxn" gram-category (length cxn-units-without-role))) :propbank-grammar))
          (schema (make-cxn-schema units-with-role cxn-units-with-role :argm-pp :cxn-preposition-units (list cxn-preposition-units)))
          (equivalent-cxn (find-equivalent-cxn schema
                                               (syn-classes (append cxn-units-with-role
@@ -637,7 +638,7 @@ categorial network and returns it."
                                     else collect (make-propbank-conditional-unit-with-role unit gram-category footprint)))
          (contributing-unit (make-propbank-contributing-unit units-with-role gold-frame gram-category footprint :include-gram-category? nil))
          (cxn-units-without-role (make-propbank-conditional-units-without-role units-with-role cxn-units-with-role ts-unit-structure))
-         (cxn-name (intern (upcase (format nil "~a+~a-cxn" gram-category (length cxn-units-without-role)))))
+         (cxn-name (intern (upcase (format nil "~a+~a-cxn" gram-category (length cxn-units-without-role))) :propbank-grammar))
          (schema (make-cxn-schema units-with-role cxn-units-with-role :argm-sbar :cxn-s-bar-units (list cxn-sbar-unit)))
          (equivalent-cxn (find-equivalent-cxn schema
                                               (syn-classes (append cxn-units-with-role
@@ -645,7 +646,7 @@ categorial network and returns it."
                                                                    (list cxn-sbar-unit)))
                                               cxn-inventory
                                               :hash-key (if (stringp sbar-lemma)
-                                                          (intern (upcase sbar-lemma))
+                                                          (intern (upcase sbar-lemma) :propbank-grammar)
                                                           sbar-lemma))))
     (if equivalent-cxn
       
@@ -686,7 +687,7 @@ categorial network and returns it."
                               :disable-automatic-footprints t
                               :attributes (:schema ,schema
                                            :lemma ,(if (stringp sbar-lemma)
-                                                     (intern (upcase sbar-lemma))
+                                                     (intern (upcase sbar-lemma) :propbank-grammar)
                                                      sbar-lemma)
                                            :label argm-phrase-cxn
                                            :score 1
@@ -763,7 +764,7 @@ categorial network and returns it."
                                               (syn-classes (append cxn-units-with-role
                                                                    cxn-units-without-role))
                                               cxn-inventory
-                                              :hash-key (intern (upcase argm-string)))))
+                                              :hash-key (intern (upcase argm-string) :propbank-grammar))))
 
     (if equivalent-cxn
       
@@ -779,7 +780,7 @@ categorial network and returns it."
                              ,@cxn-units-without-role)
                             :disable-automatic-footprints t
                             :attributes (:schema ,schema
-                                         :lemma ,(intern (upcase argm-string))
+                                         :lemma ,(intern (upcase argm-string) :propbank-grammar)
                                          :score ,(length cxn-units-with-role)
                                          :label argm-leaf-cxn
                                          :score 1)

@@ -9,7 +9,7 @@
 ;; Activate Export Monitors
 (progn
   (activate-monitor print-a-dot-for-each-interaction+numbers)
-  (activate-monitor export-categorial-coherence)
+  ;;(activate-monitor export-categorial-coherence) => werkt niet meer: coherence van categorial network berekenen lijkt verloren gegaan
   (activate-monitor export-communicative-success)
   (activate-monitor export-nr-of-constructions)
   (activate-monitor export-nr-of-constructions+communicative-success)
@@ -32,32 +32,32 @@
 ;; Word order
 ;;##############################################################
 
-(setf *experiment*
-      (make-instance 'syntax-experiment
-                     :configuration '((:population-size . 10)
-                                      (:strategy .  :categorisation-strategy)
-                                      (:alignment . :type-hierarchy)
-                                      (:li-incf-weight . 0.2)
-                                      (:li-decf-weight . 0.1)
-                                      (:trace-every-nth-interaction . 50)
-                                      (:min-nr-of-objects-in-scene . 2)
-                                      (:max-nr-of-objects-in-scene . 64)
-                                      (:min-nr-of-objects-in-topic . 1)
-                                      (:max-nr-of-objects-in-topic . 2)
-                                      (:ontology . ((:shape ((square ."vierkant")
-                                                             (circle . "cirkel")
-                                                             (triangle . "driehoek")
-                                                             (rectangle . "rechthoek")
-                                                             ))
-                                                    (:color ((yellow . "geel")
-                                                             (red . "rood")
-                                                             (blue . "blauw")
-                                                             (green . "groen")
-                                                             ))
-                                                    (:size ((small . "klein")
-                                                            (large . "groot")
-                                                            (tiny . "minuscuul")
-                                                            (huge . "reusachtig"))))))))
+(setf *experiment* (make-instance 'syntax-experiment
+                                  :configuration (make-configuration :entries '((:population-size . 10)
+                                                                                (:strategy .  :categorisation-strategy)
+                                                                                (:alignment . :categorial-network)
+                                                                                (:li-incf-weight . 0.2)
+                                                                                (:li-decf-weight . 0.1)
+                                                                                (:trace-every-nth-interaction . 50)
+                                                                                (:min-nr-of-objects-in-scene . 2)
+                                                                                (:max-nr-of-objects-in-scene . 64)
+                                                                                (:min-nr-of-objects-in-topic . 1)
+                                                                                (:max-nr-of-objects-in-topic . 2)
+                                                                                (:ontology . ((:shape ((square ."vierkant")
+                                                                                                       (circle . "cirkel")
+                                                                                                       (triangle . "driehoek")
+                                                                                                       (rectangle . "rechthoek")
+                                                                                                       ))
+                                                                                              (:color ((yellow . "geel")
+                                                                                                       (red . "rood")
+                                                                                                       (blue . "blauw")
+                                                                                                       (green . "groen")
+                                                                                                       ))
+                                                                                              (:size ((small . "klein")
+                                                                                                      (large . "groot")
+                                                                                                      (tiny . "minuscuul")
+                                                                                                      (huge . "reusachtig")))))))))
+
 
 
 (run-interaction *experiment*)

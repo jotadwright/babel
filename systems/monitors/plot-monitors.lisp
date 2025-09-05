@@ -98,11 +98,11 @@
    (colors :documentation "A list of line colors to use for plotting" 
 	   :accessor colors :initform *great-gnuplot-colors*)
    (caption-font-size :documentation "The font size of the caption"
-                      :type integer :initarg :caption-font-size :initform nil :reader caption-font-size)
+                      :type integer :initarg :caption-font-size :initform 12 :reader caption-font-size)
    (axis-label-font-size :documentation "The font size of the x- and y-axis labels"
-                         :type integer :initarg :axis-label-font-size :initform nil :reader axis-label-font-size)
+                         :type integer :initarg :axis-label-font-size :initform 14 :reader axis-label-font-size)
    (tics-font-size :documentation "The font size of the tics"
-                   :type integer :initarg :tics-font-size :initform nil :reader tics-font-size)
+                   :type integer :initarg :tics-font-size :initform 12 :reader tics-font-size)
    (divide-indices-by :documentation "A constant by which the indices (x-values) are divided by."
 		      :accessor divide-indices-by :initform 1 :initarg :divide-indices-by))
   (:documentation "Generic class for plotting with gnuplot"))

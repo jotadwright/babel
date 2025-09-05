@@ -322,7 +322,7 @@ function collapseAll(id) {
              (bordeaux-threads:make-thread 
               #'(lambda ()
                   (with-open-file (stream path :direction :output 
-                                          :if-exists :supersede)
+                                          :if-exists :supersede :external-format :utf-8 :element-type 'cl:character)
                     (princ "<?xml version=\"1.0\" encoding=\"ISO-8859-1\"?>" stream)
                     (princ (render-xml element) stream)))))))
     (let ((element-id-string (string-downcase (mkstr element-id)))

@@ -414,7 +414,7 @@ solutions that match the gold standard and those that don't."
           do (when (and (eql (type-of cxn) 'filler-cxn)
                         (not (neighbouring-categories (attr-val cxn :cxn-cat) cxn-inventory)))
                (delete-cxn cxn cxn-inventory)
-               (remove-category (attr-val cxn :cxn-cat) cxn-inventory)
+               (remove-category (attr-val cxn :cxn-cat) cxn-inventory :recompute-transitive-closure nil)
                (push cxn deleted-cxns)
                (setf deleted-categories (append (list (attr-val cxn :cxn-cat)) deleted-categories)))
              (when (and (eql (type-of cxn) 'linking-cxn)
@@ -423,7 +423,7 @@ solutions that match the gold standard and those that don't."
                             (and (attr-val cxn :cxn-cat)
                                  (not (neighbouring-categories (attr-val cxn :cxn-cat) cxn-inventory)))))
                (delete-cxn cxn cxn-inventory)
-               (remove-categories (cons (attr-val cxn :cxn-cat) (attr-val cxn :slot-cats)) cxn-inventory)
+               (remove-categories (cons (attr-val cxn :cxn-cat) (attr-val cxn :slot-cats)) cxn-inventory :recompute-transitive-closure nil)
                (push cxn deleted-cxns)
                (setf deleted-categories (append (cons (attr-val cxn :cxn-cat) (attr-val cxn :slot-cats)) deleted-categories))))
 
