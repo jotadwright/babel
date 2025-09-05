@@ -128,25 +128,6 @@
                               :if-does-not-exist :create)
                (write-sequence (format nil "~a" merged-data) file)))))
 
-(defun restore-and-run-new-config (path new-configs &key
-                                   (number-of-interactions 1000)
-                                   (number-of-series 1)
-                                   (monitors (list "log-every-x-interactions-in-output-browser"
-                                                   "export-communicative-success"
-                                                   "export-conventionalisation"
-                                                   "export-construction-inventory-size")))
-  (let ((experiment (restore-experiment path)))
-         
-    (set-configurations experiment new-configs)
-    (let ((config (loop for k being the hash-key in (configuration experiment) using (hash-value v)
-                       collect (cons k v))))
-      (set-up-monitors monitors config)
-      
-      (loop for series from 1 to number-of-series
-            do (run-series experiment (+ 1 number-of-interactions))
-               (notify series-finished series))
-      (notify batch-finished (symbol-name (type-of experiment))))))
-
 (defun create-standalone-legend (file-name directory captions
                                 &key (graphic-type "pdf") (fsize 10))
   "Creates a separate file containing just the legend"
