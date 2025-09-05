@@ -1,3 +1,0 @@
-id,exp_name,nr_of_series,nr_of_interactions,dataset,datasplit,nr_of_entities_in_world,nr_of_agents_in_population,nr_of_entities_in_scene,alignment_strategy,learning_strategy,learning_rate,neighbor_q_value_lr,determine_interacting_agents_mode,determine_scene_entities_mode,determine_topic_mode,introduce_new_agents_after_interaction,nr_of_agents_to_introduce
-1,cle-introduce-agents-1-alignment,1,500000,"winery","train",3988,10,5,:concept-alignment,:default,0.5,0.01,:random-from-social-network,:random-subset-of-world,:random-entity-from-scene,250000,1
-2,cle-introduce-agents-1-shift-no-update,1,500000,"winery","train",3988,10,5,:shift-no-update,:default,0.5,0.01,:random-from-social-network,:random-subset-of-world,:random-entity-from-scene,250000,1
