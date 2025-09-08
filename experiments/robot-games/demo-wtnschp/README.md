@@ -1,1 +1,0 @@
-# Demo with the Nao robot for the Science Festival
