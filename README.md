@@ -1,3 +1,6 @@
+To access the code for the paper *Linguistic Conventionality Benefits the Robustness, Learnability and Cognitive Efficiency of Emergent Languages*, please navigate to `experiments/crs-conventionality`.
+
+
 # Babel
 
 _The all-in-one toolkit for multi-agent experiments on emergent communication!_
